@@ -1,0 +1,56 @@
+{% if question %}
+<div class="mb-6">
+    <p class="font-semibold mb-4 text-base md:text-lg">
+        Q{{ question_number }}. {{ question.question_en }}
+    </p>
+    <div class="space-y-3">
+        {% for option in question.options.all %}
+        <label class="block border p-4 rounded cursor-pointer hover:bg-gray-100 text-sm md:text-base">
+            <input type="radio" name="question_{{ question.id }}" value="{{ option.id }}" class="mr-3 scale-110"
+                onchange="saveAnswer({{ question.id }}, {{ option.id }})">
+            {{ option.text_en }}
+        </label>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="mt-auto grid grid-cols-2 md:flex gap-3">
+    {% if question_number > 1 %}
+    <button onclick="loadQuestion({{ question_number|add:-1 }})"
+        class="text-center px-4 py-3 bg-gray-300 rounded font-semibold">
+        Previous
+    </button>
+    {% endif %}
+
+    {% if question_number < total_questions %} <button onclick="loadQuestion({{ question_number|add:1 }})"
+        class="text-center px-4 py-3 bg-green-500 text-white rounded font-semibold">
+        Save & Next
+        </button>
+        {% endif %}
+
+        <button type="reset" class="px-4 py-3 bg-red-500 text-white rounded font-semibold">
+            Clear
+        </button>
+
+        <button type="submit" class="px-4 py-3 bg-blue-600 text-white rounded font-semibold col-span-2 md:col-span-1">
+            Submit
+        </button>
+</div>
+{% else %}
+<p>No question found.</p>
+{% endif %}
+
+
+<script>
+    function saveAnswer(questionId, optionId) {
+        fetch("/save-answer/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ question_id: questionId, answer: optionId })
+        });
+    }
+
+</script>

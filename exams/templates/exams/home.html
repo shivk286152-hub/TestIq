@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home | {{ site_name }}{% endblock %}
+
+{% block content %}
+
+
+
+<!-- HERO SECTION -->
+<section class="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-2 gap-8 items-center">
+    <div>
+        <h1 class="text-3xl font-bold mb-4">{{ hero_title }}</h1>
+        <p class="text-gray-600 mb-6">{{ hero_desc }}</p>
+    </div>
+
+    <div class="flex justify-center">
+        <img src="{% static 'images/hero.jpg' %}"
+             alt="Hero Image"
+             class="rounded-lg shadow-lg w-full max-w-sm">
+    </div>
+</section>
+
+<!-- CATEGORY SLIDER -->
+<section class="bg-white py-10">
+    <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-2xl font-semibold mb-6">Categories</h2>
+
+        <div class="flex gap-6 overflow-x-auto pb-4">
+            {% for cat in categories %}
+            <div class="min-w-[220px] bg-gray-100 rounded-lg p-4 text-center shadow">
+
+                {% if cat.logo %}
+                    <img src="{{ cat.logo.url }}"
+                         class="w-16 h-16 mx-auto mb-3"
+                         alt="{{ cat.name }}">
+                {% else %}
+                    <div class="w-16 h-16 bg-gray-300 rounded mx-auto mb-3"></div>
+                {% endif %}
+
+                <h3 class="font-semibold mb-3">{{ cat.name }}</h3>
+
+                <a href="{% url 'exams:category_detail' cat.slug %}"
+                   class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Start Test
+                </a>
+            </div>
+            {% empty %}
+                <p class="text-gray-500">No categories found</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- MOCK TEST (ONLY IF LOGGED IN) -->
+{% if user.is_authenticated %}
+<section class="max-w-7xl mx-auto px-4 py-10 ">
+    <h2 class="text-2xl font-semibold mb-6">New Mock Tests</h2>
+
+    <div class="space-y-4 ">
+        {% for test in mock_tests %}
+        <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+            <div class="font-medium">{{ test.title }}</div>
+            <a href="{% url 'exams:start_test' test.id %}"
+               class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Start
+            </a>
+        </div>
+        {% empty %}
+            <p class="text-gray-500">No tests available</p>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- ABOUT -->
+<section class="bg-stone-900 py-12">
+    <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8">
+
+        <div>
+            <h3 class="text-xl text-gray-100 font-semibold mb-4">About Us</h3>
+            <p class="text-gray-50 leading-relaxed">
+                We provide high-quality mock tests and exam preparation tools
+                to help students crack competitive exams efficiently.
+            </p>
+        </div>
+
+        <div>
+            <h3 class="text-xl text-gray-100 font-semibold mb-4">All Categories</h3>
+            <ul class="list-disc text-blue-500 pl-6 space-y-1">
+                {% for cat in categories %}
+                   <a href="{% url 'exams:category_detail' cat.slug %}"> <li>{{ cat.name }}</li></a>
+                 {% endfor %}
+            </ul>
+        </div>
+
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-gray-800 text-white text-center py-4 mt-10">
+    © {{ site_name }} {% now "Y" %}. All rights reserved.
+</footer>
+
+{% endblock %}

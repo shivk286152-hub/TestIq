@@ -1,0 +1,94 @@
+/* Page background */
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: absolute;
+  justify-content: center;
+  align-items: center;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Login card */
+.login-container {
+  background: #ffffff;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 350px;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  /* height: 60vh; */
+}
+
+/* Heading */
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+/* Labels */
+.login-container label {
+  font-weight: 600;
+  color: #555;
+}
+
+/* Inputs */
+.login-container input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 1rem;
+  font-family:Arial, Helvetica, sans-serif;
+  transition: border-color 0.2s;
+}
+
+.login-container input:focus {
+  border-color: #667eea;
+}
+
+/* Button */
+.login-container button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 1rem;
+  background: #667eea;
+  color: white;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.login-container button:hover {
+  background: #5a67d8;
+}
+
+/* Register text */
+.login-container p {
+  text-align: center;
+  margin-top: 1rem;
+  color: #555;
+}
+
+.login-container a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-container a:hover {
+  text-decoration: underline;
+}
+
+/* Error messages */
+.login-container .error {
+  color: #e53e3e;
+  text-align: center;
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+}
+

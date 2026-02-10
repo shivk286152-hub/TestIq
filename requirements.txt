@@ -1,0 +1,8 @@
+asgiref==3.11.0
+Django==6.0.1
+gunicorn==25.0.3
+packaging==26.0
+pillow==12.1.0
+psycopg2-binary==2.9.11
+sqlparse==0.5.5
+whitenoise==6.11.0

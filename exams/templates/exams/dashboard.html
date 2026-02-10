@@ -1,0 +1,16 @@
+<h2>Your Dashboard</h2>
+
+{% for attempt in attempts %}
+<div class="border p-4 my-3">
+    <h3>{{ attempt.mock_test.title }}</h3>
+
+    <p>Score: {{ attempt.score }} / {{ attempt.total_marks }}</p>
+    <p>Correct: {{ attempt.correct_answers }}</p>
+    <p>Wrong: {{ attempt.wrong_answers }}</p>
+    <p>Skipped: {{ attempt.skipped_answers }}</p>
+    <p>Percentage: {{ attempt.percentage }}%</p>
+    <p>Time Taken: {{ attempt.time_taken }}</p>
+</div>
+{% empty %}
+<p>No attempts yet.</p>
+{% endfor %}

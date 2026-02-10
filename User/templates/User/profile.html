@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load form_tags %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+
+    <!-- PAGE HEADER -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800">Profile Settings</h1>
+        <p class="text-sm text-gray-500">Update your personal information</p>
+    </div>
+
+    <!-- CARD -->
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- PROFILE IMAGE -->
+            <div class="flex items-center gap-6">
+                <div>
+                    {% if user.profile.profile_pic %}
+                    <img src="{{ user.profile.profile_pic.url }}" class="w-24 h-24 rounded-full object-cover border">
+                    {% else %}
+                    <div class="w-24 h-24 rounded-full bg-gray-200
+                                flex items-center justify-center text-gray-500 text-4xl">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Profile Picture
+                    </label>
+                    {{ form.profile_pic }}
+                    <p class="text-xs text-gray-500 mt-1">
+                        JPG or PNG. Max 2MB.
+                    </p>
+                </div>
+            </div>
+
+            <hr class="">
+
+            <!-- GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- NAME -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Name
+                    </label>
+                    {{ form.name }}
+                </div>
+
+                <!-- EMAIL -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.email }}
+                </div>
+
+                <!-- PHONE -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Phone (optional)
+                    </label>
+                    {{ form.phone }}
+                </div>
+
+                <!-- PINCODE -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Pincode
+                    </label>
+                    {{ form.pincode }}
+                </div>
+
+                <!-- CITY -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        City
+                    </label>
+                    {{ form.city }}
+                </div>
+
+                <!-- STATE -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        State
+                    </label>
+                    <div class="relative">
+                        <select name="state" id="id_state" class="appearance-none w-full px-3 py-2 border border-gray-300 rounded-lg
+                   bg-white focus:outline-none focus:ring-2 focus:ring-blue-500
+                   focus:border-blue-500 hover:border-gray-400 transition pr-10">
+                            <option value="">Select State</option>
+                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                            <option value="Bihar">Bihar</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="West Bengal">West Bengal</option>
+                        </select>
+
+                        <!-- Custom dropdown arrow -->
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
+                            <i class="fa-solid fa-chevron-down text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- ACTIONS -->
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="reset" >
+                        <a href="{% url 'exams:home' %}"
+                            class="px-5 py-2 rounded-lg border text-gray-600 hover:bg-gray-200 hover:border-zinc-500 inline-block">
+                            Cancel
+                        </a>
+                    </button>
+                    <button type="submit" class="px-6 py-2 rounded-lg bg-blue-600 text-white
+                               hover:bg-blue-700 transition">
+                        Save Changes
+                    </button>
+                </div>
+
+        </form>
+    </div>
+
+</div>
+{% endblock %}

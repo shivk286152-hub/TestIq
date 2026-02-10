@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Start Test | {{ mocktest.title }}
+{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<section class="bg-slate-600 text-white py-10">
+    <div class="max-w-7xl mx-auto px-4">
+        <h1 class="text-3xl font-bold">
+            {{ mocktest.title }}
+        </h1>
+        <p class="mt-2 text-blue-100">
+            {{ mocktest.description }}
+        </p>
+    </div>
+</section>
+
+<section class="max-w-5xl mx-auto px-4 py-10">
+
+    <!-- TEST INFO -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Test Overview</h2>
+
+        <div class="grid md:grid-cols-3 gap-4 text-gray-700">
+
+            <div class="bg-gray-100 p-4 rounded text-center">
+                📝 <br>
+                <strong>{{ mocktest.questions.count }}</strong><br>
+                Questions
+            </div>
+
+            <div class="bg-gray-100 p-4 rounded text-center">
+                ⏱ <br>
+                <strong>{{ mocktest.time_limit }}</strong><br>
+                Minutes
+            </div>
+
+            <div class="bg-gray-100 p-4 rounded text-center">
+                📊 <br>
+                Full Length Test
+            </div>
+
+        </div>
+    </div>
+
+    <!-- INSTRUCTIONS -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Instructions</h2>
+
+        <ul class="list-disc pl-6 text-gray-600 space-y-2">
+            <li>This test contains {{ mocktest.questions.count }} questions.</li>
+            <li>Total time allowed is {{ mocktest.time_limit }} minutes.</li>
+            <li>Each question has one correct answer.</li>
+            <li>Do not refresh the page.</li>
+            <li>Test auto-submits when time ends.</li>
+        </ul>
+    </div>
+
+    <!-- LANGUAGE + START -->
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+
+        <h2 class="text-lg font-semibold mb-4">
+            Select Language
+        </h2>
+
+        <form method="GET" action="{% url 'exams:attempt_test' mocktest.id %}">
+
+            <select name="lang"
+                class="border p-3 rounded w-64 mb-6">
+
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+
+            </select>
+
+            <br>
+
+            <button type="submit"
+                class="bg-green-600 text-white px-10 py-3 rounded-lg text-lg hover:bg-green-700 transition">
+                Start Test
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+{% endblock %}

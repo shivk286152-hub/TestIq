@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home | {{ site_name }}{% endblock %}
+
+{% block content %}
+
+<!-- list.html -->
+<h1>Exam Notifications</h1>
+
+{% if notifications %}
+  <ul>
+    {% for n in notifications %}
+      <li>
+        <a href="{% url 'ExamNotification:notification_detail' n.id %}">{{ n.title }}</a> -
+        {{ n.short_description }} ({{ n.created_at|date:"d M Y" }})
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No notifications yet.</p>
+{% endif %}
+
+{% endblock %}

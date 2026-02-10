@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Subcategories | {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Explore Subcategories</h1>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for sub in subcategories %}
+        <div class="group bg-white rounded-xl shadow hover:shadow-lg transition transform hover:-translate-y-0.5 overflow-hidden">
+
+            <!-- Small Gradient Accent -->
+            <div class="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+
+            <div class="p-4 flex flex-col">
+
+                <!-- Icon Circle -->
+                <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold mb-3">
+                    {{ sub.name|slice:":1" }}
+                </div>
+
+                <!-- Title -->
+                <h2 class="text-base font-semibold text-gray-900 mb-1 group-hover:text-indigo-600 transition">
+                    {{ sub.name }}
+                </h2>
+
+                <!-- Description -->
+                <p class="text-gray-600 text-xs flex-grow mb-3">
+                    {{ sub.description|default:"Prepare with full-length mock tests"|truncatechars:70 }}
+                </p>
+
+                <!-- CTA Button -->
+                <a href="{% url 'exams:subcategory_detail' sub.id %}"
+                   class="mt-auto inline-block bg-indigo-600 text-white text-xs font-medium py-1 px-3 rounded hover:bg-indigo-700 transition text-center">
+                    View Tests
+                </a>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

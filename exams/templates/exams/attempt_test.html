@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ mocktest.title }} | {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen">
+
+    <div class="max-w-7xl mx-auto p-3 md:p-4 h-full grid grid-cols-1 md:grid-cols-12 gap-4">
+
+        <!-- LEFT SIDE -->
+        <div class="col-span-1 md:col-span-9 flex flex-col gap-4 h-full">
+
+            <!-- HEADER -->
+            <div class="bg-white text-blue-600 shadow p-4 flex justify-between items-center rounded">
+                <div class="flex items-center gap-3">
+                    <!-- Mobile menu button -->
+                    <button onclick="togglePalette()" class="md:hidden text-2xl text-red-600 font-bold">☰</button>
+                    <h1 class="text-base md:text-2xl font-bold">{{ mocktest.title }}</h1>
+                </div>
+                <div id="timer" class="text-base md:text-lg font-semibold text-red-600">00:30:00</div>
+            </div>
+
+            <!-- QUESTION BOX -->
+            <div id="questionContainer" class="bg-white rounded-lg shadow p-4 md:p-6 flex-1 flex flex-col">
+                <!-- Question content will be loaded here via AJAX -->
+            </div>
+
+        </div>
+
+        <!-- QUESTION PALETTE -->
+        <div id="questionPalette"
+            class="fixed md:static top-0 left-0 h-full w-72 md:w-auto
+            bg-white rounded-lg shadow p-4
+            transform -translate-x-full md:translate-x-0
+            transition-transform duration-300
+            z-50 md:z-auto
+            md:col-span-3">
+
+            <!-- Close button (mobile) -->
+            <button onclick="togglePalette()" class="md:hidden mb-3 text-right w-full text-red-500 font-bold">✕ Close</button>
+
+            <h2 class="font-bold mb-3">Questions</h2>
+            <hr>
+
+            <div id="paletteButtons" class="grid grid-cols-6 gap-2 mt-4">
+                {% for q in questions %}
+                <button onclick="loadQuestion({{ forloop.counter }})"
+                    id="palette-{{ forloop.counter }}"
+                    class="w-9 h-9 flex items-center justify-center rounded text-xs font-bold
+                    {% if question_number == forloop.counter %}
+                        bg-blue-500 text-white
+                    {% elif q.id in answered_questions %}
+                        bg-green-500 text-white
+                    {% elif q.id in visited_questions %}
+                        bg-yellow-400 text-black
+                    {% else %}
+                        border
+                    {% endif %}">
+                    {{ forloop.counter }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function togglePalette() {
+    document.getElementById("questionPalette").classList.toggle("-translate-x-full");
+}
+
+/* ================= TIMER ================= */
+const TEST_KEY = "mocktest_{{ mocktest.id }}_start_time";
+const DURATION = Number("{{ mocktest.duration|default:30 }}") * 60; // seconds
+
+if (!localStorage.getItem(TEST_KEY)) {
+    localStorage.setItem(TEST_KEY, Date.now());
+}
+
+let timerInterval = null;
+function startTimer() {
+    if (timerInterval) return;
+    timerInterval = setInterval(() => {
+        const startTime = parseInt(localStorage.getItem(TEST_KEY));
+        const now = Date.now();
+        const elapsed = Math.floor((now - startTime) / 1000);
+        const timeLeft = DURATION - elapsed;
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            localStorage.removeItem(TEST_KEY);
+            document.getElementById("timer").innerHTML = "00:00";
+            alert("Time up!");
+            return;
+        }
+
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById("timer").innerHTML = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+    }, 1000);
+}
+startTimer();
+
+/* ================= AJAX QUESTION LOADING ================= */
+function loadQuestion(qNumber) {
+    fetch("{% url 'exams:ajax_question' mocktest.id %}?q=" + qNumber)
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("questionContainer").innerHTML = html;
+
+            // Update palette highlight
+            document.querySelectorAll('#paletteButtons button').forEach(btn => btn.classList.remove('bg-blue-500','text-white'));
+            const activeBtn = document.getElementById('palette-' + qNumber);
+            if(activeBtn) activeBtn.classList.add('bg-blue-500','text-white');
+        });
+}
+
+/* ================= AUTO-LOAD FIRST QUESTION ================= */
+document.addEventListener('DOMContentLoaded', () => {
+    loadQuestion({{ question_number }});
+});
+</script>
+{% endblock %}

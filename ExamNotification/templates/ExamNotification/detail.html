@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home | {{ site_name }}{% endblock %}
+
+{% block content %}
+<h1>{{ notification.title }}</h1>
+<small>{{ notification.created_at|date:"d M Y" }}</small>
+
+<hr>
+
+{% for block in blocks %}
+
+{% if block.block_type == "text" %}
+<p>{{ block.text }}</p>
+
+{% elif block.block_type == "highlight" %}
+<div class="highlight-box">
+  ⚠️ {{ block.text }}
+</div>
+
+{% elif block.block_type == "table" %}
+<h3>{{ block.table.title }}</h3>
+<table border="1">
+  {% for row in block.table.rows.all %}
+  <tr>
+    {% for cell in row.cells.all %}
+    <td>{{ cell.value }}</td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+
+{% endif %}
+
+{% endfor %}
+{% endblock %}
