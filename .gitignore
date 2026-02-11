@@ -1,6 +1,24 @@
-myenv/
-*.pyc
-__pycache__/
-db.sqlite3
-*.log
-*.env
+# Python
+__pycache__/        # ignore compiled Python files
+*.pyc               # ignore Python bytecode
+*.pyo
+*.pyd
+*.sqlite3           # ignore local database
+*.env               # ignore environment variables file
+
+# Django
+/staticfiles/       # ignore collected static files
+media/              # ignore uploaded media files
+db.sqlite3          # ignore SQLite database
+
+# Virtual Environment
+venv/               # ignore virtual environment folder
+myenv2/             # ignore your other virtual environment
+
+# IDEs / editors
+.vscode/            # ignore VS Code config
+.idea/              # ignore PyCharm config
+*.swp               # ignore temporary swap files
+
+# macOS
+.DS_Store           # ignore macOS hidden files
