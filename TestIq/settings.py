@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # ----------------------------
 # BASE DIR
@@ -11,10 +12,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ----------------------------
 SECRET_KEY = 'django-insecure-k%!lom5oc2y%mwch^x)=nny+9muld+a09mg&e@7sxeh_%ufs1g'
 
-DEBUG = True  # Set False in production
+DEBUG = False # Set False in production
+DEBUG = os.environ.get("DEBUG") == "True"
+
 
 # Allowed hosts for local dev and Render deployment
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testiq-n852.onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testiq-4.onrender.com']
 
 # ----------------------------
 # INSTALLED APPS
@@ -109,7 +112,7 @@ USE_TZ = True
 # STATIC FILES
 # ----------------------------
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
