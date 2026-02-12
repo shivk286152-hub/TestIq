@@ -1,4 +1,7 @@
 import os
+
+# Use environment variable if it exists, otherwise default to localhost + 127.0.0.1
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 from pathlib import Path
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
@@ -17,9 +20,8 @@ DEBUG = os.environ.get("DEBUG") == "True"
 
 
 # Allowed hosts for local dev and Render deployment
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testiq-4.onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testiq-3.onrender.com']
 
-# ----------------------------
 # INSTALLED APPS
 # ----------------------------
 INSTALLED_APPS = [
