@@ -1,9 +1,5 @@
 import os
-
-# Use environment variable if it exists, otherwise default to localhost + 127.0.0.1
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 from pathlib import Path
-SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # ----------------------------
 # BASE DIR
@@ -11,17 +7,26 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ----------------------------
-# SECURITY
+# SECRET KEY
 # ----------------------------
-SECRET_KEY = 'django-insecure-k%!lom5oc2y%mwch^x)=nny+9muld+a09mg&e@7sxeh_%ufs1g'
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-k%!lom5oc2y%mwch^x)=nny+9muld+a09mg&e@7sxeh_%ufs1g"
+)
 
-DEBUG = False # Set False in production
-DEBUG = os.environ.get("DEBUG") == "True"
+# ----------------------------
+# DEBUG
+# ----------------------------
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
+# ----------------------------
+# ALLOWED HOSTS
+# ----------------------------
+ALLOWED_HOSTS = os.environ.get(
+    "ALLOWED_HOSTS", "127.0.0.1,localhost,testiq-3.onrender.com"
+).split(",")
 
-# Allowed hosts for local dev and Render deployment
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testiq-3.onrender.com']
-
+# ----------------------------
 # INSTALLED APPS
 # ----------------------------
 INSTALLED_APPS = [
@@ -31,8 +36,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    # Your apps
     'accounts',
     'exams',
     'ExamNotification',
@@ -44,7 +47,7 @@ INSTALLED_APPS = [
 # ----------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # For static files in prod
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -64,7 +67,7 @@ ROOT_URLCONF = 'TestIq.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / "templates"],  # Your templates folder
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -93,29 +96,10 @@ DATABASES = {
 }
 
 # ----------------------------
-# PASSWORD VALIDATORS
-# ----------------------------
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-# ----------------------------
-# INTERNATIONALIZATION
-# ----------------------------
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
-
-# ----------------------------
 # STATIC FILES
 # ----------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ----------------------------
