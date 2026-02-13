@@ -24,9 +24,9 @@ def home(request):
         "categories": categories,
         "mock_tests": mock_tests,
         "site_name": "TestIQ",
-        "hero_title": "Where Preparation Meets Success”,
-        "hero_desc":  "Real exam jaisa practice, Real success ka chance."
-    })
+        "hero_title": "Where Preparation , Meets success”,
+        "hero_desc": "Take real-style mock tests, track your progress, and move one step closer to your dream exam",
+        })
 
 
 # Category detail → show subcategories
