@@ -24,7 +24,7 @@ def home(request):
         "categories": categories,
         "mock_tests": mock_tests,
         "site_name": "TestIQ",
-        "hero_title": "Crack Competitive Exams with Confidence”,
+        "hero_title": "Crack Competitive Exams with Confidence",
         "hero_desc": "Take real-style mock tests, track your progress, and move one step closer to your dream exam",
         })
 
