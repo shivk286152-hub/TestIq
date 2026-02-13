@@ -1,24 +1,16 @@
+
 # Python
-__pycache__/        # ignore compiled Python files
-*.pyc               # ignore Python bytecode
+__pycache__/
+*.pyc
 *.pyo
 *.pyd
-*.sqlite3           # ignore local database
-*.env               # ignore environment variables file
+*.sqlite3
+
+# Virtual environment
+venv/
+env/
 
 # Django
-/staticfiles/       # ignore collected static files
-media/              # ignore uploaded media files
-db.sqlite3          # ignore SQLite database
-
-# Virtual Environment
-venv/               # ignore virtual environment folder
-myenv2/             # ignore your other virtual environment
-
-# IDEs / editors
-.vscode/            # ignore VS Code config
-.idea/              # ignore PyCharm config
-*.swp               # ignore temporary swap files
-
-# macOS
-.DS_Store           # ignore macOS hidden files
+*.log
+db.sqlite3
+/staticfiles/
