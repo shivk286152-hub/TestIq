@@ -38,6 +38,30 @@
 
 </section>
 
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const text = document.getElementById("hero-full-text").textContent.trim();
+    const typedText = document.getElementById("typed-text");
+
+    let index = 0;
+
+    function typeEffect() {
+        if (index <= text.length) {
+            typedText.innerHTML =
+              `<span class="bg-blue-200 px-1 rounded">${text.slice(0,index)}</span>`;
+            index++;
+            setTimeout(typeEffect, 40);
+        }
+    }
+
+    typeEffect();
+
+});
+</script>
+{% endblock %}
+
 <!-- CATEGORY SLIDER -->
 <section class="bg-white py-10">
     <div class="max-w-7xl mx-auto px-4">
@@ -119,23 +143,4 @@
     © {{ site_name }} {% now "Y" %}. All rights reserved.
 </footer>
 
-{% endblock %}
-
-{% block scripts %}
-<script>
-const text = document.getElementById("hero-full-text").innerText;
-const typedText = document.getElementById("typed-text");
-
-let index = 0;
-
-function typeEffect() {
-    if (index < text.length) {
-        typedText.innerHTML += text.charAt(index);
-        index++;
-        setTimeout(typeEffect, 40);
-    }
-}
-
-typeEffect();
-</script>
 {% endblock %}
