@@ -1,310 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ site_name }}{% endblock %}</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <style>
-        :root {
-            --sidebar-width: 13rem;
-        }
+<style>
+:root {
+    --sidebar-width: 13rem;
+}
 
-        .sidebar-collapsed {
-            --sidebar-width: 4rem;
-        }
+/* Tap highlight remove (mobile feel) */
+html {
+    -webkit-tap-highlight-color: transparent;
+}
 
-        .sidebar-text {
-            transition: opacity 0.25s ease, transform 0.25s ease;
-            white-space: nowrap;
-        }
+/* Collapsed sidebar */
+.sidebar-collapsed {
+    --sidebar-width: 4rem;
+}
 
-        .sidebar-collapsed .sidebar-text {
-            opacity: 0;
-            transform: translateX(-10px);
-            pointer-events: none;
-        }
+.sidebar-text {
+    transition: opacity .25s, transform .25s;
+    white-space: nowrap;
+}
 
-        /* DESKTOP */
-        @media (min-width: 768px) {
-            .sidebar {
-                width: var(--sidebar-width);
-                transform: translateX(0) !important;
-                position: relative !important;
-                z-index: auto !important;
-                height: calc(100vh - 3.5rem) !important;
-            }
+.sidebar-collapsed .sidebar-text {
+    opacity: 0;
+    transform: translateX(-10px);
+    pointer-events: none;
+}
 
-            .main {
-                margin-left: var(--sidebar-width);
-                margin-right: 0;
-            }
+/* ================= DESKTOP ================= */
+@media (min-width:768px){
 
-            .overlay {
-                display: none !important;
-            }
+    .sidebar{
+        width:var(--sidebar-width);
+        transform:translateX(0)!important;
+        position:relative!important;
+        height:calc(100dvh - 4rem);
+    }
 
-            body {
-                overflow: auto;
-            }
-        }
+    .main{
+        margin-left:var(--sidebar-width);
+        min-height:calc(100dvh - 4rem);
+    }
 
-        /* MOBILE */
-        @media (max-width: 767px) {
-            .sidebar {
-                width: 14rem;
-                transform: translateX(-100%);
-                position: fixed;
-                z-index: 60;
-                height: calc(100vh - 3.5rem);
-                top: 3.5rem;
-                left: 0;
-                right: auto;
-            }
+    .overlay{display:none!important;}
+}
 
-            .sidebar.open {
-                transform: translateX(0);
-            }
+/* ================= MOBILE ================= */
+@media (max-width:767px){
 
-            .main {
-                margin-left: 0 !important;
-                margin-right: 0;
-                width: 100%;
-            }
+    .sidebar{
+        width:11rem;
+        transform:translateX(-100%);
+        position:fixed;
+        z-index:60;
+        height:calc(100dvh - 4rem);
+        top:4rem;
+        left:0;
+    }
 
-            .overlay {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 50;
-                top: 3.5rem;
-            }
+    .sidebar.open{
+        transform:translateX(0);
+    }
 
-            .overlay.show {
-                display: block;
-            }
+    .main{
+        margin:0!important;
+        width:100%;
+        padding:1rem;
+        min-height:calc(100dvh - 4rem);
+    }
 
-            body {
-                overflow-x: hidden;
-            }
+    .overlay{
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.4);
+        z-index:50;
+        top:4rem;
+    }
 
-            header {
-                width: 100%;
-            }
-        }
+    .overlay.show{display:block;}
+}
 
-        /* Ensure proper layout structure */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        #layout {
-            position: relative;
-        }
-    </style>
-
+html,body{
+    height:100%;
+    margin:0;
+}
+</style>
 </head>
 
 <body class="bg-gray-100 text-gray-800">
 
-    <!-- HEADER -->
-    <header class="fixed top-0 left-0 right-0 h-16 bg-white shadow z-50">
-        <div class="h-full px-4 flex items-center justify-between">
+<!-- ================= HEADER ================= -->
+<header class="fixed top-0 left-0 right-0 h-16 bg-white shadow z-50">
+<div class="h-full px-4 flex items-center justify-between">
 
-            <!-- LEFT -->
-            <div class="flex items-center gap-3">
-                <button id="toggleSidebar" class="text-gray-700 hover:text-blue-600 text-xl md:hidden lg:hidden">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
+<!-- LEFT -->
+<div class="flex items-center gap-3">
+<button id="toggleSidebar" class="text-xl md:hidden">
+<i class="fa-solid fa-bars"></i>
+</button>
 
-                <button id="toggleSidebarDesktop" class="text-gray-700 hover:text-blue-600 text-xl hidden md:block">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
+<button id="toggleSidebarDesktop" class="text-xl hidden md:block">
+<i class="fa-solid fa-bars"></i>
+</button>
 
-                <span class="text-lg font-bold text-blue-600 whitespace-nowrap">
-                    {{ site_name }}
-                </span>
-            </div>
+<span class="text-lg font-bold text-blue-600">
+{{ site_name }}
+</span>
+</div>
 
-            <!-- RIGHT -->
-            <div class="flex items-center gap-3 md:gap-5">
+<!-- RIGHT -->
+<div class="flex items-center gap-4">
 
-                <!-- SEARCH -->
-                <div class="hidden md:flex items-center bg-gray-100 rounded px-3 py-1">
-                    <i class="fa-solid fa-magnifying-glass text-gray-500 text-sm"></i>
-                    <input type="text" placeholder="Search..." class="bg-transparent outline-none px-2 text-sm w-40">
-                </div>
+<div class="hidden md:flex items-center bg-gray-100 rounded px-3 py-1">
+<i class="fa fa-search text-sm"></i>
+<input type="text" placeholder="Search..."
+       class="bg-transparent outline-none px-2 text-sm w-40">
+</div>
 
-                <!-- USER DROPDOWN -->
-                {% if user.is_authenticated %}
-                <div class="relative group">
+{% if user.is_authenticated %}
+<div class="relative group">
 
-                    <button class="flex items-center gap-2 focus:outline-none">
-                        {% if user.profile.profile_pic %}
-                        <img src="{{ user.profile.profile_pic.url }}" class="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border">
-                        {% else %}
-                        <i class="fa-solid fa-user-circle text-2xl md:text-3xl text-gray-600"></i>
-                        {% endif %}
+<button class="flex items-center gap-2">
+{% if user.profile.profile_pic %}
+<img src="{{ user.profile.profile_pic.url }}"
+     class="w-9 h-9 rounded-full object-cover border">
+{% else %}
+<i class="fa fa-user-circle text-3xl"></i>
+{% endif %}
+<span class="hidden sm:block text-sm">{{ user.username }}</span>
+</button>
 
-                        <span class="hidden sm:block text-sm font-medium text-gray-700">
-                            {{ user.username }}
-                        </span>
-                    </button>
+<div class="absolute right-0 mt-2 w-44 bg-white rounded shadow-lg
+opacity-0 invisible group-hover:opacity-100
+group-hover:visible transition">
 
-                    <div class="absolute right-0 mt-2 w-40 md:w-44 bg-white rounded shadow-lg
-                               opacity-0 invisible group-hover:opacity-100
-                               group-hover:visible transition-all duration-200 z-50">
+<a href="{% url 'profile' %}"
+class="block px-4 py-2 hover:bg-gray-100">
+Profile
+</a>
 
-                        <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">
-                            <i class="fa-solid fa-user mr-2"></i> Profile
-                        </a>
+<a href="{% url 'logout' %}"
+class="block px-4 py-2 text-red-600 hover:bg-gray-100">
+Logout
+</a>
 
-                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm hover:bg-gray-100 text-red-600">
-                            <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
-                        </a>
-                    </div>
+</div>
+</div>
+{% else %}
+<a href="{% url 'login' %}" class="text-blue-600">Login</a>
+{% endif %}
 
-                </div>
-                {% else %}
-                <a href="{% url 'login' %}" class="text-blue-600 font-medium text-sm md:text-base">
-                    Login
-                </a>
-                {% endif %}
-            </div>
+</div>
+</div>
+</header>
 
-        </div>
-    </header>
+<!-- ================= LAYOUT ================= -->
+<div id="layout" class="flex pt-16">
 
-    <!-- BODY -->
-    <div id="layout" class="flex pt-16 transition-[--sidebar-width] duration-300 ease-in-out">
+<!-- SIDEBAR -->
+<aside class="sidebar bg-gray-700 text-white
+transition-all duration-300 flex flex-col">
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar bg-gray-700 text-white transition-all duration-300 ease-in-out flex flex-col overflow-y-auto">
+<nav class="flex-1 py-4 space-y-1">
 
-            <nav class="flex-1 py-4 space-y-1">
+<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
+<i class="fa fa-pen w-6"></i>
+<span class="sidebar-text ml-3">Test</span>
+</a>
 
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600 transition-colors">
-                    <div class="w-6 md:w-8 flex-shrink-0 text-center">
-                        <i class="fa-solid fa-pen"></i>
-                    </div>
-                    <span class="sidebar-text ml-3">Test</span>
-                </a>
+<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
+<i class="fa fa-newspaper w-6"></i>
+<span class="sidebar-text ml-3">Current Affairs</span>
+</a>
 
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600 transition-colors">
-                    <div class="w-6 md:w-8 flex-shrink-0 text-center">
-                        <i class="fa-solid fa-newspaper"></i>
-                    </div>
-                    <span class="sidebar-text ml-3">Current Affairs</span>
-                </a>
+<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
+<i class="fa fa-book w-6"></i>
+<span class="sidebar-text ml-3">Exam News</span>
+</a>
 
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600 transition-colors">
-                    <div class="w-6 md:w-8 flex-shrink-0 text-center">
-                        <i class="fa-solid fa-book"></i>
-                    </div>
-                    <span class="sidebar-text ml-3">Exam News</span>
-                </a>
-            </nav>
+</nav>
 
-            <!-- SIDEBAR BOTTOM -->
-            <div class="border-t border-gray-600 p-3 md:p-4 mt-auto">
-                {% if user.is_authenticated %}
-                <a href="{% url 'profile' %}" class="flex items-center hover:text-blue-300 transition-colors">
-                    <div class="w-6 md:w-8 flex-shrink-0 text-center">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <span class="sidebar-text ml-3">
-                        {{ user.username }}
-                    </span>
-                </a>
-                {% else %}
-                <a href="{% url 'login' %}" class="flex items-center text-blue-300 hover:text-blue-100 transition-colors">
-                    <div class="w-6 md:w-8 flex-shrink-0 text-center">
-                        <i class="fa-solid fa-right-to-bracket"></i>
-                    </div>
-                    <span class="sidebar-text ml-3">Login</span>
-                </a>
-                {% endif %}
-            </div>
-        </aside>
+<div class="border-t border-gray-600 p-4">
 
-        <!-- OVERLAY (for mobile only) -->
-        <div id="overlay" class="overlay"></div>
+{% if user.is_authenticated %}
+<a href="{% url 'profile' %}" class="flex items-center">
+<i class="fa fa-user w-6"></i>
+<span class="sidebar-text ml-3">{{ user.username }}</span>
+</a>
+{% else %}
+<a href="{% url 'login' %}" class="flex items-center text-blue-300">
+<i class="fa fa-sign-in w-6"></i>
+<span class="sidebar-text ml-3">Login</span>
+</a>
+{% endif %}
 
-        <!-- MAIN -->
-        <main class="main flex-1 px-3 md:px-6 py-4 md:py-6 overflow-y-auto transition-all duration-300 ease-in-out">
-            {% block content %}{% endblock %}
-        </main>
+</div>
+</aside>
 
-    </div>
+<!-- OVERLAY -->
+<div id="overlay" class="overlay"></div>
 
-    <!-- JS -->
-    <script>
-        const layout = document.getElementById("layout");
-        const toggleBtn = document.getElementById("toggleSidebar");
-        const toggleBtnDesktop = document.getElementById("toggleSidebarDesktop");
-        const sidebar = document.querySelector(".sidebar");
-        const overlay = document.getElementById("overlay");
+<!-- MAIN -->
+<main class="main flex-1 overflow-y-auto">
+{% block content %}{% endblock %}
+</main>
 
-        function isMobile() {
-            return window.innerWidth < 768;
-        }
+</div>
 
-        // Desktop collapse system
-        if (!isMobile() && localStorage.getItem("sidebar") === "collapsed") {
-            layout.classList.add("sidebar-collapsed");
-        }
+<!-- ================= JS ================= -->
+<script>
+const layout=document.getElementById("layout");
+const sidebar=document.querySelector(".sidebar");
+const overlay=document.getElementById("overlay");
 
-        // Mobile toggle
-        if (toggleBtn) {
-            toggleBtn.onclick = () => {
-                sidebar.classList.toggle("open");
-                overlay.classList.toggle("show");
-            };
-        }
+function isMobile(){
+return window.innerWidth<768;
+}
 
-        // Desktop toggle
-        if (toggleBtnDesktop) {
-            toggleBtnDesktop.onclick = () => {
-                layout.classList.toggle("sidebar-collapsed");
-                localStorage.setItem(
-                    "sidebar",
-                    layout.classList.contains("sidebar-collapsed") ? "collapsed" : "expanded"
-                );
-            };
-        }
+/* Desktop collapse restore */
+if(!isMobile() && localStorage.getItem("sidebar")==="collapsed"){
+layout.classList.add("sidebar-collapsed");
+}
 
-        // Close sidebar on overlay click
-        overlay.onclick = () => {
-            sidebar.classList.remove("open");
-            overlay.classList.remove("show");
-        };
+/* Mobile toggle */
+document.getElementById("toggleSidebar").onclick=()=>{
+sidebar.classList.toggle("open");
+overlay.classList.toggle("show");
+};
 
-        // Close sidebar when clicking on a link (mobile)
-        if (isMobile()) {
-            document.querySelectorAll(".sidebar a").forEach(link => {
-                link.onclick = () => {
-                    sidebar.classList.remove("open");
-                    overlay.classList.remove("show");
-                };
-            });
-        }
+/* Desktop toggle */
+document.getElementById("toggleSidebarDesktop").onclick=()=>{
+layout.classList.toggle("sidebar-collapsed");
+localStorage.setItem(
+"sidebar",
+layout.classList.contains("sidebar-collapsed")
+?"collapsed":"expanded"
+);
+};
 
-        // Handle window resize
-        window.addEventListener("resize", () => {
-            if (!isMobile()) {
-                sidebar.classList.remove("open");
-                overlay.classList.remove("show");
-            }
-        });
-    </script>
+/* Overlay click close */
+overlay.onclick=()=>{
+sidebar.classList.remove("open");
+overlay.classList.remove("show");
+};
+
+/* Auto close on mobile link click */
+document.querySelectorAll(".sidebar a").forEach(link=>{
+link.onclick=()=>{
+if(isMobile()){
+sidebar.classList.remove("open");
+overlay.classList.remove("show");
+}
+};
+});
+
+/* Resize fix */
+window.addEventListener("resize",()=>{
+if(!isMobile()){
+sidebar.classList.remove("open");
+overlay.classList.remove("show");
+}
+});
+</script>
 
 </body>
-
-</html>
+    </html>
