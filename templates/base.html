@@ -217,7 +217,8 @@ transition-all duration-300 flex flex-col">
 </div>
 
 <!-- ================= JS ================= -->
-<script>
+
+ <script>
 const layout=document.getElementById("layout");
 const sidebar=document.querySelector(".sidebar");
 const overlay=document.getElementById("overlay");
@@ -271,6 +272,6 @@ overlay.classList.remove("show");
 }
 });
 </script>
-
+{% block scripts %}{% endblock %}
 </body>
     </html>
