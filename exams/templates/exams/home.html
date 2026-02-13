@@ -8,10 +8,26 @@
 
 
 <!-- HERO SECTION -->
-<section class="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-2 gap-8 items-center">
+<section id="hero-section" class="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-2 gap-8 items-center">
+    
     <div>
-        <h1 class="text-3xl font-bold mb-4">{{ hero_title }}</h1>
-        <p class="text-gray-600 mb-6">{{ hero_desc }}</p>
+        <!-- Attractive Title -->
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-4 
+                   bg-gradient-to-r from-blue-600 to-purple-600 
+                   text-transparent bg-clip-text 
+                   tracking-wide">
+            {{ hero_title }}
+        </h1>
+
+        <!-- Typing Description -->
+        <p id="hero-desc"
+           class="text-gray-600 mb-6 text-lg font-medium">
+        </p>
+
+        <!-- Hidden full text -->
+        <span id="hero-full-text" class="hidden">
+            {{ hero_desc }}
+        </span>
     </div>
 
     <div class="flex justify-center">
@@ -19,7 +35,9 @@
              alt="Hero Image"
              class="rounded-lg shadow-lg w-full max-w-sm">
     </div>
+
 </section>
+
 
 <!-- CATEGORY SLIDER -->
 <section class="bg-white py-10">
@@ -102,4 +120,44 @@
     © {{ site_name }} {% now "Y" %}. All rights reserved.
 </footer>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const desc = document.getElementById("hero-desc");
+    const fullText = document.getElementById("hero-full-text").innerText;
+    const heroSection = document.getElementById("hero-section");
+
+    let index = 0;
+    let typing;
+
+    function startTyping() {
+        desc.innerHTML = "";
+        index = 0;
+
+        clearInterval(typing);
+
+        typing = setInterval(() => {
+            if (index < fullText.length) {
+                desc.innerHTML += fullText.charAt(index);
+                index++;
+            } else {
+                clearInterval(typing);
+            }
+        }, 40);
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                startTyping();
+            }
+        });
+    }, { threshold: 0.6 });
+
+    observer.observe(heroSection);
+});
+</script>
 {% endblock %}
