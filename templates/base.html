@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ site_name }}{% endblock %}</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,25 +33,37 @@
         @media (min-width: 768px) {
             .sidebar {
                 width: var(--sidebar-width);
-                transform: translateX(0);
+                transform: translateX(0) !important;
+                position: relative !important;
+                z-index: auto !important;
+                height: calc(100vh - 3.5rem) !important;
             }
 
             .main {
                 margin-left: var(--sidebar-width);
+                margin-right: 0;
             }
 
             .overlay {
-                display: none;
+                display: none !important;
+            }
+
+            body {
+                overflow: auto;
             }
         }
 
         /* MOBILE */
         @media (max-width: 767px) {
             .sidebar {
-                width: 16rem;
+                width: 14rem;
                 transform: translateX(-100%);
                 position: fixed;
                 z-index: 60;
+                height: calc(100vh - 3.5rem);
+                top: 3.5rem;
+                left: 0;
+                right: auto;
             }
 
             .sidebar.open {
@@ -59,22 +72,43 @@
 
             .main {
                 margin-left: 0 !important;
+                margin-right: 0;
+                width: 100%;
             }
 
             .overlay {
                 display: none;
                 position: fixed;
                 inset: 0;
-                background: rgba(0, 0, 0, 0.4);
+                background: rgba(0, 0, 0, 0.5);
                 z-index: 50;
+                top: 3.5rem;
             }
 
             .overlay.show {
                 display: block;
             }
+
+            body {
+                overflow-x: hidden;
+            }
+
+            header {
+                width: 100%;
+            }
+        }
+
+        /* Ensure proper layout structure */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #layout {
+            position: relative;
         }
     </style>
-
 
 </head>
 
@@ -86,7 +120,11 @@
 
             <!-- LEFT -->
             <div class="flex items-center gap-3">
-                <button id="toggleSidebar" class="text-gray-700 hover:text-blue-600 text-xl">
+                <button id="toggleSidebar" class="text-gray-700 hover:text-blue-600 text-xl md:hidden lg:hidden">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <button id="toggleSidebarDesktop" class="text-gray-700 hover:text-blue-600 text-xl hidden md:block">
                     <i class="fa-solid fa-bars"></i>
                 </button>
 
@@ -96,7 +134,7 @@
             </div>
 
             <!-- RIGHT -->
-            <div class="flex items-center gap-5">
+            <div class="flex items-center gap-3 md:gap-5">
 
                 <!-- SEARCH -->
                 <div class="hidden md:flex items-center bg-gray-100 rounded px-3 py-1">
@@ -110,9 +148,9 @@
 
                     <button class="flex items-center gap-2 focus:outline-none">
                         {% if user.profile.profile_pic %}
-                        <img src="{{ user.profile.profile_pic.url }}" class="w-9 h-9 rounded-full object-cover border">
+                        <img src="{{ user.profile.profile_pic.url }}" class="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border">
                         {% else %}
-                        <i class="fa-solid fa-user-circle text-3xl text-gray-600"></i>
+                        <i class="fa-solid fa-user-circle text-2xl md:text-3xl text-gray-600"></i>
                         {% endif %}
 
                         <span class="hidden sm:block text-sm font-medium text-gray-700">
@@ -120,7 +158,7 @@
                         </span>
                     </button>
 
-                    <div class="absolute right-0 mt-2 w-44 bg-white rounded shadow-lg
+                    <div class="absolute right-0 mt-2 w-40 md:w-44 bg-white rounded shadow-lg
                                opacity-0 invisible group-hover:opacity-100
                                group-hover:visible transition-all duration-200 z-50">
 
@@ -135,7 +173,7 @@
 
                 </div>
                 {% else %}
-                <a href="{% url 'login' %}" class="text-blue-600 font-medium">
+                <a href="{% url 'login' %}" class="text-blue-600 font-medium text-sm md:text-base">
                     Login
                 </a>
                 {% endif %}
@@ -145,31 +183,29 @@
     </header>
 
     <!-- BODY -->
-    <div id="layout" class="flex pt-14 transition-[--sidebar-width] duration-300 ease-in-out">
+    <div id="layout" class="flex pt-16 transition-[--sidebar-width] duration-300 ease-in-out">
 
         <!-- SIDEBAR -->
-        <aside class="sidebar fixed top-14 left-0 h-[calc(100vh-3.5rem)]
-                   bg-gray-700 text-white transition-all duration-300
-                   ease-in-out flex flex-col">
+        <aside class="sidebar bg-gray-700 text-white transition-all duration-300 ease-in-out flex flex-col overflow-y-auto">
 
             <nav class="flex-1 py-4 space-y-1">
 
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-                    <div class="w-8 text-center">
+                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600 transition-colors">
+                    <div class="w-6 md:w-8 flex-shrink-0 text-center">
                         <i class="fa-solid fa-pen"></i>
                     </div>
                     <span class="sidebar-text ml-3">Test</span>
                 </a>
 
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-                    <div class="w-8 text-center">
+                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600 transition-colors">
+                    <div class="w-6 md:w-8 flex-shrink-0 text-center">
                         <i class="fa-solid fa-newspaper"></i>
                     </div>
                     <span class="sidebar-text ml-3">Current Affairs</span>
                 </a>
 
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-                    <div class="w-8 text-center">
+                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600 transition-colors">
+                    <div class="w-6 md:w-8 flex-shrink-0 text-center">
                         <i class="fa-solid fa-book"></i>
                     </div>
                     <span class="sidebar-text ml-3">Exam News</span>
@@ -177,10 +213,10 @@
             </nav>
 
             <!-- SIDEBAR BOTTOM -->
-            <div class="border-t border-gray-600 p-4">
+            <div class="border-t border-gray-600 p-3 md:p-4 mt-auto">
                 {% if user.is_authenticated %}
-                <a href="{% url 'profile' %}" class="flex items-center hover:text-blue-300">
-                    <div class="w-8 text-center">
+                <a href="{% url 'profile' %}" class="flex items-center hover:text-blue-300 transition-colors">
+                    <div class="w-6 md:w-8 flex-shrink-0 text-center">
                         <i class="fa-solid fa-user"></i>
                     </div>
                     <span class="sidebar-text ml-3">
@@ -188,8 +224,8 @@
                     </span>
                 </a>
                 {% else %}
-                <a href="{% url 'login' %}" class="flex items-center text-blue-300">
-                    <div class="w-8 text-center">
+                <a href="{% url 'login' %}" class="flex items-center text-blue-300 hover:text-blue-100 transition-colors">
+                    <div class="w-6 md:w-8 flex-shrink-0 text-center">
                         <i class="fa-solid fa-right-to-bracket"></i>
                     </div>
                     <span class="sidebar-text ml-3">Login</span>
@@ -202,7 +238,7 @@
         <div id="overlay" class="overlay"></div>
 
         <!-- MAIN -->
-        <main class="main w-full pt-6 pl-1 transition-[margin-left] duration-300 ease-in-out">
+        <main class="main flex-1 px-3 md:px-6 py-4 md:py-6 overflow-y-auto transition-all duration-300 ease-in-out">
             {% block content %}{% endblock %}
         </main>
 
@@ -212,6 +248,7 @@
     <script>
         const layout = document.getElementById("layout");
         const toggleBtn = document.getElementById("toggleSidebar");
+        const toggleBtnDesktop = document.getElementById("toggleSidebarDesktop");
         const sidebar = document.querySelector(".sidebar");
         const overlay = document.getElementById("overlay");
 
@@ -224,27 +261,49 @@
             layout.classList.add("sidebar-collapsed");
         }
 
-        toggleBtn.onclick = () => {
-
-            if (isMobile()) {
+        // Mobile toggle
+        if (toggleBtn) {
+            toggleBtn.onclick = () => {
                 sidebar.classList.toggle("open");
                 overlay.classList.toggle("show");
-            } else {
-                layout.classList.toggle("sidebar-collapsed");
+            };
+        }
 
+        // Desktop toggle
+        if (toggleBtnDesktop) {
+            toggleBtnDesktop.onclick = () => {
+                layout.classList.toggle("sidebar-collapsed");
                 localStorage.setItem(
                     "sidebar",
                     layout.classList.contains("sidebar-collapsed") ? "collapsed" : "expanded"
                 );
-            }
-        };
+            };
+        }
 
+        // Close sidebar on overlay click
         overlay.onclick = () => {
             sidebar.classList.remove("open");
             overlay.classList.remove("show");
         };
-    </script>
 
+        // Close sidebar when clicking on a link (mobile)
+        if (isMobile()) {
+            document.querySelectorAll(".sidebar a").forEach(link => {
+                link.onclick = () => {
+                    sidebar.classList.remove("open");
+                    overlay.classList.remove("show");
+                };
+            });
+        }
+
+        // Handle window resize
+        window.addEventListener("resize", () => {
+            if (!isMobile()) {
+                sidebar.classList.remove("open");
+                overlay.classList.remove("show");
+            }
+        });
+    </script>
 
 </body>
 
