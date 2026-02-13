@@ -24,8 +24,8 @@ def home(request):
         "categories": categories,
         "mock_tests": mock_tests,
         "site_name": "TestIQ",
-        "hero_title": "Prepare Smart, Score High",
-        "hero_desc": "Best mock tests for SSC, Banking, Railway & more"
+        "hero_title": "Where Preparation Meets Success”,
+        "hero_desc":  "Real exam jaisa practice, Real success ka chance."
     })
 
 
