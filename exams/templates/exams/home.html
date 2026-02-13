@@ -8,55 +8,56 @@
 
 
 <!-- HERO SECTION -->
+<section class="relative w-full h-[90vh] flex items-center justify-center text-white">
 
-<section id="hero-section" class="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-2 gap-8 items-center">
+    <!-- Background Image -->
+    <img src="{% static 'images/hero.jpg' %}" 
+         class="absolute inset-0 w-full h-full object-cover">
 
-    <div>
-        <!-- Smaller Responsive Title -->
-        <h1 class="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-4
-                   bg-gradient-to-r from-blue-600 to-purple-600 
-                   text-transparent bg-clip-text tracking-wide leading-tight">
+    <!-- Dark Overlay -->
+    <div class="absolute inset-0 bg-black/50"></div>
+
+    <!-- Content -->
+    <div class="relative z-10 text-center px-4 max-w-3xl">
+
+        <!-- Title -->
+        <h1 class="text-3xl sm:text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
             {{ hero_title }}
         </h1>
 
-        <!-- Typing Description -->
-        <p class="text-gray-700 text-lg font-medium">
-            <span id="typed-text" class="bg-blue-100 px-1 rounded"></span>
-            <span id="cursor" class="animate-pulse font-bold">|</span>
+        <!-- Typing Text -->
+        <p class="text-lg sm:text-xl md:text-2xl font-medium">
+            <span id="typed-text" class="bg-blue-500/70 px-2 py-1 rounded"></span>
+            <span class="animate-pulse">|</span>
         </p>
 
-        <!-- Hidden Full Text -->
+        <!-- Hidden Text -->
         <span id="hero-full-text" class="hidden">
             {{ hero_desc }}
         </span>
-    </div>
 
-    <div class="flex justify-center">
-        <img src="{% static 'images/hero.jpg' %}"
-             class="rounded-lg shadow-lg w-full max-w-sm">
     </div>
 
 </section>
 
 {% block scripts %}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function(){
 
     const text = document.getElementById("hero-full-text").textContent.trim();
     const typedText = document.getElementById("typed-text");
 
-    let index = 0;
+    let i = 0;
 
-    function typeEffect() {
-        if (index <= text.length) {
-            typedText.innerHTML =
-              `<span class="bg-blue-200 px-1 rounded">${text.slice(0,index)}</span>`;
-            index++;
-            setTimeout(typeEffect, 40);
+    function type(){
+        if(i <= text.length){
+            typedText.innerHTML = text.slice(0,i);
+            i++;
+            setTimeout(type,40);
         }
     }
 
-    typeEffect();
+    type();
 
 });
 </script>
