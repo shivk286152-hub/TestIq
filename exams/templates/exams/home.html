@@ -8,23 +8,24 @@
 
 
 <!-- HERO SECTION -->
-<section id="hero-section" class="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-2 gap-8 items-center">
-    
+
+<section id="hero-section" class="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-2 gap-8 items-center">
+
     <div>
-        <!-- Attractive Title -->
-        <h1 class="text-4xl md:text-5xl font-extrabold mb-4 
+        <!-- Smaller Responsive Title -->
+        <h1 class="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-4
                    bg-gradient-to-r from-blue-600 to-purple-600 
-                   text-transparent bg-clip-text 
-                   tracking-wide">
+                   text-transparent bg-clip-text tracking-wide leading-tight">
             {{ hero_title }}
         </h1>
 
         <!-- Typing Description -->
-        <p id="hero-desc"
-           class="text-gray-600 mb-6 text-lg font-medium">
+        <p class="text-gray-700 text-lg font-medium">
+            <span id="typed-text" class="bg-blue-100 px-1 rounded"></span>
+            <span id="cursor" class="animate-pulse font-bold">|</span>
         </p>
 
-        <!-- Hidden full text -->
+        <!-- Hidden Full Text -->
         <span id="hero-full-text" class="hidden">
             {{ hero_desc }}
         </span>
@@ -32,12 +33,10 @@
 
     <div class="flex justify-center">
         <img src="{% static 'images/hero.jpg' %}"
-             alt="Hero Image"
              class="rounded-lg shadow-lg w-full max-w-sm">
     </div>
 
 </section>
-
 
 <!-- CATEGORY SLIDER -->
 <section class="bg-white py-10">
@@ -124,40 +123,19 @@
 
 {% block scripts %}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+const text = document.getElementById("hero-full-text").innerText;
+const typedText = document.getElementById("typed-text");
 
-    const desc = document.getElementById("hero-desc");
-    const fullText = document.getElementById("hero-full-text").innerText;
-    const heroSection = document.getElementById("hero-section");
+let index = 0;
 
-    let index = 0;
-    let typing;
-
-    function startTyping() {
-        desc.innerHTML = "";
-        index = 0;
-
-        clearInterval(typing);
-
-        typing = setInterval(() => {
-            if (index < fullText.length) {
-                desc.innerHTML += fullText.charAt(index);
-                index++;
-            } else {
-                clearInterval(typing);
-            }
-        }, 40);
+function typeEffect() {
+    if (index < text.length) {
+        typedText.innerHTML += text.charAt(index);
+        index++;
+        setTimeout(typeEffect, 40);
     }
+}
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                startTyping();
-            }
-        });
-    }, { threshold: 0.6 });
-
-    observer.observe(heroSection);
-});
+typeEffect();
 </script>
 {% endblock %}
