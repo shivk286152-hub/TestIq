@@ -1,251 +1,331 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}{{ site_name }}{% endblock %}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<title>{% block title %}{{ site_name }}{% endblock %}</title>
 
-    <style>
-        :root {
-            --sidebar-width: 13rem;
-        }
+<script src="https://cdn.tailwindcss.com"></script>
 
-        .sidebar-collapsed {
-            --sidebar-width: 4rem;
-        }
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-        .sidebar-text {
-            transition: opacity 0.25s ease, transform 0.25s ease;
-            white-space: nowrap;
-        }
+<style>
+:root{
+--header-h:4rem;
+--sidebar-open:14rem;
+--sidebar-close:4.5rem;
+}
 
-        .sidebar-collapsed .sidebar-text {
-            opacity: 0;
-            transform: translateX(-10px);
-            pointer-events: none;
-        }
+/* ===== HEADER ===== */
+.header{
+height:var(--header-h);
+}
 
-        /* DESKTOP */
-        @media (min-width: 768px) {
-            .sidebar {
-                width: var(--sidebar-width);
-                transform: translateX(0);
-            }
+/* ===== SIDEBAR ===== */
+.sidebar{
+position:fixed;
+top:var(--header-h);
+left:0;
+height:calc(100dvh - var(--header-h));
+width:var(--sidebar-open);
+background:#374151;
+color:white;
+display:flex;
+flex-direction:column;
+transition:.3s;
+z-index:60;
+}
 
-            .main {
-                margin-left: var(--sidebar-width);
-            }
+/* collapsed desktop */
+.sidebar.collapsed{
+width:var(--sidebar-close);
+}
 
-            .overlay {
-                display: none;
-            }
-        }
+.sidebar.collapsed .label{
+display:none;
+}
 
-        /* MOBILE */
-        @media (max-width: 767px) {
-            .sidebar {
-                width: 16rem;
-                transform: translateX(-100%);
-                position: fixed;
-                z-index: 60;
-            }
+/* sidebar content */
+.sidebar-content{
+flex:1;
+overflow-y:auto;
+}
 
-            .sidebar.open {
-                transform: translateX(0);
-            }
+/* bottom auth */
+.sidebar-bottom{
+border-top:1px solid #4b5563;
+}
 
-            .main {
-                margin-left: 0 !important;
-            }
+/* ===== MAIN ===== */
+.main{
+margin-left:var(--sidebar-open);
+padding-top:calc(var(--header-h) + 1rem);
+min-height:100dvh;
+transition:.3s;
+}
 
-            .overlay {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.4);
-                z-index: 50;
-            }
+.main.collapsed{
+margin-left:var(--sidebar-close);
+}
 
-            .overlay.show {
-                display: block;
-            }
-        }
-    </style>
+/* ===== MOBILE ===== */
+@media(max-width:768px){
 
+.sidebar{
+transform:translateX(-100%);
+width:14rem;
+}
 
+.sidebar.open{
+transform:translateX(0);
+}
+
+.main,
+.main.collapsed{
+margin-left:0;
+}
+
+.overlay{
+position:fixed;
+inset:0;
+top:var(--header-h);
+background:rgba(0,0,0,.4);
+display:none;
+z-index:50;
+}
+
+.overlay.show{
+display:block;
+}
+}
+.progress-btn{
+position:relative;
+background:#f9fafb;
+overflow:hidden;
+border-radius:999px;
+text-decoration:none;
+}
+
+/* Running border */
+.progress-btn::before{
+content:"";
+position:absolute;
+inset:0;
+border:3px solid black;
+border-radius:999px;
+clip-path: inset(0 100% 100% 0);
+transition:clip-path 2s linear;
+pointer-events:none;
+}
+
+/* Animate */
+.progress-btn.animate::before{
+clip-path: inset(0 0 0 0);
+}
+
+/* Final state */
+.progress-btn.done{
+background:black;
+color:white;
+}
+</style>
 </head>
 
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-100">
 
-    <!-- HEADER -->
-    <header class="fixed top-0 left-0 right-0 h-16 bg-white shadow z-50">
-        <div class="h-full px-4 flex items-center justify-between">
+<!-- ===== HEADER ===== -->
+<header class="header fixed top-0 left-0 right-0 bg-white shadow z-50">
 
-            <!-- LEFT -->
-            <div class="flex items-center gap-3">
-                <button id="toggleSidebar" class="text-gray-700 hover:text-blue-600 text-xl">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
+<div class="h-full px-4 flex justify-between items-center">
 
-                <span class="text-lg font-bold text-blue-600 whitespace-nowrap">
-                    {{ site_name }}
-                </span>
-            </div>
+<!-- LEFT -->
+<div class="flex items-center gap-3">
 
-            <!-- RIGHT -->
-            <div class="flex items-center gap-5">
+<button id="menuBtn" class="md:hidden text-xl">
+<i class="fa fa-bars"></i>
+</button>
 
-                <!-- SEARCH -->
-                <div class="hidden md:flex items-center bg-gray-100 rounded px-3 py-1">
-                    <i class="fa-solid fa-magnifying-glass text-gray-500 text-sm"></i>
-                    <input type="text" placeholder="Search..." class="bg-transparent outline-none px-2 text-sm w-40">
-                </div>
+<button id="collapseBtn" class="hidden md:block text-xl">
+<i class="fa fa-bars"></i>
+</button>
 
-                <!-- USER DROPDOWN -->
-                {% if user.is_authenticated %}
-                <div class="relative group">
+<span class="text-lg font-bold text-blue-600">
+{{ site_name }}
+</span>
 
-                    <button class="flex items-center gap-2 focus:outline-none">
-                        {% if user.profile.profile_pic %}
-                        <img src="{{ user.profile.profile_pic.url }}" class="w-9 h-9 rounded-full object-cover border">
-                        {% else %}
-                        <i class="fa-solid fa-user-circle text-3xl text-gray-600"></i>
-                        {% endif %}
+</div>
 
-                        <span class="hidden sm:block text-sm font-medium text-gray-700">
-                            {{ user.username }}
-                        </span>
-                    </button>
+<!-- RIGHT -->
+<div class="relative">
 
-                    <div class="absolute right-0 mt-2 w-44 bg-white rounded shadow-lg
-                               opacity-0 invisible group-hover:opacity-100
-                               group-hover:visible transition-all duration-200 z-50">
+{% if user.is_authenticated %}
 
-                        <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">
-                            <i class="fa-solid fa-user mr-2"></i> Profile
-                        </a>
+<!-- USER BUTTON -->
+<button id="userMenuBtn" 
+class="flex items-center gap-2 focus:outline-none">
 
-                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm hover:bg-gray-100 text-red-600">
-                            <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
-                        </a>
-                    </div>
+<i class="fa fa-user-circle text-2xl"></i>
+<span class="font-medium">{{ user.username }}</span>
+<i class="fa fa-chevron-down text-sm"></i>
 
-                </div>
-                {% else %}
-                <a href="{% url 'login' %}" class="text-blue-600 font-medium">
-                    Login
-                </a>
-                {% endif %}
-            </div>
+</button>
 
-        </div>
-    </header>
+<!-- DROPDOWN -->
+<div id="userDropdown"
+class="hidden absolute right-0 mt-3 w-44 bg-white rounded shadow-lg border">
 
-    <!-- BODY -->
-    <div id="layout" class="flex pt-14 transition-[--sidebar-width] duration-300 ease-in-out">
+<a href="{% url 'profile' %}"
+class="block px-4 py-2 hover:bg-gray-100">
+<i class="fa fa-user mr-2"></i> Profile
+</a>
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar fixed top-14 left-0 h-[calc(100vh-3.5rem)]
-                   bg-gray-700 text-white transition-all duration-300
-                   ease-in-out flex flex-col">
+<a href="{% url 'logout' %}"
+class="block px-4 py-2 hover:bg-gray-100 text-red-500">
+<i class="fa fa-sign-out mr-2"></i> Logout
+</a>
 
-            <nav class="flex-1 py-4 space-y-1">
+</div>
 
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-                    <div class="w-8 text-center">
-                        <i class="fa-solid fa-pen"></i>
-                    </div>
-                    <span class="sidebar-text ml-3">Test</span>
-                </a>
+{% else %}
+<a href="{% url 'login' %}" id="loginBtn"
+class="progress-btn flex items-center gap-2 px-6 py-2 rounded-full">
 
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-                    <div class="w-8 text-center">
-                        <i class="fa-solid fa-newspaper"></i>
-                    </div>
-                    <span class="sidebar-text ml-3">Current Affairs</span>
-                </a>
+<i class="fa fa-sign-in"></i>
+Login
 
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-                    <div class="w-8 text-center">
-                        <i class="fa-solid fa-book"></i>
-                    </div>
-                    <span class="sidebar-text ml-3">Exam News</span>
-                </a>
-            </nav>
+</a>
 
-            <!-- SIDEBAR BOTTOM -->
-            <div class="border-t border-gray-600 p-4">
-                {% if user.is_authenticated %}
-                <a href="{% url 'profile' %}" class="flex items-center hover:text-blue-300">
-                    <div class="w-8 text-center">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <span class="sidebar-text ml-3">
-                        {{ user.username }}
-                    </span>
-                </a>
-                {% else %}
-                <a href="{% url 'login' %}" class="flex items-center text-blue-300">
-                    <div class="w-8 text-center">
-                        <i class="fa-solid fa-right-to-bracket"></i>
-                    </div>
-                    <span class="sidebar-text ml-3">Login</span>
-                </a>
-                {% endif %}
-            </div>
-        </aside>
+{% endif %}
 
-        <!-- OVERLAY (for mobile only) -->
-        <div id="overlay" class="overlay"></div>
+</div>
 
-        <!-- MAIN -->
-        <main class="main w-full pt-6 pl-1 transition-[margin-left] duration-300 ease-in-out">
-            {% block content %}{% endblock %}
-        </main>
+</div>
+</header>
 
-    </div>
+<!-- ===== SIDEBAR ===== -->
+<aside id="sidebar" class="sidebar">
 
-    <!-- JS -->
-    <script>
-        const layout = document.getElementById("layout");
-        const toggleBtn = document.getElementById("toggleSidebar");
-        const sidebar = document.querySelector(".sidebar");
-        const overlay = document.getElementById("overlay");
+<!-- TOP MENU -->
+<div class="sidebar-content py-4 space-y-1">
 
-        function isMobile() {
-            return window.innerWidth < 768;
-        }
+<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
+<i class="fa fa-pen w-6"></i>
+<span class="label ml-3">Test</span>
+</a>
 
-        // Desktop collapse system
-        if (!isMobile() && localStorage.getItem("sidebar") === "collapsed") {
-            layout.classList.add("sidebar-collapsed");
-        }
+<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
+<i class="fa fa-newspaper w-6"></i>
+<span class="label ml-3">Current Affairs</span>
+</a>
 
-        toggleBtn.onclick = () => {
+<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
+<i class="fa fa-book w-6"></i>
+<span class="label ml-3">Exam News</span>
+</a>
 
-            if (isMobile()) {
-                sidebar.classList.toggle("open");
-                overlay.classList.toggle("show");
-            } else {
-                layout.classList.toggle("sidebar-collapsed");
+</div>
 
-                localStorage.setItem(
-                    "sidebar",
-                    layout.classList.contains("sidebar-collapsed") ? "collapsed" : "expanded"
-                );
-            }
-        };
+<!-- BOTTOM LOGIN -->
+<div class="sidebar-bottom py-3">
 
-        overlay.onclick = () => {
-            sidebar.classList.remove("open");
-            overlay.classList.remove("show");
-        };
-    </script>
+{% if user.is_authenticated %}
 
+<a href="{% url 'profile' %}"
+class="flex items-center px-4 py-3 hover:bg-gray-600">
+<i class="fa fa-user w-6"></i>
+<span class="label ml-3">{{ user.username }}</span>
+</a>
 
+<a href="{% url 'logout' %}"
+class="flex items-center px-4 py-3 hover:bg-gray-600 text-red-300">
+<i class="fa fa-sign-out w-6"></i>
+<span class="label ml-3">Logout</span>
+</a>
+
+{% else %}
+
+<a href="{% url 'login' %}"
+class="flex items-center px-4 py-3 hover:bg-gray-600">
+<i class="fa fa-sign-in w-6"></i>
+<span class="label ml-3">Login</span>
+</a>
+
+{% endif %}
+
+</div>
+
+</aside>
+
+<div id="overlay" class="overlay"></div>
+
+<!-- ===== MAIN ===== -->
+<main id="main" class="main px-4">
+{% block content %}{% endblock %}
+</main>
+
+<script>
+const sidebar=document.getElementById("sidebar");
+const main=document.getElementById("main");
+const overlay=document.getElementById("overlay");
+
+const menuBtn=document.getElementById("menuBtn");
+const collapseBtn=document.getElementById("collapseBtn");
+
+/* mobile open */
+menuBtn.onclick=()=>{
+sidebar.classList.toggle("open");
+overlay.classList.toggle("show");
+};
+
+/* desktop collapse */
+collapseBtn.onclick=()=>{
+sidebar.classList.toggle("collapsed");
+main.classList.toggle("collapsed");
+};
+
+/* close mobile */
+overlay.onclick=()=>{
+sidebar.classList.remove("open");
+overlay.classList.remove("show");
+};
+
+/* USER DROPDOWN */
+const userBtn=document.getElementById("userMenuBtn");
+const dropdown=document.getElementById("userDropdown");
+
+if(userBtn){
+userBtn.onclick=()=>{
+dropdown.classList.toggle("hidden");
+};
+
+document.addEventListener("click",(e)=>{
+if(!userBtn.contains(e.target) && !dropdown.contains(e.target)){
+dropdown.classList.add("hidden");
+}
+});
+}
+
+const loginBtn = document.getElementById("loginBtn");
+
+if(loginBtn){
+const observer = new IntersectionObserver(entries=>{
+entries.forEach(entry=>{
+if(entry.isIntersecting){
+
+loginBtn.classList.add("animate");
+
+setTimeout(()=>{
+loginBtn.classList.add("done");
+},2000);
+
+}
+});
+},{threshold:0.6});
+
+observer.observe(loginBtn);
+}
+</script>
 </body>
-
-</html>
+  </html>
