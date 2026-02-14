@@ -3,54 +3,67 @@
     <p class="font-semibold mb-4 text-base md:text-lg">
         Q{{ question_number }}. {{ question.question_en }}
     </p>
+
     <div class="space-y-3">
         {% for option in question.options.all %}
-        <label class="block border p-4 rounded cursor-pointer hover:bg-gray-100 text-sm md:text-base">
+        <label class="block border p-4 rounded cursor-pointer hover:bg-gray-100 text-sm md:text-base
+            {% if selected_option and option.id == selected_option|add:'0' %}
+                bg-green-100 border-green-400
+            {% endif %}">
+            
             <input type="radio" name="question_{{ question.id }}" value="{{ option.id }}" class="mr-3 scale-110"
-                onchange="saveAnswer({{ question.id }}, {{ option.id }})">
+            {% if selected_option and option.id == selected_option|add:'0' %} checked {% endif %}>
             {{ option.text_en }}
         </label>
         {% endfor %}
     </div>
 </div>
 
-<div class="mt-auto grid grid-cols-2 md:flex gap-3">
+<!-- ================= BUTTON SECTION ================= -->
+<div class="mt-auto flex flex-wrap gap-3">
+
+    <!-- Previous -->
     {% if question_number > 1 %}
-    <button onclick="loadQuestion({{ question_number|add:-1 }})"
-        class="text-center px-4 py-3 bg-gray-300 rounded font-semibold">
+    <button type="button" onclick="loadQuestion({{ question_number|add:-1 }})"
+        class="px-4 py-2 bg-gray-300 rounded font-semibold">
         Previous
     </button>
     {% endif %}
 
-    {% if question_number < total_questions %} <button onclick="loadQuestion({{ question_number|add:1 }})"
-        class="text-center px-4 py-3 bg-green-500 text-white rounded font-semibold">
+    <!-- Save & Next -->
+    {% if question_number < total_questions %}
+    <button type="button" onclick="saveAnswer({{ question.id }}, true, {{ question_number|add:1 }})"
+        class="px-4 py-2 bg-green-600 text-white rounded font-semibold">
         Save & Next
-        </button>
-        {% endif %}
+    </button>
+    {% endif %}
 
-        <button type="reset" class="px-4 py-3 bg-red-500 text-white rounded font-semibold">
-            Clear
-        </button>
+    <!-- Clear -->
+    <button type="button" onclick="clearAnswer({{ question.id }})"
+        class="px-4 py-2 bg-yellow-500 text-white rounded font-semibold">
+        Clear
+    </button>
 
-        <button type="submit" class="px-4 py-3 bg-blue-600 text-white rounded font-semibold col-span-2 md:col-span-1">
-            Submit
-        </button>
+    <!-- Skip -->
+    {% if question_number < total_questions %}
+    <button type="button" onclick="loadQuestion({{ question_number|add:1 }})"
+        class="px-4 py-2 bg-blue-500 text-white rounded font-semibold">
+        Skip
+    </button>
+    {% endif %}
+
+    <!-- Submit -->
+    <button type="button" onclick="submitTest()"
+        class="px-4 py-2 bg-red-600 text-white rounded font-semibold">
+        Submit Test
+    </button>
+
 </div>
+
+{% comment %}
+Move all JS to the main template, NOT inside AJAX template
+{% endcomment %}
+
 {% else %}
 <p>No question found.</p>
 {% endif %}
-
-
-<script>
-    function saveAnswer(questionId, optionId) {
-        fetch("/save-answer/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token }}"
-            },
-            body: JSON.stringify({ question_id: questionId, answer: optionId })
-        });
-    }
-
-</script>

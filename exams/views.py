@@ -12,8 +12,9 @@ from .models import MockTest, MockTestAttempt
 
 from django.utils import timezone
 from .models import Question, UserAnswer
-
-
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.http import HttpResponse
 
 # Home page
 def home(request):
@@ -113,28 +114,29 @@ def attempt_test(request, mocktest_id):
 
     return render(request, "exams/attempt_test.html", context)
 
-
+@login_required
 def ajax_question(request, mocktest_id):
     """
-    AJAX view: returns a single question HTML fragment.
+    Return a single question HTML fragment safely.
     """
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
-    q_number = int(request.GET.get("q", 1))
 
-    # Optional subject filter
-    subject_id = request.GET.get("subject")
+    try:
+        q_number = int(request.GET.get("q", 1))
+    except (ValueError, TypeError):
+        q_number = 1
+
     questions = mocktest.questions.all().prefetch_related("options").order_by("id")
-    if subject_id:
-        questions = questions.filter(subject_id=subject_id)
-
     total_questions = questions.count()
-    if total_questions < q_number:
+
+    if q_number < 1 or q_number > total_questions:
         return render(request, "exams/ajax_question.html", {"question": None})
 
     question = questions[q_number - 1]
 
-    # Track answered questions in session (optional)
-    answered_questions = request.session.get(f"answers_{mocktest.id}", [])
+    # Get answered questions from session (optional)
+    answered_dict = request.session.get(f"answers_{mocktest.id}", {})
+    answered_questions = [int(k) for k in answered_dict.keys()]
 
     context = {
         "question": question,
@@ -144,6 +146,7 @@ def ajax_question(request, mocktest_id):
     }
 
     return render(request, "exams/ajax_question.html", context)
+
 
 
 
@@ -183,7 +186,6 @@ def result_dashboard(request, attempt_id):
 def submit_test(request, mocktest_id):
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
 
-    # Create attempt
     attempt = MockTestAttempt.objects.create(
         user=request.user,
         mock_test=mocktest,
@@ -194,12 +196,15 @@ def submit_test(request, mocktest_id):
 
     questions = Question.objects.filter(mock_test=mocktest)
 
+    # ✅ Get saved session answers
+    session_answers = request.session.get(f"answers_{mocktest.id}", {})
+
     correct = 0
     wrong = 0
     skipped = 0
 
     for question in questions:
-        selected_option_id = request.POST.get(f"question_{question.id}")
+        selected_option_id = session_answers.get(str(question.id))
 
         if not selected_option_id:
             skipped += 1
@@ -222,8 +227,6 @@ def submit_test(request, mocktest_id):
             wrong += 1
 
     total_questions = questions.count()
-
-    # Raw marks logic (example: +1 correct, -0.25 wrong)
     score = correct * 1 - wrong * 0.25
 
     attempt.correct_answers = correct
@@ -232,6 +235,10 @@ def submit_test(request, mocktest_id):
     attempt.total_marks = total_questions
     attempt.score = score
     attempt.save()
+
+    # ✅ Clear session after submit
+    if f"answers_{mocktest.id}" in request.session:
+        del request.session[f"answers_{mocktest.id}"]
 
     return redirect("exams:result_dashboard", attempt_id=attempt.id)
 
@@ -267,3 +274,61 @@ def result_dashboard(request, attempt_id):
 
 
 
+@login_required
+def save_answer(request):
+    if request.method == "POST":
+        for key, value in request.POST.items():
+            if key.startswith("question_"):
+                question_id = int(key.replace("question_", ""))
+                question = get_object_or_404(Question, id=question_id)
+
+                answers = request.session.get(f"answers_{question.mock_test.id}", {})
+
+                if value == "":
+                    # ✅ Remove answer if cleared
+                    answers.pop(str(question_id), None)
+                else:
+                    answers[str(question_id)] = int(value)
+
+                request.session[f"answers_{question.mock_test.id}"] = answers
+
+        return JsonResponse({"status": "ok"})
+
+    return JsonResponse({"status": "error"})
+
+
+# from django.shortcuts import render, get_object_or_404
+# from django.contrib.auth.decorators import login_required
+
+@login_required
+def ajax_question(request, mocktest_id):
+    mocktest = get_object_or_404(MockTest, id=mocktest_id)
+    questions = Question.objects.filter(mock_test=mocktest).order_by("id")
+
+    # Get question number from GET
+    q_number = request.GET.get("q")
+    try:
+        q_number = int(q_number)
+    except (TypeError, ValueError):
+        q_number = 1
+
+    # Prevent out-of-range numbers
+    if q_number < 1:
+        q_number = 1
+    elif q_number > questions.count():
+        q_number = questions.count()
+
+    question = questions[q_number - 1]
+
+    # Get saved answers from session safely
+    saved_answers = request.session.get(f"answers_{mocktest.id}", {})
+    selected_option = saved_answers.get(str(question.id))  # can be None
+
+    context = {
+        "question": question,
+        "question_number": q_number,
+        "total_questions": questions.count(),
+        "selected_option": selected_option,
+    }
+
+    return render(request, "exams/ajax_question.html", context)

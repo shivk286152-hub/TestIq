@@ -122,7 +122,6 @@ class Option(models.Model):
         return self.text_en
 
 
-
 class MockTestAttempt(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -162,15 +161,23 @@ class MockTestAttempt(models.Model):
         return round((self.score / self.total_marks) * 100, 2)
     percentage.fget.short_description = "Percentage (%)"
 
-    # Time taken property
+    # FIXED: Time taken property as HH:MM:SS
     @property
     def time_taken(self):
         if self.submitted_at:
-            return self.submitted_at - self.started_at
+            delta = self.submitted_at - self.started_at
+            total_seconds = int(delta.total_seconds())
+            if total_seconds < 0:  # safety
+                total_seconds = 0
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            seconds = total_seconds % 60
+            return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
         return None
     time_taken.fget.short_description = "Time Taken"
 
 
+ 
 
 class UserAnswer(models.Model):
     attempt = models.ForeignKey(

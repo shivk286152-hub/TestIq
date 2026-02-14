@@ -35,7 +35,8 @@ urlpatterns = [
     name="submit_test"
 ),
    path('attempt/<int:mocktest_id>/ajax_question/', views.ajax_question, name='ajax_question'),
-    
+    path("save-answer/", views.save_answer, name="save_answer"),
+
     
     path(
     "mocktest/<int:mocktest_id>/submit/",
