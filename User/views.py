@@ -6,7 +6,7 @@ from .forms import ProfileForm
 @login_required
 def profile_view(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
-    'site_name' = "TestIq"
+ 
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
@@ -15,5 +15,4 @@ def profile_view(request):
     else:
         form = ProfileForm()
 
-    return render(request, 'User/profile.html', {'form': form,
-'site_name': site_name})
+    return render(request, 'User/profile.html', {'form': form})
