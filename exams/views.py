@@ -114,7 +114,7 @@ def attempt_test(request, mocktest_id):
 
     return render(request, "exams/attempt_test.html", context)
 
-@login_required
+
 def ajax_question(request, mocktest_id):
     """
     Return a single question HTML fragment safely.
@@ -150,7 +150,7 @@ def ajax_question(request, mocktest_id):
 
 
 
-@login_required
+
 def dashboard(request):
     attempts = MockTestAttempt.objects.filter(
         user=request.user,
@@ -163,7 +163,7 @@ def dashboard(request):
     return render(request, "exams/dashboard.html", context)
 
 
-@login_required
+
 def result_dashboard(request, attempt_id):
     attempt = get_object_or_404(
         MockTestAttempt,
@@ -182,7 +182,7 @@ def result_dashboard(request, attempt_id):
 
 
 
-@login_required
+
 def submit_test(request, mocktest_id):
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
 
@@ -274,7 +274,7 @@ def result_dashboard(request, attempt_id):
 
 
 
-@login_required
+
 def save_answer(request):
     if request.method == "POST":
         for key, value in request.POST.items():
@@ -300,7 +300,7 @@ def save_answer(request):
 # from django.shortcuts import render, get_object_or_404
 # from django.contrib.auth.decorators import login_required
 
-@login_required
+
 def ajax_question(request, mocktest_id):
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
     questions = Question.objects.filter(mock_test=mocktest).order_by("id")
