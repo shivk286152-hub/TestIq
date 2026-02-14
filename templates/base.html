@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>{% block title %}{{ site_name }}{% endblock %}</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -11,128 +12,152 @@
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-:root { --sidebar-width: 13rem; }
+:root{
+--sidebar-open: 13rem;
+--sidebar-closed: 4rem;
+}
 
-html,body{height:100%;margin:0;}
-
-/* Desktop */
-@media (min-width:768px){
+/* ===== SIDEBAR ===== */
 .sidebar{
-width:var(--sidebar-width);
-transform:translateX(0)!important;
-position:relative!important;
-height:calc(100vh - 4rem);
-}
-.main{
-margin-left:var(--sidebar-width);
-min-height:calc(100vh - 4rem);
-}
-.overlay{display:none!important;}
-}
-
-/* Mobile */
-@media (max-width:767px){
-.sidebar{
-width:11rem;
-transform:translateX(-100%);
-position:fixed;
-z-index:60;
-height:calc(100vh - 4rem); /* FULL MOBILE HEIGHT */
-top:4rem; left:0;
+height:calc(100dvh - 4rem);
 background:#374151;
+color:white;
+position:fixed;
+top:4rem;
+left:0;
+transition:.3s;
+overflow:hidden;
+width:var(--sidebar-open);
 }
-.sidebar.open{transform:translateX(0);}
+
+/* collapsed */
+.sidebar.collapsed{
+width:var(--sidebar-closed);
+}
+
+/* text hide */
+.sidebar.collapsed .label{
+display:none;
+}
+
+/* MAIN */
 .main{
-margin:0!important;
-width:100%;
-padding:1rem;
-min-height:calc(100vh - 4rem);
+margin-left:var(--sidebar-open);
+min-height:calc(100dvh - 4rem);
+transition:.3s;
 }
+
+.main.collapsed{
+margin-left:var(--sidebar-closed);
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+.sidebar{
+transform:translateX(-100%);
+width:13rem;
+z-index:60;
+}
+
+.sidebar.open{
+transform:translateX(0);
+}
+
+.main,
+.main.collapsed{
+margin-left:0;
+}
+
 .overlay{
 display:none;
 position:fixed;
 inset:0;
+top:4rem;
 background:rgba(0,0,0,.4);
 z-index:50;
-top:4rem;
 }
-.overlay.show{display:block;}
+
+.overlay.show{
+display:block;
+}
 }
 </style>
 </head>
 
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-100">
 
-<!-- HEADER (UNCHANGED STYLE) -->
+<!-- ===== HEADER ===== -->
 <header class="fixed top-0 left-0 right-0 h-16 bg-white shadow z-50">
 
-<div class="h-full px-4 flex items-center justify-between">
+<div class="h-full px-4 flex justify-between items-center">
 
 <div class="flex items-center gap-3">
-<button id="toggleSidebar" class="text-xl md:hidden">
-<i class="fa-solid fa-bars"></i>
+
+<button id="menuBtn" class="md:hidden text-xl">
+<i class="fa fa-bars"></i>
+</button>
+
+<button id="collapseBtn" class="hidden md:block text-xl">
+<i class="fa fa-bars"></i>
 </button>
 
 <span class="text-lg font-bold text-blue-600">
 {{ site_name }}
 </span>
+
 </div>
 
 {% if user.is_authenticated %}
 <div class="flex items-center gap-2">
 <i class="fa fa-user-circle text-2xl"></i>
-<span class="text-sm">{{ user.username }}</span>
+<span>{{ user.username }}</span>
 </div>
 {% endif %}
 
 </div>
 </header>
 
-<!-- LAYOUT -->
-<div id="layout" class="flex pt-16">
+<!-- ===== SIDEBAR ===== -->
+<aside id="sidebar" class="sidebar">
 
-<!-- SIDEBAR -->
-<aside class="sidebar text-white transition-all duration-300 flex flex-col">
-
-<nav class="flex-1 py-4 space-y-1">
+<nav class="py-4 space-y-1">
 
 <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
 <i class="fa fa-pen w-6"></i>
-<span class="ml-3">Test</span>
+<span class="label ml-3">Test</span>
 </a>
 
 <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
 <i class="fa fa-newspaper w-6"></i>
-<span class="ml-3">Current Affairs</span>
+<span class="label ml-3">Current Affairs</span>
 </a>
 
 <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
 <i class="fa fa-book w-6"></i>
-<span class="ml-3">Exam News</span>
+<span class="label ml-3">Exam News</span>
 </a>
 
-<!-- LOGIN SECTION -->
+<!-- AUTH -->
 {% if user.is_authenticated %}
+
 <a href="{% url 'profile' %}" class="flex items-center px-4 py-3 hover:bg-gray-600">
 <i class="fa fa-user w-6"></i>
-<span class="ml-3">{{ user.username }}</span>
+<span class="label ml-3">{{ user.username }}</span>
 </a>
 
 <a href="{% url 'logout' %}" class="flex items-center px-4 py-3 hover:bg-gray-600 text-red-300">
 <i class="fa fa-sign-out w-6"></i>
-<span class="ml-3">Logout</span>
+<span class="label ml-3">Logout</span>
 </a>
 
 {% else %}
+
 <a href="{% url 'login' %}" class="flex items-center px-4 py-3 hover:bg-gray-600">
 <i class="fa fa-sign-in w-6"></i>
-<span class="ml-3">Login</span>
+<span class="label ml-3">Login</span>
 </a>
 
-<a href="{% url 'register' %}" class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-user-plus w-6"></i>
-<span class="ml-3">Register</span>
-</a>
 {% endif %}
 
 </nav>
@@ -140,35 +165,37 @@ top:4rem;
 
 <div id="overlay" class="overlay"></div>
 
-<main class="main flex-1 overflow-y-auto">
+<!-- ===== MAIN ===== -->
+<main id="main" class="main pt-4 px-4">
 {% block content %}{% endblock %}
 </main>
 
-</div>
-
-<!-- JS -->
+<!-- ===== JS ===== -->
 <script>
-const sidebar=document.querySelector(".sidebar");
-const overlay=document.getElementById("overlay");
 
-document.getElementById("toggleSidebar").onclick=()=>{
+const sidebar = document.getElementById("sidebar");
+const main = document.getElementById("main");
+const overlay = document.getElementById("overlay");
+
+/* MOBILE OPEN */
+document.getElementById("menuBtn").onclick=()=>{
 sidebar.classList.toggle("open");
 overlay.classList.toggle("show");
 };
 
+/* DESKTOP COLLAPSE */
+document.getElementById("collapseBtn").onclick=()=>{
+sidebar.classList.toggle("collapsed");
+main.classList.toggle("collapsed");
+};
+
+/* CLOSE MOBILE */
 overlay.onclick=()=>{
 sidebar.classList.remove("open");
 overlay.classList.remove("show");
 };
 
-window.addEventListener("resize",()=>{
-if(window.innerWidth>=768){
-sidebar.classList.remove("open");
-overlay.classList.remove("show");
-}
-});
 </script>
 
-{% block scripts %}{% endblock %}
 </body>
-        </html>
+</html>
