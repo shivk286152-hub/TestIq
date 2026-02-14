@@ -163,7 +163,7 @@ def dashboard(request):
     return render(request, "exams/dashboard.html", context)
 
 
-
+@login_required
 def result_dashboard(request, attempt_id):
     attempt = get_object_or_404(
         MockTestAttempt,
@@ -182,7 +182,7 @@ def result_dashboard(request, attempt_id):
 
 
 
-
+@login_required
 def submit_test(request, mocktest_id):
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
 
@@ -274,7 +274,7 @@ def result_dashboard(request, attempt_id):
 
 
 
-
+@login_required
 def save_answer(request):
     if request.method == "POST":
         for key, value in request.POST.items():
