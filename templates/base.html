@@ -100,6 +100,36 @@ z-index:50;
 display:block;
 }
 }
+.progress-btn{
+position:relative;
+background:#f9fafb;
+overflow:hidden;
+border-radius:999px;
+text-decoration:none;
+}
+
+/* Running border */
+.progress-btn::before{
+content:"";
+position:absolute;
+inset:0;
+border:3px solid black;
+border-radius:999px;
+clip-path: inset(0 100% 100% 0);
+transition:clip-path 2s linear;
+pointer-events:none;
+}
+
+/* Animate */
+.progress-btn.animate::before{
+clip-path: inset(0 0 0 0);
+}
+
+/* Final state */
+.progress-btn.done{
+background:black;
+color:white;
+}
 </style>
 </head>
 
@@ -159,10 +189,8 @@ class="block px-4 py-2 hover:bg-gray-100 text-red-500">
 </div>
 
 {% else %}
-<a href="{% url 'login' %}"
-class="flex items-center gap-2 px-6 py-2 rounded-full 
-border border-gray-300 bg-gray-50
-hover:shadow-md hover:bg-white transition">
+<a href="{% url 'login' %}" id="loginBtn"
+class="progress-btn flex items-center gap-2 px-6 py-2 rounded-full">
 
 <i class="fa fa-sign-in"></i>
 Login
@@ -277,6 +305,26 @@ if(!userBtn.contains(e.target) && !dropdown.contains(e.target)){
 dropdown.classList.add("hidden");
 }
 });
+}
+
+const loginBtn = document.getElementById("loginBtn");
+
+if(loginBtn){
+const observer = new IntersectionObserver(entries=>{
+entries.forEach(entry=>{
+if(entry.isIntersecting){
+
+loginBtn.classList.add("animate");
+
+setTimeout(()=>{
+loginBtn.classList.add("done");
+},2000);
+
+}
+});
+},{threshold:0.6});
+
+observer.observe(loginBtn);
 }
 </script>
 </body>
