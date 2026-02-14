@@ -5,48 +5,46 @@
 
 {% block content %}
 
-
-
 <!-- HERO SECTION -->
 <section class="relative w-full h-[90vh] flex items-center justify-center text-white">
 
-    <!-- Background Image -->
+    <!-- Background -->
     <img src="{% static 'images/Hero.jpg' %}" 
          class="absolute inset-0 w-full h-full object-cover">
 
-    <!-- Dark Overlay -->
-    <div class="absolute inset-0 bg-black/50"></div>
+    <!-- Gradient Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-purple-900/70 to-black/80"></div>
 
-    <!-- Content -->
     <div class="relative z-10 text-center px-4 max-w-3xl">
 
-        <!-- Title -->
-        <h1 class="text-3xl sm:text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-6">
             {{ hero_title }}
         </h1>
 
-        <!-- Typing Text -->
-        <p class="text-lg sm:text-xl md:text-2xl font-medium">
-            <span id="typed-text" class="bg-blue-500/70 px-2 py-1 rounded"></span>
+        <p class="text-xl md:text-2xl">
+            <span id="typed-text" class="bg-indigo-600/70 px-3 py-1 rounded-lg"></span>
             <span class="animate-pulse">|</span>
         </p>
 
-        <!-- Hidden Text -->
         <span id="hero-full-text" class="hidden">
             {{ hero_desc }}
         </span>
 
-    </div>
+        <a href="#categories"
+           class="inline-block mt-8 bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-full font-semibold shadow-lg">
+           Start Learning 🚀
+        </a>
 
+    </div>
 </section>
 
+
+<!-- SCRIPT -->
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function(){
-
     const text = document.getElementById("hero-full-text").textContent.trim();
     const typedText = document.getElementById("typed-text");
-
     let i = 0;
 
     function type(){
@@ -56,92 +54,143 @@ document.addEventListener("DOMContentLoaded", function(){
             setTimeout(type,40);
         }
     }
-
     type();
-
 });
 </script>
 {% endblock %}
 
-<!-- CATEGORY SLIDER -->
-<section class="bg-white py-10">
-    <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-2xl font-semibold mb-6">Categories</h2>
 
-        <div class="flex gap-6 overflow-x-auto pb-4">
-            {% for cat in categories %}
-            <div class="min-w-[220px] bg-gray-100 rounded-lg p-4 text-center shadow">
+<!-- CATEGORIES -->
+<section id="categories" class="bg-gradient-to-b from-gray-50 to-gray-200 py-14">
 
-                {% if cat.logo %}
-                    <img src="{{ cat.logo.url }}"
-                         class="w-16 h-16 mx-auto mb-3"
-                         alt="{{ cat.name }}">
-                {% else %}
-                    <div class="w-16 h-16 bg-gray-300 rounded mx-auto mb-3"></div>
-                {% endif %}
+<div class="max-w-7xl mx-auto px-4">
+<h2 class="text-3xl font-bold mb-10 text-center">✨ Explore Categories</h2>
 
-                <h3 class="font-semibold mb-3">{{ cat.name }}</h3>
+<div class="flex gap-8 overflow-x-auto pb-6">
 
-                <a href="{% url 'exams:category_detail' cat.slug %}"
-                   class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    Start Test
-                </a>
-            </div>
-            {% empty %}
-                <p class="text-gray-500">No categories found</p>
-            {% endfor %}
-        </div>
-    </div>
+{% for cat in categories %}
+<div class="min-w-[230px] bg-white/70 backdrop-blur-lg border border-gray-200 rounded-2xl p-6 text-center shadow-lg hover:scale-105 transition">
+
+    {% if cat.logo %}
+    <img src="{{ cat.logo.url }}" class="w-20 h-20 mx-auto mb-4">
+    {% else %}
+    <div class="w-20 h-20 bg-indigo-200 rounded-full mx-auto mb-4"></div>
+    {% endif %}
+
+    <h3 class="font-bold text-lg mb-4">{{ cat.name }}</h3>
+
+    <a href="{% url 'exams:category_detail' cat.slug %}"
+       class="bg-indigo-600 text-white px-5 py-2 rounded-full hover:bg-indigo-700">
+       Start Test
+    </a>
+
+</div>
+{% endfor %}
+
+</div>
+</div>
 </section>
 
-<!-- MOCK TEST (ONLY IF LOGGED IN) -->
-{% if user.is_authenticated %}
-<section class="max-w-7xl mx-auto px-4 py-10 ">
-    <h2 class="text-2xl font-semibold mb-6">New Mock Tests</h2>
 
-    <div class="space-y-4 ">
-        {% for test in mock_tests %}
-        <div class="bg-white p-4 rounded shadow flex justify-between items-center">
-            <div class="font-medium">{{ test.title }}</div>
-            <a href="{% url 'exams:start_test' test.id %}"
-               class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                Start
-            </a>
-        </div>
-        {% empty %}
-            <p class="text-gray-500">No tests available</p>
-        {% endfor %}
-    </div>
+<!-- MOCK TEST -->
+{% if user.is_authenticated %}
+<section class="max-w-7xl mx-auto px-4 py-14">
+
+<h2 class="text-3xl font-bold mb-8">🔥 New Mock Tests</h2>
+
+<div class="grid md:grid-cols-2 gap-6">
+
+{% for test in mock_tests %}
+<div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg flex justify-between items-center">
+
+<div>
+<h3 class="text-xl font-semibold">{{ test.title }}</h3>
+<p class="text-sm opacity-80">Boost your exam confidence</p>
+</div>
+
+<a href="{% url 'exams:start_test' test.id %}"
+   class="bg-white text-indigo-700 px-5 py-2 rounded-full font-semibold">
+   Start →
+</a>
+
+</div>
+{% endfor %}
+
+</div>
 </section>
 {% endif %}
 
+
 <!-- ABOUT -->
-<section class="bg-stone-900 py-12">
-    <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8">
+<section class="bg-gradient-to-r from-indigo-900 to-purple-900 text-white py-16">
 
-        <div>
-            <h3 class="text-xl text-gray-100 font-semibold mb-4">About Us</h3>
-            <p class="text-gray-50 leading-relaxed">
-                We provide high-quality mock tests and exam preparation tools
-                to help students crack competitive exams efficiently.
-            </p>
-        </div>
+<div class="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-10">
 
-        <div>
-            <h3 class="text-xl text-gray-100 font-semibold mb-4">All Categories</h3>
-            <ul class="list-disc text-blue-500 pl-6 space-y-1">
-                {% for cat in categories %}
-                   <a href="{% url 'exams:category_detail' cat.slug %}"> <li>{{ cat.name }}</li></a>
-                 {% endfor %}
-            </ul>
-        </div>
+<div>
+<h3 class="text-3xl font-bold mb-4">Why Choose Us?</h3>
+<p class="leading-relaxed text-lg opacity-90">
+We help students crack competitive exams with real exam-like mock tests,
+smart analytics, and structured practice.
+</p>
 
-    </div>
+<ul class="mt-6 space-y-2">
+<li>✔ Real Exam Interface</li>
+<li>✔ Detailed Solutions</li>
+<li>✔ Performance Tracking</li>
+<li>✔ Unlimited Practice</li>
+</ul>
+</div>
+
+<div>
+<h3 class="text-3xl font-bold mb-4">All Categories</h3>
+
+<div class="grid grid-cols-2 gap-3">
+{% for cat in categories %}
+<a href="{% url 'exams:category_detail' cat.slug %}"
+class="bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30">
+{{ cat.name }}
+</a>
+{% endfor %}
+</div>
+
+</div>
+
+</div>
 </section>
 
+
 <!-- FOOTER -->
-<footer class="bg-gray-800 text-white text-center py-4 mt-10">
-    © {{ site_name }} {% now "Y" %}. All rights reserved.
+<footer class="bg-black text-gray-300 py-10">
+
+<div class="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-8">
+
+<div>
+<h3 class="text-xl font-bold text-white mb-3">{{ site_name }}</h3>
+<p class="text-sm">
+Your trusted platform for mock tests and exam success.
+</p>
+</div>
+
+<div>
+<h4 class="font-semibold text-white mb-3">Quick Links</h4>
+<ul class="space-y-2 text-sm">
+<li><a href="#" class="hover:text-white">Home</a></li>
+<li><a href="#" class="hover:text-white">Tests</a></li>
+<li><a href="#" class="hover:text-white">Contact</a></li>
+</ul>
+</div>
+
+<div>
+<h4 class="font-semibold text-white mb-3">Follow Us</h4>
+<p class="text-sm">Stay connected for updates 🚀</p>
+</div>
+
+</div>
+
+<div class="text-center mt-8 border-t border-gray-700 pt-4 text-sm">
+© {{ site_name }} {% now "Y" %} | All rights reserved.
+</div>
+
 </footer>
 
 {% endblock %}
