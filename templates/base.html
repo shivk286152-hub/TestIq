@@ -13,51 +13,69 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
 <style>
 :root{
---sidebar-open: 13rem;
---sidebar-closed: 4rem;
+--header-h:4rem;
+--sidebar-open:14rem;
+--sidebar-close:4.5rem;
+}
+
+/* ===== HEADER ===== */
+.header{
+height:var(--header-h);
 }
 
 /* ===== SIDEBAR ===== */
 .sidebar{
-height:calc(100dvh - 4rem);
+position:fixed;
+top:var(--header-h);
+left:0;
+height:calc(100dvh - var(--header-h));
+width:var(--sidebar-open);
 background:#374151;
 color:white;
-position:fixed;
-top:4rem;
-left:0;
+display:flex;
+flex-direction:column;
 transition:.3s;
-overflow:hidden;
-width:var(--sidebar-open);
+z-index:60;
 }
 
-/* collapsed */
+/* collapsed desktop */
 .sidebar.collapsed{
-width:var(--sidebar-closed);
+width:var(--sidebar-close);
 }
 
-/* text hide */
 .sidebar.collapsed .label{
 display:none;
 }
 
-/* MAIN */
+/* sidebar content */
+.sidebar-content{
+flex:1;
+overflow-y:auto;
+}
+
+/* bottom auth */
+.sidebar-bottom{
+border-top:1px solid #4b5563;
+}
+
+/* ===== MAIN ===== */
 .main{
 margin-left:var(--sidebar-open);
-min-height:calc(100dvh - 4rem);
+padding-top:calc(var(--header-h) + 1rem);
+min-height:100dvh;
 transition:.3s;
 }
 
 .main.collapsed{
-margin-left:var(--sidebar-closed);
+margin-left:var(--sidebar-close);
 }
 
-/* MOBILE */
+/* ===== MOBILE ===== */
 @media(max-width:768px){
 
 .sidebar{
 transform:translateX(-100%);
-width:13rem;
-z-index:60;
+width:14rem;
 }
 
 .sidebar.open{
@@ -70,11 +88,11 @@ margin-left:0;
 }
 
 .overlay{
-display:none;
 position:fixed;
 inset:0;
-top:4rem;
+top:var(--header-h);
 background:rgba(0,0,0,.4);
+display:none;
 z-index:50;
 }
 
@@ -88,7 +106,7 @@ display:block;
 <body class="bg-gray-100">
 
 <!-- ===== HEADER ===== -->
-<header class="fixed top-0 left-0 right-0 h-16 bg-white shadow z-50">
+<header class="header fixed top-0 left-0 right-0 bg-white shadow z-50">
 
 <div class="h-full px-4 flex justify-between items-center">
 
@@ -121,7 +139,8 @@ display:block;
 <!-- ===== SIDEBAR ===== -->
 <aside id="sidebar" class="sidebar">
 
-<nav class="py-4 space-y-1">
+<!-- TOP MENU -->
+<div class="sidebar-content py-4 space-y-1">
 
 <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
 <i class="fa fa-pen w-6"></i>
@@ -138,64 +157,70 @@ display:block;
 <span class="label ml-3">Exam News</span>
 </a>
 
-<!-- AUTH -->
+</div>
+
+<!-- BOTTOM LOGIN -->
+<div class="sidebar-bottom py-3">
+
 {% if user.is_authenticated %}
 
-<a href="{% url 'profile' %}" class="flex items-center px-4 py-3 hover:bg-gray-600">
+<a href="{% url 'profile' %}"
+class="flex items-center px-4 py-3 hover:bg-gray-600">
 <i class="fa fa-user w-6"></i>
 <span class="label ml-3">{{ user.username }}</span>
 </a>
 
-<a href="{% url 'logout' %}" class="flex items-center px-4 py-3 hover:bg-gray-600 text-red-300">
+<a href="{% url 'logout' %}"
+class="flex items-center px-4 py-3 hover:bg-gray-600 text-red-300">
 <i class="fa fa-sign-out w-6"></i>
 <span class="label ml-3">Logout</span>
 </a>
 
 {% else %}
 
-<a href="{% url 'login' %}" class="flex items-center px-4 py-3 hover:bg-gray-600">
+<a href="{% url 'login' %}"
+class="flex items-center px-4 py-3 hover:bg-gray-600">
 <i class="fa fa-sign-in w-6"></i>
 <span class="label ml-3">Login</span>
 </a>
 
 {% endif %}
 
-</nav>
+</div>
+
 </aside>
 
 <div id="overlay" class="overlay"></div>
 
 <!-- ===== MAIN ===== -->
-<main id="main" class="main pt-4 px-4">
+<main id="main" class="main px-4">
 {% block content %}{% endblock %}
 </main>
 
 <!-- ===== JS ===== -->
 <script>
+const sidebar=document.getElementById("sidebar");
+const main=document.getElementById("main");
+const overlay=document.getElementById("overlay");
 
-const sidebar = document.getElementById("sidebar");
-const main = document.getElementById("main");
-const overlay = document.getElementById("overlay");
-
-/* MOBILE OPEN */
-document.getElementById("menuBtn").onclick=()=>{
+/* mobile open */
+menuBtn.onclick=()=>{
 sidebar.classList.toggle("open");
 overlay.classList.toggle("show");
 };
 
-/* DESKTOP COLLAPSE */
-document.getElementById("collapseBtn").onclick=()=>{
+/* desktop collapse */
+collapseBtn.onclick=()=>{
 sidebar.classList.toggle("collapsed");
 main.classList.toggle("collapsed");
 };
 
-/* CLOSE MOBILE */
+/* close mobile */
 overlay.onclick=()=>{
 sidebar.classList.remove("open");
 overlay.classList.remove("show");
 };
-
 </script>
 
 </body>
-</html>
+  </html>
