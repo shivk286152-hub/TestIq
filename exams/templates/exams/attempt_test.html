@@ -58,22 +58,95 @@
     </div>
 </div>
 
-<div id="confirmBox" style="display:none;
-position:fixed;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-background:white;
-padding:20px;
-box-shadow:0 0 10px gray;
-z-index:9999;">
+<!-- OVERLAY -->
+<div id="confirmOverlay" class="overlay hidden"></div>
 
-<p>Are you sure you want to submit your test?</p>
+<!-- MODAL -->
+<div id="confirmBox" class="modal hidden">
+    <h3>Submit Test?</h3>
+    <p>Are you sure you want to submit your test?</p>
 
-<button onclick="closeBox()">Cancel</button>
-<button onclick="finalSubmit()">Submit</button>
-
+    <div class="actions">
+        <button class="btn cancel" onclick="closeBox()">Cancel</button>
+        <button class="btn submit" onclick="finalSubmit()">Submit</button>
+    </div>
 </div>
+
+<style>
+/* OVERLAY */
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index:999;
+}
+
+/* MODAL */
+.modal{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(.9);
+    background:white;
+    padding:25px;
+    width:90%;
+    max-width:400px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+    z-index:1000;
+    text-align:center;
+    font-family:sans-serif;
+    animation: pop .25s ease forwards;
+}
+
+/* ANIMATION */
+@keyframes pop{
+    to{
+        transform:translate(-50%,-50%) scale(1);
+        opacity:1;
+    }
+}
+
+/* BUTTON AREA */
+.actions{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    margin-top:20px;
+}
+
+/* BUTTONS */
+.btn{
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:600;
+    transition:.2s;
+}
+
+.cancel{
+    background:#eee;
+}
+.cancel:hover{
+    background:#ddd;
+}
+
+.submit{
+    background:#4CAF50;
+    color:white;
+}
+.submit:hover{
+    background:#43a047;
+}
+
+/* HIDE */
+.hidden{
+    display:none;
+}
+</style>
 
 <script>
     function togglePalette() {
@@ -202,28 +275,15 @@ z-index:9999;">
         }
     }
 
-function showBox(){
-    document.getElementById("confirmBox").style.display="block";
+function openBox(){
+    document.getElementById("confirmBox").classList.remove("hidden");
+    document.getElementById("confirmOverlay").classList.remove("hidden");
 }
 
 function closeBox(){
-    document.getElementById("confirmBox").style.display="none";
+    document.getElementById("confirmBox").classList.add("hidden");
+    document.getElementById("confirmOverlay").classList.add("hidden");
 }
-
-function finalSubmit(){
-    document.getElementById("testForm").submit();
-}
-
-// AJAX loaded submit button detect
-document.addEventListener("click", function(e){
-
-    if(e.target && e.target.id === "submitBtn"){
-        e.preventDefault();
-        showBox();
-    }
-
-});
-
 </script>
 
 {% endblock %}
