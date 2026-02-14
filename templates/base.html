@@ -1,15 +1,10 @@
         
 <!DOCTYPE html>
-<html lang="en" class="transition-colors duration-300">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}{{ site_name }}{% endblock %}</title>
-
-<!-- Tailwind Dark Mode Config -->
-<script>
-tailwind.config = { darkMode: 'class' }
-</script>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -17,55 +12,23 @@ tailwind.config = { darkMode: 'class' }
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-:root { --sidebar-width: 13rem; }
+html,body{margin:0;height:100%;}
 
-html { -webkit-tap-highlight-color: transparent; }
-
-.sidebar-collapsed { --sidebar-width: 4rem; }
-
-.sidebar-text {
-transition: opacity .25s, transform .25s;
-white-space: nowrap;
-}
-
-.sidebar-collapsed .sidebar-text {
-opacity:0;
-transform:translateX(-10px);
-pointer-events:none;
-}
-
-/* Desktop */
-@media (min-width:768px){
+/* MOBILE SIDEBAR */
 .sidebar{
-width:var(--sidebar-width);
-transform:translateX(0)!important;
-position:relative!important;
-height:calc(100dvh - 4rem);
-}
-.main{
-margin-left:var(--sidebar-width);
-min-height:calc(100dvh - 4rem);
-}
-.overlay{display:none!important;}
-}
-
-/* Mobile */
-@media (max-width:767px){
-.sidebar{
-width:11rem;
-transform:translateX(-100%);
 position:fixed;
+top:4rem;
+left:-100%;
+width:80%;
+height:calc(100vh - 4rem);
+background:#374151;
+color:white;
 z-index:60;
-height:calc(100dvh - 4rem);
-top:4rem; left:0;
+transition:.3s;
 }
-.sidebar.open{transform:translateX(0);}
-.main{
-margin:0!important;
-width:100%;
-padding:1rem;
-min-height:calc(100dvh - 4rem);
-}
+
+.sidebar.open{left:0;}
+
 .overlay{
 display:none;
 position:fixed;
@@ -74,27 +37,25 @@ background:rgba(0,0,0,.4);
 z-index:50;
 top:4rem;
 }
-.overlay.show{display:block;}
-}
 
-html,body{height:100%;margin:0;}
+.overlay.show{display:block;}
+
+/* DESKTOP */
+@media(min-width:768px){
+.sidebar{display:none;}
+.overlay{display:none!important;}
+}
 </style>
 </head>
 
-<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+<body class="bg-gray-100 text-gray-800">
 
 <!-- HEADER -->
-<header class="fixed top-0 left-0 right-0 h-16
-bg-white dark:bg-gray-800 shadow z-50 transition-colors">
-
-<div class="h-full px-4 flex items-center justify-between">
+<header class="fixed top-0 left-0 right-0 h-16 bg-white shadow z-50">
+<div class="h-full px-4 flex justify-between items-center">
 
 <div class="flex items-center gap-3">
-<button id="toggleSidebar" class="text-xl md:hidden">
-<i class="fa-solid fa-bars"></i>
-</button>
-
-<button id="toggleSidebarDesktop" class="text-xl hidden md:block">
+<button id="menuBtn" class="text-xl md:hidden">
 <i class="fa-solid fa-bars"></i>
 </button>
 
@@ -103,141 +64,73 @@ bg-white dark:bg-gray-800 shadow z-50 transition-colors">
 </span>
 </div>
 
-<div class="flex items-center gap-4">
-
-<!-- Dark mode desktop -->
-<button id="darkToggleDesktop" class="hidden md:block text-xl">
-<i class="fa-solid fa-moon"></i>
-</button>
-
 {% if user.is_authenticated %}
-<div class="relative group">
-<button class="flex items-center gap-2">
-<i class="fa fa-user-circle text-3xl"></i>
-<span class="hidden sm:block text-sm">{{ user.username }}</span>
-</button>
-
-<div class="absolute right-0 mt-2 w-44
-bg-white dark:bg-gray-700 rounded shadow-lg
-opacity-0 invisible group-hover:opacity-100
-group-hover:visible transition">
-
-<a href="{% url 'profile' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-Profile</a>
-
-<a href="{% url 'logout' %}" class="block px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600">
-Logout</a>
-
-</div>
+<div class="flex items-center gap-2">
+<i class="fa fa-user-circle text-2xl"></i>
+<span class="text-sm">{{ user.username }}</span>
 </div>
 {% endif %}
 
 </div>
-</div>
 </header>
 
-<!-- LAYOUT -->
-<div id="layout" class="flex pt-16">
+<!-- SIDEBAR (MOBILE ONLY) -->
+<aside id="sidebar" class="sidebar">
 
-<!-- SIDEBAR -->
-<aside class="sidebar bg-gray-700 dark:bg-gray-800 text-white
-transition-all duration-300 flex flex-col">
+<div class="p-5">
 
-<nav class="flex-1 py-4 space-y-1">
+<button id="closeBtn" class="text-2xl mb-6">✖</button>
 
-<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-pen w-6"></i>
-<span class="sidebar-text ml-3">Test</span>
-</a>
+<h2 class="text-xl font-bold mb-6">{{ site_name }}</h2>
 
-<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-newspaper w-6"></i>
-<span class="sidebar-text ml-3">Current Affairs</span>
-</a>
+<nav class="space-y-4">
 
-<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-book w-6"></i>
-<span class="sidebar-text ml-3">Exam News</span>
-</a>
+<a href="/" class="block">🏠 Home</a>
+<a href="#categories" class="block">📚 Categories</a>
+<a href="#" class="block">📝 Tests</a>
+<a href="#" class="block">📰 Current Affairs</a>
 
-<!-- Dark mode mobile -->
-<button id="darkToggleMobile"
-class="md:hidden flex items-center px-4 py-3 hover:bg-gray-600 w-full">
-<i class="fa-solid fa-moon w-6"></i>
-<span class="sidebar-text ml-3">Dark Mode</span>
-</button>
+{% if user.is_authenticated %}
+<a href="{% url 'profile' %}" class="block">👤 Profile</a>
+<a href="{% url 'logout' %}" class="block text-red-400">🚪 Logout</a>
+{% else %}
+<a href="{% url 'login' %}" class="block">🔑 Login</a>
+<a href="{% url 'register' %}" class="block">📝 Register</a>
+{% endif %}
 
 </nav>
+
+</div>
 </aside>
 
 <div id="overlay" class="overlay"></div>
 
-<main class="main flex-1 overflow-y-auto">
+<!-- MAIN -->
+<main class="pt-16">
 {% block content %}{% endblock %}
 </main>
 
-</div>
-
 <!-- JS -->
 <script>
-const layout=document.getElementById("layout");
-const sidebar=document.querySelector(".sidebar");
+const menuBtn=document.getElementById("menuBtn");
+const sidebar=document.getElementById("sidebar");
+const closeBtn=document.getElementById("closeBtn");
 const overlay=document.getElementById("overlay");
 
-function isMobile(){return window.innerWidth<768;}
-
-if(!isMobile() && localStorage.getItem("sidebar")==="collapsed"){
-layout.classList.add("sidebar-collapsed");
+menuBtn.onclick=()=>{
+sidebar.classList.add("open");
+overlay.classList.add("show");
 }
 
-document.getElementById("toggleSidebar").onclick=()=>{
-sidebar.classList.toggle("open");
-overlay.classList.toggle("show");
-};
-
-document.getElementById("toggleSidebarDesktop").onclick=()=>{
-layout.classList.toggle("sidebar-collapsed");
-localStorage.setItem("sidebar",
-layout.classList.contains("sidebar-collapsed")?"collapsed":"expanded");
-};
+closeBtn.onclick=()=>{
+sidebar.classList.remove("open");
+overlay.classList.remove("show");
+}
 
 overlay.onclick=()=>{
 sidebar.classList.remove("open");
 overlay.classList.remove("show");
-};
-
-window.addEventListener("resize",()=>{
-if(!isMobile()){
-sidebar.classList.remove("open");
-overlay.classList.remove("show");
 }
-});
-
-/* DARK MODE */
-const html=document.documentElement;
-const desktopBtn=document.getElementById("darkToggleDesktop");
-const mobileBtn=document.getElementById("darkToggleMobile");
-
-function setIcon(isDark){
-const icon=isDark?"fa-sun":"fa-moon";
-desktopBtn.innerHTML=`<i class="fa-solid ${icon}"></i>`;
-mobileBtn.querySelector("i").className=`fa-solid ${icon} w-6`;
-}
-
-if(localStorage.getItem("theme")==="dark"){
-html.classList.add("dark");
-setIcon(true);
-}
-
-function toggleDark(){
-html.classList.toggle("dark");
-const isDark=html.classList.contains("dark");
-localStorage.setItem("theme",isDark?"dark":"light");
-setIcon(isDark);
-}
-
-desktopBtn.onclick=toggleDark;
-mobileBtn.onclick=toggleDark;
 </script>
 
 {% block scripts %}{% endblock %}
