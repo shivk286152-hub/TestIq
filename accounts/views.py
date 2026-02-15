@@ -36,20 +36,19 @@ def register(request):
 
 def user_login(request):
     if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
             login(request, user)
-            return redirect('exams/home.html')  # change as needed
+            return redirect('exams:home')  # correct
         else:
             messages.error(request, "Invalid credentials")
             return redirect('login')
 
     return render(request, 'accounts/login.html')
-
 
 def user_logout(request):
     logout(request)
