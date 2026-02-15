@@ -112,8 +112,21 @@ MEDIA_ROOT = BASE_DIR / "media"
 # LOGIN
 # ----------------------------
 LOGIN_REDIRECT_URL = "home"
+LOGIN_URL = '/login/'
+LOGOUT_REDIRECT_URL = 'home'
 
 # ----------------------------
 # DEFAULT AUTO FIELD
 # ----------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# SESSION COOKIE SECURE 
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://testiq-3.onrender.com"
+]
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
