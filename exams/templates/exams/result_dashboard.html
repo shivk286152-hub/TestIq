@@ -14,8 +14,8 @@
         </p>
     </div>
 
-    <!-- TOP BOXES -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+    <!-- RESULT BOXES -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
 
         <div class="bg-white p-4 rounded-xl shadow text-center">
             <p>Total</p>
@@ -39,39 +39,29 @@
 
         <div class="bg-yellow-50 p-4 rounded-xl text-center">
             <p>Time</p>
-            <p class="font-bold">
-                {{ attempt.time_taken|default:"N/A" }}
-            </p>
+            <p class="font-bold">{{ attempt.time_taken|default:"N/A" }}</p>
         </div>
 
     </div>
 
-    <!-- BUTTONS -->
-    <div class="flex gap-3 justify-center mb-8">
-        <a href="#" class="bg-indigo-600 text-white px-5 py-2 rounded-lg">Analysis</a>
-        <a href="#" class="bg-purple-600 text-white px-5 py-2 rounded-lg">Ranks</a>
-        <a href="#" class="bg-pink-600 text-white px-5 py-2 rounded-lg">Exam Statistics</a>
-    </div>
-
-    <!-- CIRCLES -->
-    <div class="bg-white rounded-xl shadow p-6">
+    <!-- PERFORMANCE CIRCLES (ONLY IF SUBJECT EXISTS) -->
+    {% if subject_stats %}
+    <div class="bg-white rounded-xl shadow p-6 mb-8">
         <h2 class="text-center text-xl font-semibold mb-6">
             Performance Overview
         </h2>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6 justify-items-center">
 
-            <!-- SCORE CIRCLE -->
+            <!-- SCORE -->
             <div class="text-center">
                 <div class="w-28 h-28 rounded-full flex items-center justify-center"
-                style="background:
-                conic-gradient(
-                {% if percentage >= 80 %}#16a34a
-                {% elif percentage >= 70 %}#800000
-                {% elif percentage >= 50 %}#eab308
-                {% else %}#dc2626{% endif %}
-                {{ percentage }}%, #e5e7eb 0);">
-
+                     style="background: conic-gradient(
+                     {% if percentage >= 80 %}#16a34a
+                     {% elif percentage >= 70 %}#800000
+                     {% elif percentage >= 50 %}#eab308
+                     {% else %}#dc2626{% endif %}
+                     {{ percentage }}%, #e5e7eb 0);">
                     <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center font-bold">
                         {{ percentage }}%
                     </div>
@@ -83,7 +73,7 @@
             {% widthratio correct total_questions 100 as cpercent %}
             <div class="text-center">
                 <div class="w-28 h-28 rounded-full flex items-center justify-center"
-                     style="background:conic-gradient(#22c55e {{ cpercent }}%, #e5e7eb 0);">
+                     style="background: conic-gradient(#22c55e {{ cpercent }}%, #e5e7eb 0);">
                     <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center font-bold">
                         {{ cpercent }}%
                     </div>
@@ -95,7 +85,7 @@
             {% widthratio wrong total_questions 100 as wpercent %}
             <div class="text-center">
                 <div class="w-28 h-28 rounded-full flex items-center justify-center"
-                     style="background:conic-gradient(#ef4444 {{ wpercent }}%, #e5e7eb 0);">
+                     style="background: conic-gradient(#ef4444 {{ wpercent }}%, #e5e7eb 0);">
                     <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center font-bold">
                         {{ wpercent }}%
                     </div>
@@ -103,10 +93,10 @@
                 <p class="mt-2">Wrong</p>
             </div>
 
-            <!-- ATTEMPT -->
+            <!-- ATTEMPTED -->
             <div class="text-center">
                 <div class="w-28 h-28 rounded-full flex items-center justify-center"
-                     style="background:conic-gradient(#0ea5e9 100%, #e5e7eb 0);">
+                     style="background: conic-gradient(#0ea5e9 100%, #e5e7eb 0);">
                     <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center font-bold">
                         100%
                     </div>
@@ -116,18 +106,20 @@
 
         </div>
     </div>
+    {% endif %}
 
     <!-- SUBJECT WISE -->
     {% if subject_stats %}
-    <div class="bg-white rounded-xl shadow p-6 mt-8">
+    <div class="bg-white rounded-xl shadow p-6 mb-8">
         <h2 class="font-semibold mb-4">Subject Wise Marks</h2>
 
         {% for s in subject_stats %}
-        <div class="mb-3">
-            <div class="flex justify-between text-sm">
+        <div class="mb-4">
+            <div class="flex justify-between text-sm mb-1">
                 <span>{{ s.subject }}</span>
                 <span>{{ s.marks }}%</span>
             </div>
+
             <div class="w-full bg-gray-200 h-3 rounded">
                 <div class="h-3 rounded bg-indigo-600"
                      style="width: {{ s.marks }}%">
@@ -137,6 +129,21 @@
         {% endfor %}
     </div>
     {% endif %}
+
+    <!-- BUTTONS (BOTTOM) -->
+    <div class="flex gap-4 justify-center">
+        <a href="#" class="bg-indigo-600 hover:bg-indigo-700 transition text-white px-6 py-2 rounded-lg">
+            Analysis
+        </a>
+
+        <a href="#" class="bg-purple-600 hover:bg-purple-700 transition text-white px-6 py-2 rounded-lg">
+            Ranks
+        </a>
+
+        <a href="#" class="bg-pink-600 hover:bg-pink-700 transition text-white px-6 py-2 rounded-lg">
+            Statistics
+        </a>
+    </div>
 
 </div>
 {% endblock %}
