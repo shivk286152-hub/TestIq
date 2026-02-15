@@ -23,20 +23,26 @@
         {% csrf_token %}
 
         <!-- Name -->
-        <div class="relative">
-            <input type="text" name="username" placeholder="Name"
+        <div>
+            <input type="text" name="username" placeholder="Name" required
             class="w-full border-b py-3 focus:outline-none focus:border-blue-600">
         </div>
 
         <!-- Email -->
-        <div class="relative">
-            <input type="email" name="email" placeholder="E-mail"
+        <div>
+            <input type="email" name="email" placeholder="E-mail" required
             class="w-full border-b py-3 focus:outline-none focus:border-blue-600">
         </div>
 
         <!-- Password -->
-        <div class="relative">
-            <input type="password" name="password" placeholder="Password"
+        <div>
+            <input type="password" name="password" placeholder="Password" required
+            class="w-full border-b py-3 focus:outline-none focus:border-blue-600">
+        </div>
+
+        <!-- Confirm Password -->
+        <div>
+            <input type="password" name="confirm_password" placeholder="Confirm Password" required
             class="w-full border-b py-3 focus:outline-none focus:border-blue-600">
         </div>
 
@@ -67,17 +73,14 @@
         <div class="absolute inset-0 rounded-md
         bg-gradient-to-r from-red-500 via-yellow-500 to-green-500
         opacity-0 group-hover:opacity-100
-        group-active:opacity-100
         transition duration-700 animate-border"></div>
 
         <!-- Inner Box -->
         <a href="#"
         class="relative flex justify-center items-center
         border rounded-md py-3 bg-white
-        group-hover:bg-red-500 group-active:bg-red-500
-        transition duration-700">
+        group-hover:bg-red-500 transition duration-700">
 
-            <!-- Google Icon -->
             <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
             class="w-6 h-6">
         </a>
