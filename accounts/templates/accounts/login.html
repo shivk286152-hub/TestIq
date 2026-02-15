@@ -3,67 +3,71 @@
 
 {% block title %}Login{% endblock %}
 
-{# Optional: hide slider on login page #}
 {% block slider %}{% endblock %}
 
 {% block content %}
 <div class="relative min-h-screen flex items-center justify-center">
 
-    <!-- Background Image -->
+    <!-- Background -->
     <div class="absolute inset-0">
-        <img 
-            src="{% static 'images/login-bg.jpg' %}" 
-            class="w-full h-full object-cover"
-            alt="Login Background"
-        >
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <img src="{% static 'images/login-bg.jpg' %}"
+             class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
     </div>
 
     <!-- Login Card -->
-    <div class="relative z-10 bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-xl w-full max-w-md">
-        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
-            Login
-        </h2>
+    <div class="relative z-10 bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+
+        <!-- Icon + Welcome -->
+        <div class="text-center mb-6">
+            <div class="text-blue-600 text-3xl mb-2">➜</div>
+            <h2 class="text-2xl font-bold">Welcome!</h2>
+            <p class="text-gray-500 text-sm">Sign in to your account</p>
+        </div>
 
         <form action="{% url 'login' %}" method="POST" class="space-y-4">
             {% csrf_token %}
 
-            <input
-                type="text"
-                name="username"
-                placeholder="Username"
-                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                required
-            >
+            <input type="text" name="username" placeholder="Name"
+                   class="w-full px-4 py-3 border-b focus:outline-none focus:border-blue-500">
 
-            <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                required
-            >
+            <input type="password" name="password" placeholder="Password"
+                   class="w-full px-4 py-3 border-b focus:outline-none focus:border-blue-500">
 
-            <button
-                type="submit"
-                class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition">
-                Login
+            <!-- Remember + Forgot -->
+            <div class="flex justify-between text-sm text-gray-600">
+                <label>
+                    <input type="checkbox"> remember me?
+                </label>
+                <a href="#" class="text-blue-600 hover:underline">
+                    forgot password?
+                </a>
+            </div>
+
+            <!-- Button -->
+            <button type="submit"
+                    class="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition">
+                Login →
             </button>
         </form>
 
-        <p class="text-center text-sm text-gray-600 mt-4">
-            Don't have an account?
-            <a href="{% url 'register' %}" class="text-blue-600 hover:underline">
-                Register
+        <!-- Messages -->
+        {% for message in messages %}
+        <p class="text-red-500 text-sm text-center mt-3">{{ message }}</p>
+        {% endfor %}
+
+        <!-- Divider Line -->
+        <div class="border-t my-6"></div>
+
+        <!-- Register -->
+        <p class="text-center text-sm text-gray-600">
+            Not yet registered?
+            <a href="{% url 'register' %}"
+               class="text-blue-600 font-medium hover:underline">
+               Register Here
             </a>
         </p>
 
-        {% for message in messages %}
-        <p class="text-red-500 text-sm text-center mt-3">
-            {{ message }}
-        </p>
-        {% endfor %}
     </div>
-
 </div>
 {% endblock %}
