@@ -52,7 +52,15 @@ def subcategory_detail(request, subcategory_id):
         "tests": tests,
     })
 
+def mocktest_detail(request, pk):
+    mock_test = get_object_or_404(MockTest, id=pk)
 
+    questions = Question.objects.filter(mock_test=mock_test)
+
+    return render(request, "exams/mocktest_detail.html", {
+        "mock_test": mock_test,
+        "questions": questions,
+    })
 # ==============================
 # START TEST (CREATE ATTEMPT)
 # ==============================
