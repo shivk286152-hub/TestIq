@@ -130,33 +130,30 @@ class="hex-btn">
 
 /* TOGGLE DRAWER */
 function togglePalette(){
-document.getElementById("questionPalette")
-.classList.toggle("-translate-x-full");
+    document.getElementById("questionPalette")
+    .classList.toggle("-translate-x-full");
 }
 
-/* TIMER */
-const TEST_KEY="mocktest_{{ mocktest.id }}_start";
-const DURATION=parseInt("{{ mocktest.duration|default:'30' }}")*60;
 
-if(!localStorage.getItem(TEST_KEY)){
-localStorage.setItem(TEST_KEY,Date.now());
-}
+/* ✅ SERVER TIMER */
+let timeLeft = {{ remaining_seconds }};
 
-setInterval(()=>{
-const start=parseInt(localStorage.getItem(TEST_KEY));
-const elapsed=Math.floor((Date.now()-start)/1000);
-const left=DURATION-elapsed;
+const timerInterval = setInterval(()=>{
+    
+    if(timeLeft <= 0){
+        clearInterval(timerInterval);
+        alert("Time Up!");
+        document.getElementById("testForm").submit();
+        return;
+    }
 
-if(left<=0){
-alert("Time Up!");
-document.getElementById("testForm").submit();
-}
+    let m = Math.floor(timeLeft/60);
+    let s = timeLeft%60;
 
-const m=Math.floor(left/60);
-const s=left%60;
+    document.getElementById("timer").innerHTML =
+        (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
 
-document.getElementById("timer").innerHTML=
-(m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+    timeLeft--;
 
 },1000);
 
@@ -164,78 +161,78 @@ document.getElementById("timer").innerHTML=
 /* LOAD QUESTION */
 function loadQuestion(num){
 
-fetch("{% url 'exams:ajax_question' mocktest.id %}?q="+num)
-.then(r=>r.text())
-.then(html=>{
+    fetch("{% url 'exams:ajax_question' mocktest.id %}?q="+num)
+    .then(r=>r.text())
+    .then(html=>{
 
-document.getElementById("questionContainer").innerHTML=html;
+        document.getElementById("questionContainer").innerHTML=html;
 
-document.querySelectorAll(".hex-btn")
-.forEach(b=>b.classList.remove("active-q"));
+        document.querySelectorAll(".hex-btn")
+        .forEach(b=>b.classList.remove("active-q"));
 
-document.getElementById("palette-"+num)
-.classList.add("active-q");
+        document.getElementById("palette-"+num)
+        .classList.add("active-q");
 
-});
+    });
 }
 
 
 /* SAVE ANSWER */
 function saveAnswer(qid,goNext=false,nextNum=null){
 
-const selected=document.querySelector(`input[name="question_${qid}"]:checked`);
-const btn=document.getElementById("palette-"+qid);
-const fd=new FormData();
+    const selected=document.querySelector(`input[name="question_${qid}"]:checked`);
+    const btn=document.getElementById("palette-"+qid);
+    const fd=new FormData();
 
-if(selected){
-fd.append(`question_${qid}`,selected.value);
+    if(selected){
+        fd.append(`question_${qid}`,selected.value);
 
-btn.classList.remove("skipped","cleared");
-btn.classList.add("answered");
-}
-else{
-if(!btn.classList.contains("answered")){
-btn.classList.add("skipped");
-}
-}
+        btn.classList.remove("skipped","cleared");
+        btn.classList.add("answered");
+    }
+    else{
+        if(!btn.classList.contains("answered")){
+            btn.classList.add("skipped");
+        }
+    }
 
-fetch("{% url 'exams:save_answer' %}",{
-method:"POST",
-headers:{"X-CSRFToken":"{{ csrf_token }}"},
-body:fd
-}).then(()=>{
-if(goNext && nextNum){
-loadQuestion(nextNum);
-}
-});
+    fetch("{% url 'exams:save_answer' %}",{
+        method:"POST",
+        headers:{"X-CSRFToken":"{{ csrf_token }}"},
+        body:fd
+    }).then(()=>{
+        if(goNext && nextNum){
+            loadQuestion(nextNum);
+        }
+    });
 }
 
 
 /* CLEAR */
 function clearAnswer(qid){
 
-const btn=document.getElementById("palette-"+qid);
+    const btn=document.getElementById("palette-"+qid);
 
-btn.classList.remove("answered","skipped");
-btn.classList.add("cleared");
+    btn.classList.remove("answered","skipped");
+    btn.classList.add("cleared");
 
-document.querySelectorAll(`input[name="question_${qid}"]`)
-.forEach(i=>i.checked=false);
+    document.querySelectorAll(`input[name="question_${qid}"]`)
+    .forEach(i=>i.checked=false);
 
-const fd=new FormData();
-fd.append(`question_${qid}`,"");
+    const fd=new FormData();
+    fd.append(`question_${qid}`,"");
 
-fetch("{% url 'exams:save_answer' %}",{
-method:"POST",
-headers:{"X-CSRFToken":"{{ csrf_token }}"},
-body:fd
-});
+    fetch("{% url 'exams:save_answer' %}",{
+        method:"POST",
+        headers:{"X-CSRFToken":"{{ csrf_token }}"},
+        body:fd
+    });
 }
 
 
 /* FIRST LOAD */
 document.addEventListener("DOMContentLoaded",()=>{
-loadQuestion(1);
+    loadQuestion(1);
 });
 
 </script>
