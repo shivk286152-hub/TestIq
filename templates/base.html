@@ -4,328 +4,191 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>{% block title %}{{ site_name }}{% endblock %}</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<title>{% block title %}My Website{% endblock %}</title>
 
 <style>
-:root{
---header-h:4rem;
---sidebar-open:14rem;
---sidebar-close:4.5rem;
+
+/* ===== RESET ===== */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, sans-serif;
 }
 
-/* ===== HEADER ===== */
-.header{
-height:var(--header-h);
+/* ===== BODY LAYOUT ===== */
+body{
+    display:flex;
+    min-height:100vh;
+    background:#f5f6fa;
 }
 
 /* ===== SIDEBAR ===== */
 .sidebar{
-position:fixed;
-top:var(--header-h);
-left:0;
-height:calc(100dvh - var(--header-h));
-width:var(--sidebar-open);
-background:#374151;
-color:white;
-display:flex;
-flex-direction:column;
-transition:.3s;
-z-index:60;
+    width:240px;
+    background:#111827;
+    color:white;
+    padding:20px;
+    min-height:100vh;
 }
 
-/* collapsed desktop */
-.sidebar.collapsed{
-width:var(--sidebar-close);
+.sidebar h2{
+    margin-bottom:20px;
 }
 
-.sidebar.collapsed .label{
-display:none;
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    margin:12px 0;
 }
 
-/* sidebar content */
-.sidebar-content{
-flex:1;
-overflow-y:auto;
+/* ===== CONTENT ===== */
+.content{
+    flex:1;
+    padding:20px;
+    overflow-y:auto;
+    padding-bottom:100px; /* space for navbar */
 }
 
-/* bottom auth */
-.sidebar-bottom{
-border-top:1px solid #4b5563;
+/* ===== GLASS NAVBAR ===== */
+.mobile-nav{
+    position:fixed;
+    bottom:15px;
+    left:50%;
+    transform:translateX(-50%);
+    width:95%;
+    height:65px;
+
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+
+    border-radius:25px;
+
+    background:rgba(255,255,255,0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border:1px solid rgba(255,255,255,0.3);
+    box-shadow:0 8px 25px rgba(0,0,0,0.15);
+
+    transition: all 0.4s ease;
+    z-index:9999;
 }
 
-/* ===== MAIN ===== */
-.main{
-margin-left:var(--sidebar-open);
-padding-top:calc(var(--header-h) + 1rem);
-min-height:100dvh;
-transition:.3s;
+/* Hide state */
+.mobile-nav.hide{
+    transform:translate(-50%,120px);
+    opacity:0;
 }
 
-.main.collapsed{
-margin-left:var(--sidebar-close);
+/* NAV ITEMS */
+.nav-item{
+    text-decoration:none;
+    color:#111;
+    font-size:22px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    transition:0.3s;
 }
 
-/* ===== MOBILE ===== */
+.nav-item span{
+    font-size:12px;
+}
+
+/* Tap animation */
+.nav-item:active{
+    transform:scale(1.2);
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Hide navbar on desktop */
+@media(min-width:768px){
+    .mobile-nav{
+        display:none;
+    }
+}
+
+/* Hide sidebar on mobile */
 @media(max-width:768px){
+    .sidebar{
+        display:none;
+    }
 
-.sidebar{
-transform:translateX(-100%);
-width:14rem;
-}
-
-.sidebar.open{
-transform:translateX(0);
-}
-
-.main,
-.main.collapsed{
-margin-left:0;
+    body{
+        flex-direction:column;
+    }
 }
 
-.overlay{
-position:fixed;
-inset:0;
-top:var(--header-h);
-background:rgba(0,0,0,.4);
-display:none;
-z-index:50;
-}
-
-.overlay.show{
-display:block;
-}
-}
-.progress-btn{
-position:relative;
-background:#f9fafb;
-overflow:hidden;
-border-radius:999px;
-text-decoration:none;
-}
-
-/* Running border */
-.progress-btn::before{
-content:"";
-position:absolute;
-inset:0;
-border:3px solid black;
-border-radius:999px;
-clip-path: inset(0 100% 100% 0);
-transition:clip-path 2s linear;
-pointer-events:none;
-}
-
-/* Animate */
-.progress-btn.animate::before{
-clip-path: inset(0 0 0 0);
-}
-
-/* Final state */
-.progress-btn.done{
-background:black;
-color:white;
-}
 </style>
 </head>
 
-<body class="bg-gray-100">
-
-<!-- ===== HEADER ===== -->
-<header class="header fixed top-0 left-0 right-0 bg-white shadow z-50">
-
-<div class="h-full px-4 flex justify-between items-center">
-
-<!-- LEFT -->
-<div class="flex items-center gap-3">
-
-<button id="menuBtn" class="md:hidden text-xl">
-<i class="fa fa-bars"></i>
-</button>
-
-<button id="collapseBtn" class="hidden md:block text-xl">
-<i class="fa fa-bars"></i>
-</button>
-
-<span class="text-lg font-bold text-blue-600">
-{{ site_name }}
-</span>
-
-</div>
-
-<!-- RIGHT -->
-<div class="relative">
-
-{% if user.is_authenticated %}
-
-<!-- USER BUTTON -->
-<button id="userMenuBtn" 
-class="flex items-center gap-2 focus:outline-none">
-
-<i class="fa fa-user-circle text-2xl"></i>
-<span class="font-medium">{{ user.username }}</span>
-<i class="fa fa-chevron-down text-sm"></i>
-
-</button>
-
-<!-- DROPDOWN -->
-<div id="userDropdown"
-class="hidden absolute right-0 mt-3 w-44 bg-white rounded shadow-lg border">
-
-<a href="{% url 'profile' %}"
-class="block px-4 py-2 hover:bg-gray-100">
-<i class="fa fa-user mr-2"></i> Profile
-</a>
-
-<a href="{% url 'logout' %}"
-class="block px-4 py-2 hover:bg-gray-100 text-red-500">
-<i class="fa fa-sign-out mr-2"></i> Logout
-</a>
-
-</div>
-
-{% else %}
-<a href="{% url 'login' %}" id="loginBtn"
-class="progress-btn flex items-center gap-2 px-6 py-2 rounded-full">
-
-<i class="fa fa-sign-in"></i>
-Login
-
-</a>
-
-{% endif %}
-
-</div>
-
-</div>
-</header>
+<body>
 
 <!-- ===== SIDEBAR ===== -->
-<aside id="sidebar" class="sidebar">
+<div class="sidebar">
+    <h2>Menu</h2>
 
-<!-- TOP MENU -->
-<div class="sidebar-content py-4 space-y-1">
+    <a href="/">Home</a>
+    <a href="/mock-tests/">Mock Tests</a>
+    <a href="/results/">Results</a>
+    <a href="/profile/">Profile</a>
+</div>
 
-<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-pen w-6"></i>
-<span class="label ml-3">Test</span>
-</a>
+<!-- ===== CONTENT AREA ===== -->
+<div class="content">
+    {% block content %}
+    <!-- Page content here -->
+    {% endblock %}
+</div>
 
-<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-newspaper w-6"></i>
-<span class="label ml-3">Current Affairs</span>
-</a>
+<!-- ===== MOBILE GLASS NAVBAR ===== -->
+<div class="mobile-nav" id="mobileNav">
 
-<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-book w-6"></i>
-<span class="label ml-3">Exam News</span>
-</a>
+    <a href="/" class="nav-item">
+        🏠
+        <span>Home</span>
+    </a>
+
+    <a href="/mock-tests/" class="nav-item">
+        📝
+        <span>Tests</span>
+    </a>
+
+    <a href="/results/" class="nav-item">
+        📊
+        <span>Results</span>
+    </a>
+
+    <a href="/profile/" class="nav-item">
+        👤
+        <span>Profile</span>
+    </a>
 
 </div>
 
-<!-- BOTTOM LOGIN -->
-<div class="sidebar-bottom py-3">
-
-{% if user.is_authenticated %}
-
-<a href="{% url 'profile' %}"
-class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-user w-6"></i>
-<span class="label ml-3">{{ user.username }}</span>
-</a>
-
-<a href="{% url 'logout' %}"
-class="flex items-center px-4 py-3 hover:bg-gray-600 text-red-300">
-<i class="fa fa-sign-out w-6"></i>
-<span class="label ml-3">Logout</span>
-</a>
-
-{% else %}
-
-<a href="{% url 'login' %}"
-class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-sign-in w-6"></i>
-<span class="label ml-3">Login</span>
-</a>
-
-{% endif %}
-
-</div>
-
-</aside>
-
-<div id="overlay" class="overlay"></div>
-
-<!-- ===== MAIN ===== -->
-<main id="main" class="main px-4">
-{% block content %}{% endblock %}
-</main>
-
+<!-- ===== JS: Hide/Show on Scroll ===== -->
 <script>
-const sidebar=document.getElementById("sidebar");
-const main=document.getElementById("main");
-const overlay=document.getElementById("overlay");
 
-const menuBtn=document.getElementById("menuBtn");
-const collapseBtn=document.getElementById("collapseBtn");
+let navbar = document.getElementById("mobileNav");
+let scrollTimer;
 
-/* mobile open */
-menuBtn.onclick=()=>{
-sidebar.classList.toggle("open");
-overlay.classList.toggle("show");
-};
+window.addEventListener("scroll", () => {
 
-/* desktop collapse */
-collapseBtn.onclick=()=>{
-sidebar.classList.toggle("collapsed");
-main.classList.toggle("collapsed");
-};
+    navbar.classList.add("hide");
 
-/* close mobile */
-overlay.onclick=()=>{
-sidebar.classList.remove("open");
-overlay.classList.remove("show");
-};
+    clearTimeout(scrollTimer);
 
-/* USER DROPDOWN */
-const userBtn=document.getElementById("userMenuBtn");
-const dropdown=document.getElementById("userDropdown");
+    scrollTimer = setTimeout(()=>{
+        navbar.classList.remove("hide");
+    }, 250);
 
-if(userBtn){
-userBtn.onclick=()=>{
-dropdown.classList.toggle("hidden");
-};
-
-document.addEventListener("click",(e)=>{
-if(!userBtn.contains(e.target) && !dropdown.contains(e.target)){
-dropdown.classList.add("hidden");
-}
 });
-}
 
-const loginBtn = document.getElementById("loginBtn");
-
-if(loginBtn){
-const observer = new IntersectionObserver(entries=>{
-entries.forEach(entry=>{
-if(entry.isIntersecting){
-
-loginBtn.classList.add("animate");
-
-setTimeout(()=>{
-loginBtn.classList.add("done");
-},2000);
-
-}
-});
-},{threshold:0.6});
-
-observer.observe(loginBtn);
-}
 </script>
+
 </body>
-  </html>
+</html>
