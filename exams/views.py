@@ -86,21 +86,37 @@ def start_test(request, mocktest_id):
     })
     
 
-
+@login_required
 def attempt_test(request, mocktest_id):
     """
-    Main exam page: loads timer, palette, and container for questions.
-    Questions are loaded via AJAX.
+    Main exam page with SERVER BASED TIMER
     """
+
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
 
-    # Fetch subjects for filter dropdown
-    subjects = Subject.objects.filter(questions__mock_test=mocktest).distinct()
+    # ✅ Create or Resume Attempt
+    attempt, created = MockTestAttempt.objects.get_or_create(
+        user=request.user,
+        mock_test=mocktest,
+        is_completed=False,
+        defaults={"started_at": timezone.now()}
+    )
 
-    # Pass all questions for palette
+    # ✅ Remaining Time from server
+    remaining_seconds = attempt.time_remaining()
+
+    # ✅ Auto submit if time already over
+    if remaining_seconds <= 0:
+        return redirect("exams:submit_test", mocktest_id=mocktest.id)
+
+    # Subjects dropdown
+    subjects = Subject.objects.filter(
+        questions__mock_test=mocktest
+    ).distinct()
+
+    # Questions for palette
     questions = mocktest.questions.all().order_by("id")
 
-    # Optional subject filter for palette highlighting
     subject_id = request.GET.get("subject")
     if subject_id:
         questions = questions.filter(subject_id=subject_id)
@@ -109,12 +125,72 @@ def attempt_test(request, mocktest_id):
         "mocktest": mocktest,
         "questions": questions,
         "subjects": subjects,
-        "question_number": 1,  # initial question loaded via AJAX
+        "question_number": 1,
+        "remaining_seconds": remaining_seconds,  # ✅ send to JS
     }
 
     return render(request, "exams/attempt_test.html", context)
 
+@login_required
+def submit_test(request, mocktest_id):
 
+    mocktest = get_object_or_404(MockTest, id=mocktest_id)
+
+    attempt = MockTestAttempt.objects.filter(
+        user=request.user,
+        mock_test=mocktest,
+        is_completed=False
+    ).first()
+
+    if not attempt:
+        return redirect("exams:home")
+
+    # ✅ FORCE SUBMIT EVEN IF USER DIDN'T CLICK
+    attempt.submitted_at = timezone.now()
+    attempt.is_completed = True
+
+    questions = Question.objects.filter(mock_test=mocktest)
+    session_answers = request.session.get(f"answers_{mocktest.id}", {})
+
+    correct = 0
+    wrong = 0
+    skipped = 0
+
+    for question in questions:
+        selected_option_id = session_answers.get(str(question.id))
+
+        if not selected_option_id:
+            skipped += 1
+            UserAnswer.objects.create(
+                attempt=attempt,
+                question=question,
+                selected_option=None
+            )
+            continue
+
+        ua = UserAnswer.objects.create(
+            attempt=attempt,
+            question=question,
+            selected_option_id=selected_option_id
+        )
+
+        if ua.selected_option.is_correct:
+            correct += 1
+        else:
+            wrong += 1
+
+    attempt.correct_answers = correct
+    attempt.wrong_answers = wrong
+    attempt.skipped_answers = skipped
+    attempt.total_marks = questions.count()
+    attempt.score = correct - (wrong * 0.25)
+
+    attempt.save()
+
+    request.session.pop(f"answers_{mocktest.id}", None)
+
+    return redirect("exams:result_dashboard", attempt_id=attempt.id)
+    
 def ajax_question(request, mocktest_id):
     """
     Return a single question HTML fragment safely.
@@ -179,68 +255,6 @@ def result_dashboard(request, attempt_id):
         "attempt": attempt,
         "answers": answers,
     })
-
-
-
-@login_required
-def submit_test(request, mocktest_id):
-    mocktest = get_object_or_404(MockTest, id=mocktest_id)
-
-    attempt = MockTestAttempt.objects.create(
-        user=request.user,
-        mock_test=mocktest,
-        started_at=timezone.now(),
-        submitted_at=timezone.now(),
-        is_completed=True
-    )
-
-    questions = Question.objects.filter(mock_test=mocktest)
-
-    # ✅ Get saved session answers
-    session_answers = request.session.get(f"answers_{mocktest.id}", {})
-
-    correct = 0
-    wrong = 0
-    skipped = 0
-
-    for question in questions:
-        selected_option_id = session_answers.get(str(question.id))
-
-        if not selected_option_id:
-            skipped += 1
-            UserAnswer.objects.create(
-                attempt=attempt,
-                question=question,
-                selected_option=None
-            )
-            continue
-
-        user_answer = UserAnswer.objects.create(
-            attempt=attempt,
-            question=question,
-            selected_option_id=selected_option_id
-        )
-
-        if user_answer.selected_option.is_correct:
-            correct += 1
-        else:
-            wrong += 1
-
-    total_questions = questions.count()
-    score = correct * 1 - wrong * 0.25
-
-    attempt.correct_answers = correct
-    attempt.wrong_answers = wrong
-    attempt.skipped_answers = skipped
-    attempt.total_marks = total_questions
-    attempt.score = score
-    attempt.save()
-
-    # ✅ Clear session after submit
-    if f"answers_{mocktest.id}" in request.session:
-        del request.session[f"answers_{mocktest.id}"]
-
-    return redirect("exams:result_dashboard", attempt_id=attempt.id)
 
 
 @login_required
