@@ -175,6 +175,12 @@ class MockTestAttempt(models.Model):
             return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
         return None
     time_taken.fget.short_description = "Time Taken"
+    # ✅ ADD THIS FOR SERVER TIMER
+    def time_remaining(self):
+        duration = self.mock_test.duration  # minutes
+        end_time = self.started_at + timedelta(minutes=duration)
+        remaining = (end_time - timezone.now()).total_seconds()
+        return max(0, int(remaining))
 
 
  
