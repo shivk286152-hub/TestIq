@@ -4,186 +4,83 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>{% block title %}My Website{% endblock %}</title>
+<title>{% block title %}My Site{% endblock %}</title>
 
-<style>
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
 
-/* ===== RESET ===== */
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family: Arial, sans-serif;
-}
-
-/* ===== BODY LAYOUT ===== */
-body{
-    display:flex;
-    min-height:100vh;
-    background:#f5f6fa;
-}
-
-/* ===== SIDEBAR ===== */
-.sidebar{
-    width:240px;
-    background:#111827;
-    color:white;
-    padding:20px;
-    min-height:100vh;
-}
-
-.sidebar h2{
-    margin-bottom:20px;
-}
-
-.sidebar a{
-    display:block;
-    color:white;
-    text-decoration:none;
-    margin:12px 0;
-}
-
-/* ===== CONTENT ===== */
-.content{
-    flex:1;
-    padding:20px;
-    overflow-y:auto;
-    padding-bottom:100px; /* space for navbar */
-}
-
-/* ===== GLASS NAVBAR ===== */
-.mobile-nav{
-    position:fixed;
-    bottom:15px;
-    left:50%;
-    transform:translateX(-50%);
-    width:95%;
-    height:65px;
-
-    display:flex;
-    justify-content:space-around;
-    align-items:center;
-
-    border-radius:25px;
-
-    background:rgba(255,255,255,0.2);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-
-    border:1px solid rgba(255,255,255,0.3);
-    box-shadow:0 8px 25px rgba(0,0,0,0.15);
-
-    transition: all 0.4s ease;
-    z-index:9999;
-}
-
-/* Hide state */
-.mobile-nav.hide{
-    transform:translate(-50%,120px);
-    opacity:0;
-}
-
-/* NAV ITEMS */
-.nav-item{
-    text-decoration:none;
-    color:#111;
-    font-size:22px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    transition:0.3s;
-}
-
-.nav-item span{
-    font-size:12px;
-}
-
-/* Tap animation */
-.nav-item:active{
-    transform:scale(1.2);
-}
-
-/* ===== RESPONSIVE ===== */
-
-/* Hide navbar on desktop */
-@media(min-width:768px){
-    .mobile-nav{
-        display:none;
-    }
-}
-
-/* Hide sidebar on mobile */
-@media(max-width:768px){
-    .sidebar{
-        display:none;
-    }
-
-    body{
-        flex-direction:column;
-    }
-}
-
-</style>
 </head>
 
-<body>
+<body class="bg-gray-100 flex min-h-screen">
 
-<!-- ===== SIDEBAR ===== -->
-<div class="sidebar">
-    <h2>Menu</h2>
+<!-- ===== SIDEBAR (Desktop) ===== -->
+<div class="hidden md:block w-64 bg-gray-900 text-white min-h-screen p-5">
 
-    <a href="/">Home</a>
-    <a href="/mock-tests/">Mock Tests</a>
-    <a href="/results/">Results</a>
-    <a href="/profile/">Profile</a>
+    <h2 class="text-xl font-bold mb-6">Menu</h2>
+
+    <a href="/" class="block py-2 hover:text-blue-400">Home</a>
+    <a href="/mock-tests/" class="block py-2 hover:text-blue-400">Mock Tests</a>
+    <a href="/results/" class="block py-2 hover:text-blue-400">Results</a>
+    <a href="/profile/" class="block py-2 hover:text-blue-400">Profile</a>
+
 </div>
 
-<!-- ===== CONTENT AREA ===== -->
-<div class="content">
+<!-- ===== CONTENT ===== -->
+<div class="flex-1 p-4 pb-24 overflow-y-auto">
+
     {% block content %}
-    <!-- Page content here -->
     {% endblock %}
+
 </div>
 
 <!-- ===== MOBILE GLASS NAVBAR ===== -->
-<div class="mobile-nav" id="mobileNav">
+<div id="mobileNav"
+class="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%]
+h-16 flex justify-around items-center
+rounded-2xl
+bg-white/20 backdrop-blur-lg
+border border-white/30
+shadow-lg
+transition-all duration-300">
 
-    <a href="/" class="nav-item">
-        🏠
-        <span>Home</span>
+    <a href="/" class="flex flex-col items-center text-gray-800 active:scale-110 transition">
+        <span class="text-xl">🏠</span>
+        <span class="text-xs">Home</span>
     </a>
 
-    <a href="/mock-tests/" class="nav-item">
-        📝
-        <span>Tests</span>
+    <a href="/mock-tests/" class="flex flex-col items-center text-gray-800 active:scale-110 transition">
+        <span class="text-xl">📝</span>
+        <span class="text-xs">Tests</span>
     </a>
 
-    <a href="/results/" class="nav-item">
-        📊
-        <span>Results</span>
+    <a href="/results/" class="flex flex-col items-center text-gray-800 active:scale-110 transition">
+        <span class="text-xl">📊</span>
+        <span class="text-xs">Results</span>
     </a>
 
-    <a href="/profile/" class="nav-item">
-        👤
-        <span>Profile</span>
+    <a href="/profile/" class="flex flex-col items-center text-gray-800 active:scale-110 transition">
+        <span class="text-xl">👤</span>
+        <span class="text-xs">Profile</span>
     </a>
 
 </div>
 
-<!-- ===== JS: Hide/Show on Scroll ===== -->
+<!-- ===== JS Scroll Hide/Show ===== -->
 <script>
 
 let navbar = document.getElementById("mobileNav");
-let scrollTimer;
+let timer;
 
 window.addEventListener("scroll", () => {
 
-    navbar.classList.add("hide");
+    navbar.style.transform = "translate(-50%,120px)";
+    navbar.style.opacity = "0";
 
-    clearTimeout(scrollTimer);
+    clearTimeout(timer);
 
-    scrollTimer = setTimeout(()=>{
-        navbar.classList.remove("hide");
+    timer = setTimeout(()=>{
+        navbar.style.transform = "translate(-50%,0)";
+        navbar.style.opacity = "1";
     }, 250);
 
 });
