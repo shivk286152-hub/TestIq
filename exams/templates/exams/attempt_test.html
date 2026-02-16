@@ -229,6 +229,33 @@ function clearAnswer(qid){
     });
 }
 
+function submitTest(){
+
+    if(!confirm("Are you sure you want to submit the test?")){
+        return;
+    }
+
+    // Save all checked answers
+    document.querySelectorAll("input[type=radio]:checked")
+    .forEach(input=>{
+        const fd = new FormData();
+        fd.append(input.name, input.value);
+
+        fetch("{% url 'exams:save_answer' %}",{
+            method:"POST",
+            headers:{
+                "X-CSRFToken":"{{ csrf_token }}"
+            },
+            body:fd
+        });
+    });
+
+    // Final submit
+    setTimeout(()=>{
+        document.getElementById("testForm").submit();
+    },500);
+}
+    
 
 /* FIRST LOAD */
 document.addEventListener("DOMContentLoaded",()=>{
