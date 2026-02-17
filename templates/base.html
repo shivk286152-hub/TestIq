@@ -13,24 +13,42 @@
 
 <body class="bg-gray-100 flex min-h-screen">
 
-<!-- ===== SIDEBAR (Desktop) ===== -->
-<div class="hidden md:block w-64 bg-gray-900 text-white min-h-screen p-5">
+<!-- ===== SIDEBAR ===== -->
+<div class="hidden md:flex md:flex-col w-64 bg-gray-900 text-white min-h-screen p-5">
 
-    <h2 class="text-xl font-bold mb-6">Menu</h2>
+    <!-- OLD HEADER INSIDE SIDEBAR -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">My Site</h1>
+        <p class="text-gray-400 text-sm">Welcome User</p>
+    </div>
 
-    <a href="/" class="block py-2 hover:text-blue-400">Home</a>
-    <a href="/mock-tests/" class="block py-2 hover:text-blue-400">Mock Tests</a>
-    <a href="/results/" class="block py-2 hover:text-blue-400">Results</a>
-    <a href="/profile/" class="block py-2 hover:text-blue-400">Profile</a>
-
+    <!-- OLD SIDEBAR LINKS -->
+    <nav class="flex flex-col space-y-3">
+        <a href="/" class="hover:text-blue-400">Home</a>
+        <a href="/mock-tests/" class="hover:text-blue-400">Mock Tests</a>
+        <a href="/results/" class="hover:text-blue-400">Results</a>
+        <a href="/profile/" class="hover:text-blue-400">Profile</a>
+    </nav>
 </div>
 
-<!-- ===== CONTENT ===== -->
-<div class="flex-1 p-4 pb-24 overflow-y-auto">
+<!-- ===== CONTENT AREA ===== -->
+<div class="flex-1 flex flex-col">
 
-    {% block content %}
-    {% endblock %}
+    <!-- OLD HEADER -->
+    <header class="bg-white shadow-md px-5 py-3 flex justify-between items-center md:hidden">
+        <h1 class="text-xl font-bold">My Site</h1>
+        <button id="sidebarToggle" class="md:hidden text-gray-800 font-bold">
+            ☰
+        </button>
+    </header>
 
+    <!-- CONTENT -->
+    <main class="flex-1 p-4 overflow-y-auto pb-28">
+        {% block content %}
+        <h1 class="text-2xl font-bold mb-4">Page Content</h1>
+        <p>Scroll down to see mobile navbar hide/show effect.</p>
+        {% endblock %}
+    </main>
 </div>
 
 <!-- ===== MOBILE GLASS NAVBAR ===== -->
@@ -65,26 +83,26 @@ transition-all duration-300">
 
 </div>
 
-<!-- ===== JS Scroll Hide/Show ===== -->
+<!-- ===== JS: Mobile Navbar Scroll Hide/Show & Sidebar Toggle ===== -->
 <script>
-
 let navbar = document.getElementById("mobileNav");
-let timer;
+let scrollTimer;
 
+// Hide/show mobile navbar on scroll
 window.addEventListener("scroll", () => {
-
-    navbar.style.transform = "translate(-50%,120px)";
-    navbar.style.opacity = "0";
-
-    clearTimeout(timer);
-
-    timer = setTimeout(()=>{
-        navbar.style.transform = "translate(-50%,0)";
-        navbar.style.opacity = "1";
+    navbar.classList.add("translate-y-[120px]","opacity-0");
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(()=>{
+        navbar.classList.remove("translate-y-[120px]","opacity-0");
     }, 250);
-
 });
 
+// Sidebar toggle for mobile
+const sidebarToggle = document.getElementById("sidebarToggle");
+const sidebar = document.querySelector(".md\\:flex"); // Tailwind escaped selector
+sidebarToggle && sidebarToggle.addEventListener("click", () => {
+    sidebar.classList.toggle("hidden");
+});
 </script>
 
 </body>
