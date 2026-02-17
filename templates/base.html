@@ -1,109 +1,54 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>{% block title %}My Site{% endblock %}</title>
-
-<!-- Tailwind CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Site{% endblock %}</title>
+    <!-- Old CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
 </head>
+<body>
 
-<body class="bg-gray-100 flex min-h-screen">
-
-<!-- ===== SIDEBAR ===== -->
-<div class="hidden md:flex md:flex-col w-64 bg-gray-900 text-white min-h-screen p-5">
-
-    <!-- OLD HEADER INSIDE SIDEBAR -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold">My Site</h1>
-        <p class="text-gray-400 text-sm">Welcome User</p>
+<!-- ================= HEADER ================= -->
+<header class="header">
+    <div class="logo">
+        <h1>My Site</h1>
     </div>
+    <div class="header-right">
+        {% block header_extra %}{% endblock %}
+    </div>
+</header>
 
-    <!-- OLD SIDEBAR LINKS -->
-    <nav class="flex flex-col space-y-3">
-        <a href="/" class="hover:text-blue-400">Home</a>
-        <a href="/mock-tests/" class="hover:text-blue-400">Mock Tests</a>
-        <a href="/results/" class="hover:text-blue-400">Results</a>
-        <a href="/profile/" class="hover:text-blue-400">Profile</a>
+<!-- ================= SIDEBAR ================= -->
+<aside class="sidebar">
+    <nav class="sidebar-menu">
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/mock-tests/">Mock Tests</a></li>
+            <li><a href="/results/">Results</a></li>
+            <li><a href="/profile/">Profile</a></li>
+        </ul>
     </nav>
-</div>
+</aside>
 
-<!-- ===== CONTENT AREA ===== -->
-<div class="flex-1 flex flex-col">
+<!-- ================= MAIN CONTENT ================= -->
+<main class="content">
+    {% block content %}
+    <!-- Page content goes here -->
+    {% endblock %}
+</main>
 
-    <!-- OLD HEADER -->
-    <header class="bg-white shadow-md px-5 py-3 flex justify-between items-center md:hidden">
-        <h1 class="text-xl font-bold">My Site</h1>
-        <button id="sidebarToggle" class="md:hidden text-gray-800 font-bold">
-            ☰
-        </button>
-    </header>
+<!-- ================= FOOTER / SCRIPTS ================= -->
+<footer class="footer">
+    {% block footer %}
+    <p>&copy; {{ year }} My Site. All rights reserved.</p>
+    {% endblock %}
+</footer>
 
-    <!-- CONTENT -->
-    <main class="flex-1 p-4 overflow-y-auto pb-28">
-        {% block content %}
-        <h1 class="text-2xl font-bold mb-4">Page Content</h1>
-        <p>Scroll down to see mobile navbar hide/show effect.</p>
-        {% endblock %}
-    </main>
-</div>
-
-<!-- ===== MOBILE GLASS NAVBAR ===== -->
-<div id="mobileNav"
-class="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%]
-h-16 flex justify-around items-center
-rounded-2xl
-bg-white/20 backdrop-blur-lg
-border border-white/30
-shadow-lg
-transition-all duration-300">
-
-    <a href="/" class="flex flex-col items-center text-gray-800 active:scale-110 transition">
-        <span class="text-xl">🏠</span>
-        <span class="text-xs">Home</span>
-    </a>
-
-    <a href="/mock-tests/" class="flex flex-col items-center text-gray-800 active:scale-110 transition">
-        <span class="text-xl">📝</span>
-        <span class="text-xs">Tests</span>
-    </a>
-
-    <a href="/results/" class="flex flex-col items-center text-gray-800 active:scale-110 transition">
-        <span class="text-xl">📊</span>
-        <span class="text-xs">Results</span>
-    </a>
-
-    <a href="/profile/" class="flex flex-col items-center text-gray-800 active:scale-110 transition">
-        <span class="text-xl">👤</span>
-        <span class="text-xs">Profile</span>
-    </a>
-
-</div>
-
-<!-- ===== JS: Mobile Navbar Scroll Hide/Show & Sidebar Toggle ===== -->
-<script>
-let navbar = document.getElementById("mobileNav");
-let scrollTimer;
-
-// Hide/show mobile navbar on scroll
-window.addEventListener("scroll", () => {
-    navbar.classList.add("translate-y-[120px]","opacity-0");
-    clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(()=>{
-        navbar.classList.remove("translate-y-[120px]","opacity-0");
-    }, 250);
-});
-
-// Sidebar toggle for mobile
-const sidebarToggle = document.getElementById("sidebarToggle");
-const sidebar = document.querySelector(".md\\:flex"); // Tailwind escaped selector
-sidebarToggle && sidebarToggle.addEventListener("click", () => {
-    sidebar.classList.toggle("hidden");
-});
-</script>
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>
