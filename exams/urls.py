@@ -45,6 +45,7 @@ urlpatterns = [
         name="result_dashboard"
     ),
 
+<<<<<<< HEAD
     # ===== NEW RANKING & REVIEW URLS =====
     
     # Test Review
@@ -82,3 +83,12 @@ urlpatterns = [
     # Dashboard (already exists above)
     # path("dashboard/", views.dashboard, name="dashboard"),  # Already have this
 ]
+=======
+    # Dashboard
+    path("dashboard/", views.dashboard, name="dashboard"),
+    
+    path('rankings/<int:attempt_id>/', views.view_rankings, name='view_rankings'),
+     # ... existing URLs ...
+    path('detailed-analysis/<int:attempt_id>/', views.detailed_analysis, name='detailed_analysis'),
+]
+>>>>>>> 90d6b74 (Updated Django project with models and admin configuration)

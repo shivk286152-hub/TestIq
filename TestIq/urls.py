@@ -11,7 +11,11 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("notification/", include("ExamNotification.urls")),
     path("profile/", include("User.urls")),
+    path('current-affairs/', include('CurrentAffairs.urls')),
+    
 ]
 
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+

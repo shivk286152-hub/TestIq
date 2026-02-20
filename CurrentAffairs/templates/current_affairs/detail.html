@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}{{ news.title }}{% endblock %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Back Button -->
+    <a href="{% url 'current_affairs_list' %}" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-6">
+        <i class="fa-solid fa-arrow-left mr-2"></i>
+        Back to Current Affairs
+    </a>
+
+    <!-- Article -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        
+        <!-- Featured Image -->
+        {% if news.featured_image %}
+        <div class="relative h-96">
+            <img src="{{ news.featured_image.url }}" alt="{{ news.title }}" class="w-full h-full object-cover">
+            {% if news.image_caption %}
+            <p class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-sm p-2">
+                {{ news.image_caption }}
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Article Header -->
+        <div class="p-8">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm">
+                    {{ news.category.name }}
+                </span>
+                <span class="text-gray-400">•</span>
+                <span class="text-gray-500 text-sm">
+                    <i class="fa-regular fa-calendar mr-1"></i>
+                    {{ news.news_date|date:"F d, Y" }}
+                </span>
+                <span class="text-gray-400">•</span>
+                <span class="text-gray-500 text-sm">
+                    <i class="fa-regular fa-eye mr-1"></i>
+                    {{ news.views_count }} views
+                </span>
+            </div>
+
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ news.title }}</h1>
+
+            <!-- Source -->
+            {% if news.source %}
+            <p class="text-gray-500 text-sm mb-6">
+                Source: {{ news.source }}
+            </p>
+            {% endif %}
+
+            <!-- Article Content -->
+            <div class="prose prose-lg max-w-none">
+                {{ news.content|safe }}
+            </div>
+
+            <!-- Tags -->
+            {% with tags=news.get_tags_list %}
+            {% if tags %}
+            <div class="mt-8 pt-6 border-t">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">Tags:</h4>
+                <div class="flex flex-wrap gap-2">
+                    {% for tag in tags %}
+                    <span class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
+                        #{{ tag }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <!-- Share Buttons -->
+            <div class="mt-8 pt-6 border-t">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">Share this article:</h4>
+                <div class="flex gap-3">
+                    <a href="#" class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-sky-500 text-white rounded-full flex items-center justify-center hover:bg-sky-600">
+                        <i class="fa-brands fa-twitter"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related News -->
+    {% if related_news %}
+    <div class="mt-12">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Related News</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for related in related_news %}
+            <div class="bg-white rounded-lg shadow p-4">
+                {% if related.featured_image %}
+                <img src="{{ related.featured_image.url }}" alt="{{ related.title }}" class="w-full h-32 object-cover rounded-lg mb-3">
+                {% endif %}
+                <h4 class="font-medium text-gray-800 mb-2">{{ related.title|truncatechars:50 }}</h4>
+                <p class="text-sm text-gray-500 mb-2">{{ related.news_date|date:"d M Y" }}</p>
+                <a href="{% url 'current_affairs_detail' related.slug %}" class="text-blue-600 text-sm hover:underline">
+                    Read More
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

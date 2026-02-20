@@ -1,0 +1,82 @@
+/* static/admin/css/custom_admin.css */
+
+/* Dashboard cards */
+.dashboard #content {
+    background: #f8f9fa;
+}
+
+/* Custom styling for rankings */
+.rank-gold {
+    color: gold;
+    font-weight: bold;
+}
+
+.rank-silver {
+    color: silver;
+    font-weight: bold;
+}
+
+.rank-bronze {
+    color: #cd7f32;
+    font-weight: bold;
+}
+
+/* Time taken styling */
+.time-taken {
+    font-family: monospace;
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+/* Score colors */
+.score-high {
+    color: #2e7d32;
+    font-weight: bold;
+}
+
+.score-medium {
+    color: #ed6c02;
+    font-weight: bold;
+}
+
+.score-low {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+/* Preview images */
+.preview-thumbnail {
+    max-height: 50px;
+    max-width: 50px;
+    border-radius: 5px;
+}
+
+/* Tables in admin */
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.results-table th {
+    background: #f5f5f5;
+    padding: 8px;
+}
+
+.results-table td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Action buttons */
+.button-action {
+    background: #1976d2;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    text-decoration: none;
+}
+
+.button-action:hover {
+    background: #1565c0;
+}

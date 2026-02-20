@@ -1,270 +1,287 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>{% block title %}{{ site_name }}{% endblock %}</title>
+  <title>{% block title %}{{ site_name }}{% endblock %}</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<style>
-:root{
---header-h:4rem;
---sidebar-open:14rem;
---sidebar-close:4.5rem;
-}
+  <style>
+    :root {
+      --header-h: 4rem;
+      --sidebar-open: 14rem;
+      --sidebar-close: 4.5rem;
+    }
 
-/* ===== HEADER ===== */
-.header{
-height:var(--header-h);
-}
+    /* ===== HEADER ===== */
+    .header {
+      height: var(--header-h);
+    }
 
-/* ===== SIDEBAR ===== */
-.sidebar{
-position:fixed;
-top:var(--header-h);
-left:0;
-height:calc(100dvh - var(--header-h));
-width:var(--sidebar-open);
-background:#374151;
-color:white;
-display:flex;
-flex-direction:column;
-transition:.3s;
-z-index:60;
-}
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      height: calc(100dvh - var(--header-h));
+      width: var(--sidebar-open);
+      background: #374151;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      transition: .3s;
+      z-index: 60;
+    }
 
-/* collapsed desktop */
-.sidebar.collapsed{
-width:var(--sidebar-close);
-}
+    /* collapsed desktop */
+    .sidebar.collapsed {
+      width: var(--sidebar-close);
+    }
 
-.sidebar.collapsed .label{
-display:none;
-}
+    .sidebar.collapsed .label {
+      display: none;
+    }
 
-/* sidebar content */
-.sidebar-content{
-flex:1;
-overflow-y:auto;
-}
+    /* sidebar content */
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+    }
 
-/* bottom auth */
-.sidebar-bottom{
-border-top:1px solid #4b5563;
-}
+    /* bottom auth */
+    .sidebar-bottom {
+      border-top: 1px solid #4b5563;
+    }
 
-/* ===== MAIN ===== */
-.main{
-margin-left:var(--sidebar-open);
-padding-top:calc(var(--header-h) + 1rem);
-min-height:100dvh;
-transition:.3s;
-}
+    /* ===== MAIN ===== */
+    .main {
+      margin-left: var(--sidebar-open);
+      padding-top: calc(var(--header-h) + 1rem);
+      min-height: 100dvh;
+      transition: .3s;
+    }
 
-.main.collapsed{
-margin-left:var(--sidebar-close);
-}
+    .main.collapsed {
+      margin-left: var(--sidebar-close);
+    }
 
-/* ===== MOBILE ===== */
-@media(max-width:768px){
+    /* ===== MOBILE ===== */
+    @media(max-width:768px) {
 
-.sidebar{
-transform:translateX(-100%);
-width:14rem;
-}
+      .sidebar {
+        transform: translateX(-100%);
+        width: 14rem;
+      }
 
-.sidebar.open{
-transform:translateX(0);
-}
+      .sidebar.open {
+        transform: translateX(0);
+      }
 
-.main,
-.main.collapsed{
-margin-left:0;
-}
+      .main,
+      .main.collapsed {
+        margin-left: 0;
+      }
 
-.overlay{
-position:fixed;
-inset:0;
-top:var(--header-h);
-background:rgba(0,0,0,.4);
-display:none;
-z-index:50;
-}
+      .overlay {
+        position: fixed;
+        inset: 0;
+        top: var(--header-h);
+        background: rgba(0, 0, 0, .4);
+        display: none;
+        z-index: 50;
+      }
 
-.overlay.show{
-display:block;
-}
-}
-.progress-btn{
-position:relative;
-background:#f9fafb;
-overflow:hidden;
-border-radius:999px;
-text-decoration:none;
-}
+      .overlay.show {
+        display: block;
+      }
+    }
 
-/* Running border */
-.progress-btn::before{
-content:"";
-position:absolute;
-inset:0;
-border:3px solid black;
-border-radius:999px;
-clip-path: inset(0 100% 100% 0);
-transition:clip-path 2s linear;
-pointer-events:none;
-}
+    .progress-btn {
+      position: relative;
+      background: #f9fafb;
+      overflow: hidden;
+      border-radius: 999px;
+      text-decoration: none;
+    }
 
-/* Animate */
-.progress-btn.animate::before{
-clip-path: inset(0 0 0 0);
-}
+    /* Running border */
+    .progress-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 3px solid black;
+      border-radius: 999px;
+      clip-path: inset(0 100% 100% 0);
+      transition: clip-path 2s linear;
+      pointer-events: none;
+    }
 
-/* Final state */
-.progress-btn.done{
-background:black;
-color:white;
-}
-</style>
+    /* Animate */
+    .progress-btn.animate::before {
+      clip-path: inset(0 0 0 0);
+    }
+
+    /* Final state */
+    .progress-btn.done {
+      background: black;
+      color: white;
+    }
+  </style>
 </head>
 
 <body class="bg-gray-100">
 
-<!-- ===== HEADER ===== -->
-<header class="header fixed top-0 left-0 right-0 bg-white shadow z-50">
+  <!-- ===== HEADER ===== -->
+  <header class="header fixed top-0 left-0 right-0 bg-white shadow z-50">
 
-<div class="h-full px-4 flex justify-between items-center">
+    <div class="h-full px-4 flex justify-between items-center">
 
-<!-- LEFT -->
-<div class="flex items-center gap-3">
+      <!-- LEFT -->
+      <div class="flex items-center gap-3">
 
-<button id="menuBtn" class="md:hidden text-xl">
-<i class="fa fa-bars"></i>
-</button>
+        <button id="menuBtn" class="md:hidden text-xl">
+          <i class="fa fa-bars"></i>
+        </button>
 
-<button id="collapseBtn" class="hidden md:block text-xl">
-<i class="fa fa-bars"></i>
-</button>
+        <button id="collapseBtn" class="hidden md:block text-xl">
+          <i class="fa fa-bars"></i>
+        </button>
 
-<span class="text-lg font-bold text-blue-600">
-{{ site_name }}
-</span>
+        <span class="text-lg font-bold text-blue-600">
+          {{ site_name }}
+        </span>
 
-</div>
+      </div>
 
-<!-- RIGHT -->
-<div class="relative">
+      <!-- RIGHT -->
+      <div class="relative">
 
-{% if user.is_authenticated %}
+        {% if user.is_authenticated %}
 
-<!-- USER BUTTON -->
-<button id="userMenuBtn" 
-class="flex items-center gap-2 focus:outline-none">
+        <!-- USER BUTTON -->
+        <button id="userMenuBtn" class="flex items-center gap-2 focus:outline-none">
 
-<i class="fa fa-user-circle text-2xl"></i>
-<span class="font-medium">{{ user.username }}</span>
-<i class="fa fa-chevron-down text-sm"></i>
+          <i class="fa fa-user-circle text-2xl"></i>
+          <span class="font-medium">{{ user.username }}</span>
+          <i class="fa fa-chevron-down text-sm"></i>
 
-</button>
+        </button>
 
-<!-- DROPDOWN -->
-<div id="userDropdown"
-class="hidden absolute right-0 mt-3 w-44 bg-white rounded shadow-lg border">
+        <!-- DROPDOWN -->
+        <div id="userDropdown" class="hidden absolute right-0 mt-3 w-44 bg-white rounded shadow-lg border">
 
-<a href="{% url 'profile' %}"
-class="block px-4 py-2 hover:bg-gray-100">
-<i class="fa fa-user mr-2"></i> Profile
-</a>
+          <a href="{% url 'profile' %}" class="block px-4 py-2 hover:bg-gray-100">
+            <i class="fa fa-user mr-2"></i> Profile
+          </a>
 
-<a href="{% url 'logout' %}"
-class="block px-4 py-2 hover:bg-gray-100 text-red-500">
-<i class="fa fa-sign-out mr-2"></i> Logout
-</a>
+          <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-gray-100 text-red-500">
+            <i class="fa fa-sign-out mr-2"></i> Logout
+          </a>
 
-</div>
+        </div>
 
-{% else %}
-<a href="{% url 'login' %}" id="loginBtn"
-class="progress-btn flex items-center gap-2 px-6 py-2 rounded-full">
+        {% else %}
+        <a href="{% url 'login' %}" id="loginBtn" class="progress-btn flex items-center gap-2 px-6 py-2 rounded-full">
 
-<i class="fa fa-sign-in"></i>
-Login
+          <i class="fa fa-sign-in"></i>
+          Login
 
-</a>
+        </a>
 
-{% endif %}
+        {% endif %}
 
-</div>
+      </div>
 
-</div>
-</header>
+    </div>
+  </header>
 
-<!-- ===== SIDEBAR ===== -->
-<aside id="sidebar" class="sidebar">
+  <!-- ===== SIDEBAR ===== -->
+  <aside id="sidebar" class="sidebar">
 
-<!-- TOP MENU -->
-<div class="sidebar-content py-4 space-y-1">
+    <!-- TOP MENU -->
+    <div class="sidebar-content py-4 space-y-1">
+      <ul class="space-y-1">
 
-<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-pen w-6"></i>
-<span class="label ml-3">Test</span>
-</a>
+  <!-- HOME -->
+  <li>
+    <a href="{% url 'home' %}"
+       class="flex items-center px-4 py-3 hover:bg-gray-600
+       {% if request.resolver_match.url_name == 'home' %}
+           bg-gray-800 border-l-4 border-blue-500 text-white font-semibold
+       {% endif %}">
+      <i class="fa fa-home w-6"></i>
+      <span class="label ml-3">Home</span>
+    </a>
+  </li>
 
-<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-newspaper w-6"></i>
-<span class="label ml-3">Current Affairs</span>
-</a>
+  <!-- TEST -->
+  <li>
+    <a href="#"
+       class="flex items-center px-4 py-3 hover:bg-gray-600">
+      <i class="fa fa-pen w-6"></i>
+      <span class="label ml-3">Test</span>
+    </a>
+  </li>
 
-<a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-book w-6"></i>
-<span class="label ml-3">Exam News</span>
-</a>
+  <!-- CURRENT AFFAIRS -->
+  <li>
+    <a href="{% url 'current_affairs_list' %}"
+       class="flex items-center px-4 py-3 hover:bg-gray-600
+       {% if request.resolver_match.url_name == 'current_affairs_list' %}
+           bg-gray-800 border-l-4 border-blue-500 text-white font-semibold
+       {% endif %}">
+      <i class="fa fa-newspaper w-6"></i>
+      <span class="label ml-3">Current Affairs</span>
+    </a>
+  </li>
 
-</div>
+  <!-- EXAM NEWS -->
+  <li>
+    <a href="#"
+       class="flex items-center px-4 py-3 hover:bg-gray-600">
+      <i class="fa fa-book w-6"></i>
+      <span class="label ml-3">Exam News</span>
+    </a>
+  </li>
 
-<!-- BOTTOM LOGIN -->
-<div class="sidebar-bottom py-3">
+</ul>
 
-{% if user.is_authenticated %}
+      
 
-<a href="{% url 'profile' %}"
-class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-user w-6"></i>
-<span class="label ml-3">{{ user.username }}</span>
-</a>
+    </div>
 
-<a href="{% url 'logout' %}"
-class="flex items-center px-4 py-3 hover:bg-gray-600 text-red-300">
-<i class="fa fa-sign-out w-6"></i>
-<span class="label ml-3">Logout</span>
-</a>
+    <!-- BOTTOM LOGIN -->
+    <div class="sidebar-bottom py-3">
 
-{% else %}
+      {% if user.is_authenticated %}
 
-<a href="{% url 'login' %}"
-class="flex items-center px-4 py-3 hover:bg-gray-600">
-<i class="fa fa-sign-in w-6"></i>
-<span class="label ml-3">Login</span>
-</a>
+      <a href="{% url 'profile' %}" class="flex items-center px-4 py-3 hover:bg-gray-600">
+        <i class="fa fa-user w-6"></i>
+        <span class="label ml-3">{{ user.username }}</span>
+      </a>
 
-{% endif %}
+      <a href="{% url 'logout' %}" class="flex items-center px-4 py-3 hover:bg-gray-600 text-red-300">
+        <i class="fa fa-sign-out w-6"></i>
+        <span class="label ml-3">Logout</span>
+      </a>
 
-</div>
+      {% else %}
 
-</aside>
+      <a href="{% url 'login' %}" class="flex items-center px-4 py-3 hover:bg-gray-600">
+        <i class="fa fa-sign-in w-6"></i>
+        <span class="label ml-3">Login</span>
+      </a>
 
-<div id="overlay" class="overlay"></div>
+      {% endif %}
 
-<!-- ===== MAIN ===== -->
-<main id="main" class="main px-4">
-{% block content %}{% endblock %}
-</main>
+    </div>
 
+<<<<<<< HEAD
 <!-- ===== BOTTOM HEADER WITH 4 NAV LINKS (mobile only, glassmorphism) ===== -->
 <div id="bottomHeader" class="fixed bottom-0 left-0 w-full h-16 bg-white/80 backdrop-blur-lg border-t border-white/20 shadow-lg md:hidden flex items-center justify-around px-2 z-50 transition-transform duration-300" style="transform: translateY(0);">
     
@@ -294,61 +311,65 @@ class="flex items-center px-4 py-3 hover:bg-gray-600">
 const sidebar=document.getElementById("sidebar");
 const main=document.getElementById("main");
 const overlay=document.getElementById("overlay");
+=======
+  </aside>
+>>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
 
-const menuBtn=document.getElementById("menuBtn");
-const collapseBtn=document.getElementById("collapseBtn");
+  <div id="overlay" class="overlay"></div>
 
-/* mobile open */
-menuBtn.onclick=()=>{
-sidebar.classList.toggle("open");
-overlay.classList.toggle("show");
-};
+  <!-- ===== MAIN ===== -->
+  <main id="main" class="main px-4">
+    {% block content %}{% endblock %}
+  </main>
 
-/* desktop collapse */
-collapseBtn.onclick=()=>{
-sidebar.classList.toggle("collapsed");
-main.classList.toggle("collapsed");
-};
+  <!-- ===== BOTTOM HEADER WITH 4 NAV LINKS (mobile only, glassmorphism) ===== -->
+  <div id="bottomHeader"
+    class="fixed bottom-0 left-0 w-full h-16 bg-white/80 backdrop-blur-lg border-t border-white/20 shadow-lg md:hidden flex items-center justify-around px-2 z-50 transition-transform duration-300"
+    style="transform: translateY(0);">
 
-/* close mobile */
-overlay.onclick=()=>{
-sidebar.classList.remove("open");
-overlay.classList.remove("show");
-};
+    <a href="{% url 'home' %}" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
+      <i class="fa fa-home text-xl"></i>
+      <span class="text-xs mt-1">Home</span>
+    </a>
 
-/* USER DROPDOWN */
-const userBtn=document.getElementById("userMenuBtn");
-const dropdown=document.getElementById("userDropdown");
+    <a href="#" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
+      <i class="fa fa-pen text-xl"></i>
+      <span class="text-xs mt-1">Test</span>
+    </a>
 
-if(userBtn){
-userBtn.onclick=()=>{
-dropdown.classList.toggle("hidden");
-};
+    <a href="#" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
+      <i class="fa fa-newspaper text-xl"></i>
+      <span class="text-xs mt-1">Examclass</span>
+    </a>
 
-document.addEventListener("click",(e)=>{
-if(!userBtn.contains(e.target) && !dropdown.contains(e.target)){
-dropdown.classList.add("hidden");
-}
-});
-}
+    <a href="{% url 'profile' %}" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
+      <i class="fa fa-user text-xl"></i>
+      <span class="text-xs mt-1">Profile</span>
+    </a>
 
-const loginBtn = document.getElementById("loginBtn");
+  </div>
 
-if(loginBtn){
-const observer = new IntersectionObserver(entries=>{
-entries.forEach(entry=>{
-if(entry.isIntersecting){
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const main = document.getElementById("main");
+    const overlay = document.getElementById("overlay");
 
-loginBtn.classList.add("animate");
+    const menuBtn = document.getElementById("menuBtn");
+    const collapseBtn = document.getElementById("collapseBtn");
 
-setTimeout(()=>{
-loginBtn.classList.add("done");
-},2000);
+    /* mobile open */
+    menuBtn.onclick = () => {
+      sidebar.classList.toggle("open");
+      overlay.classList.toggle("show");
+    };
 
-}
-});
-},{threshold:0.6});
+    /* desktop collapse */
+    collapseBtn.onclick = () => {
+      sidebar.classList.toggle("collapsed");
+      main.classList.toggle("collapsed");
+    };
 
+<<<<<<< HEAD
 observer.observe(loginBtn);
 }
 
@@ -379,5 +400,78 @@ window.addEventListener('resize', () => {
   }
 });
 </script>
+=======
+    /* close mobile */
+    overlay.onclick = () => {
+      sidebar.classList.remove("open");
+      overlay.classList.remove("show");
+    };
+
+    /* USER DROPDOWN */
+    const userBtn = document.getElementById("userMenuBtn");
+    const dropdown = document.getElementById("userDropdown");
+
+    if (userBtn) {
+      userBtn.onclick = () => {
+        dropdown.classList.toggle("hidden");
+      };
+
+      document.addEventListener("click", (e) => {
+        if (!userBtn.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.classList.add("hidden");
+        }
+      });
+    }
+
+    const loginBtn = document.getElementById("loginBtn");
+
+    if (loginBtn) {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+
+            loginBtn.classList.add("animate");
+
+            setTimeout(() => {
+              loginBtn.classList.add("done");
+            }, 2000);
+
+          }
+        });
+      }, { threshold: 0.6 });
+
+      observer.observe(loginBtn);
+    }
+
+    // ===== BOTTOM HEADER HIDE/SHOW ON SCROLL (mobile only) =====
+    const bottomHeader = document.getElementById('bottomHeader');
+    let lastScroll = 0;
+
+    window.addEventListener('scroll', () => {
+      if (window.innerWidth <= 768) {
+        const currentScroll = window.scrollY;
+
+        if (currentScroll > lastScroll && currentScroll > 50) {
+          // Scrolling down - hide
+          bottomHeader.style.transform = 'translateY(100%)';
+        } else {
+          // Scrolling up - show
+          bottomHeader.style.transform = 'translateY(0)';
+        }
+
+        lastScroll = currentScroll;
+      }
+    });
+
+    // Reset on resize
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768) {
+        bottomHeader.style.transform = 'translateY(0)';
+      }
+    });
+  </script>
+  {% block extra_js %} {% endblock %}
+>>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
 </body>
-  </html>
+
+</html>

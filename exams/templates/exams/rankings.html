@@ -1,0 +1,238 @@
+<!-- templates/exams/rankings.html -->
+{% extends "base.html" %}
+{% block title %}Rankings - {{ mock_test.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header with Breadcrumb -->
+    <nav class="flex mb-6 text-sm text-gray-500">
+        <a href="{% url 'exams:dashboard' %}" class="hover:text-indigo-600 transition">Dashboard</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'exams:result_dashboard' current_attempt.id %}" class="hover:text-indigo-600 transition">Results</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">Rankings</span>
+    </nav>
+
+    <!-- Header Card -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-6 md:p-8 mb-8 text-white">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium mb-3">
+                    {{ mock_test.subcategory.name }}
+                </span>
+                <h1 class="text-2xl md:text-3xl font-bold mb-2">{{ mock_test.title }} - Rankings</h1>
+                <p class="text-white/80">See how you performed against other test takers</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex items-center space-x-6">
+                <div class="text-right">
+                    <span class="text-white/70 text-sm">Your Rank</span>
+                    <div class="text-3xl md:text-4xl font-bold">#{{ current_user_rank }}</div>
+                </div>
+                <div class="text-right">
+                    <span class="text-white/70 text-sm">Percentile</span>
+                    <div class="text-3xl md:text-4xl font-bold">{{ stats.your_percentile }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Total Attempts</span>
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-800">{{ stats.total_attempts }}</p>
+            <p class="text-xs text-gray-400 mt-1">Total test takers</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Average Score</span>
+                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-800">{{ stats.average_score }}%</p>
+            <p class="text-xs text-gray-400 mt-1">Mean performance</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Highest Score</span>
+                <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-800">{{ stats.highest_score }}%</p>
+            <p class="text-xs text-gray-400 mt-1">Top performer</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Your Score</span>
+                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-indigo-600">{{ percentage }}%</p>
+            <p class="text-xs text-gray-400 mt-1">Your performance</p>
+        </div>
+    </div>
+
+    <!-- Rankings Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+            <h2 class="font-semibold text-gray-800">Leaderboard</h2>
+            <span class="text-xs text-gray-500">{{ rankings.paginator.count }} participants</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
+                    <tr>
+                        <th class="px-6 py-3 text-left">Rank</th>
+                        <th class="px-6 py-3 text-left">Student</th>
+                        <th class="px-6 py-3 text-center">Score</th>
+                        <th class="px-6 py-3 text-center">Correct</th>
+                        <th class="px-6 py-3 text-center">Wrong</th>
+                        <th class="px-6 py-3 text-center">Skipped</th>
+                        <th class="px-6 py-3 text-right">Submitted</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for rank in rankings %}
+                    <tr class="{% if rank.is_current %}bg-indigo-50 hover:bg-indigo-100{% else %}hover:bg-gray-50{% endif %} transition">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                {% if rank.rank == 1 %}
+                                <span class="flex items-center justify-center w-8 h-8 bg-yellow-400 text-white rounded-lg text-lg">🥇</span>
+                                {% elif rank.rank == 2 %}
+                                <span class="flex items-center justify-center w-8 h-8 bg-gray-300 text-white rounded-lg text-lg">🥈</span>
+                                {% elif rank.rank == 3 %}
+                                <span class="flex items-center justify-center w-8 h-8 bg-amber-600 text-white rounded-lg text-lg">🥉</span>
+                                {% else %}
+                                <span class="font-mono font-bold text-gray-700">#{{ rank.rank }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-sm">
+                                    {{ rank.initials }}
+                                </div>
+                                <div class="ml-3">
+                                    <p class="font-medium text-gray-800">
+                                        {{ rank.user_name }}
+                                        {% if rank.is_current %}
+                                        <span class="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">You</span>
+                                        {% endif %}
+                                    </p>
+                                    <p class="text-xs text-gray-400">{{ rank.email }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="font-bold text-lg 
+                                {% if rank.score >= 80 %}text-green-600
+                                {% elif rank.score >= 60 %}text-yellow-600
+                                {% else %}text-red-600{% endif %}">
+                                {{ rank.score }}%
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-green-600 font-medium">{{ rank.correct }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-red-600 font-medium">{{ rank.wrong }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-gray-400 font-medium">{{ rank.skipped }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="text-sm text-gray-500">{{ rank.submitted_at|date:"d M Y" }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                            No rankings available yet. Be the first to take this test!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if rankings.has_other_pages %}
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50">
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-gray-500">
+                    Showing <span class="font-medium">{{ rankings.start_index }}</span> to 
+                    <span class="font-medium">{{ rankings.end_index }}</span> of 
+                    <span class="font-medium">{{ rankings.paginator.count }}</span> results
+                </p>
+                <div class="flex space-x-2">
+                    {% if rankings.has_previous %}
+                    <a href="?page={{ rankings.previous_page_number }}" 
+                       class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition">
+                        Previous
+                    </a>
+                    {% endif %}
+                    
+                    {% for i in rankings.paginator.page_range %}
+                        {% if rankings.number == i %}
+                        <span class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-sm">{{ i }}</span>
+                        {% elif i > rankings.number|add:'-3' and i < rankings.number|add:'3' %}
+                        <a href="?page={{ i }}" 
+                           class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition">
+                            {{ i }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if rankings.has_next %}
+                    <a href="?page={{ rankings.next_page_number }}" 
+                       class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition">
+                        Next
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+        <a href="{% url 'exams:result_dashboard' current_attempt.id %}" 
+           class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to Results
+        </a>
+        
+        <a href="{% url 'exams:mocktest_detail' mock_test.id %}" 
+           class="inline-flex items-center px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-medium rounded-xl transition transform hover:-translate-y-0.5">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Retake Test
+        </a>
+    </div>
+</div>
+{% endblock %}

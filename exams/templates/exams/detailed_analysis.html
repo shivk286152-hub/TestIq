@@ -1,0 +1,504 @@
+<!-- templates/exams/detailed_analysis.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detailed Analysis - {{ attempt.mock_test.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .question-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    .question-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    }
+    .question-card.correct {
+        border-left-color: #10b981;
+    }
+    .question-card.wrong {
+        border-left-color: #ef4444;
+    }
+    .question-card.skipped {
+        border-left-color: #9ca3af;
+    }
+    .tab-active {
+        background-color: #4f46e5;
+        color: white;
+    }
+    .filter-btn.active {
+        background-color: #4f46e5;
+        color: white;
+        border-color: #4f46e5;
+    }
+    .option-item {
+        transition: all 0.2s ease;
+    }
+    .option-correct {
+        background-color: #d1fae5;
+        border-color: #10b981;
+    }
+    .option-wrong {
+        background-color: #fee2e2;
+        border-color: #ef4444;
+    }
+    .option-selected {
+        border-width: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header with Breadcrumb -->
+    <nav class="flex mb-6 text-sm text-gray-500">
+        <a href="{% url 'exams:dashboard' %}" class="hover:text-indigo-600 transition">Dashboard</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'exams:result_dashboard' attempt.id %}" class="hover:text-indigo-600 transition">Results</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">Detailed Analysis</span>
+    </nav>
+
+    <!-- Header Card -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-6 md:p-8 mb-8 text-white">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium mb-3">
+                    {{ attempt.mock_test.subcategory.name }}
+                </span>
+                <h1 class="text-2xl md:text-3xl font-bold mb-2">{{ attempt.mock_test.title }} - Detailed Analysis</h1>
+                <p class="text-white/80">Review your answers and learn from explanations</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex space-x-3">
+                <a href="{% url 'exams:result_dashboard' attempt.id %}" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Results
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Total Questions</span>
+                <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-800">{{ total_questions }}</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Correct</span>
+                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-green-600">{{ correct_count }}</p>
+            <p class="text-xs text-gray-400 mt-1">{{ accuracy }}% accuracy</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Wrong</span>
+                <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-red-600">{{ wrong_count }}</p>
+            <p class="text-xs text-gray-400 mt-1">{{ wrong_count|add:skipped_count }} incorrect/skipped</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Skipped</span>
+                <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-yellow-600">{{ skipped_count }}</p>
+            <p class="text-xs text-gray-400 mt-1">Not attempted</p>
+        </div>
+    </div>
+
+    <!-- Subject-wise Performance -->
+    {% if subject_stats %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Subject-wise Performance</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for subject, stats in subject_stats.items %}
+            <div class="bg-gray-50 rounded-xl p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-medium text-gray-800">{{ subject }}</span>
+                    <span class="text-sm font-bold 
+                        {% if stats.correct == stats.total %}text-green-600
+                        {% elif stats.correct > stats.total|divisibleby:2 %}text-yellow-600
+                        {% else %}text-red-600{% endif %}">
+                        {{ stats.correct }}/{{ stats.total }}
+                    </span>
+                </div>
+                <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-green-500 rounded-full" style="width: {% widthratio stats.correct stats.total 100 %}%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>Correct: {{ stats.correct }}</span>
+                    <span>Wrong: {{ stats.wrong }}</span>
+                    <span>Skipped: {{ stats.skipped }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filter Tabs -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 md:mb-0">Question Review</h2>
+            
+            <!-- Filter Buttons -->
+            <div class="flex flex-wrap gap-2">
+                <button onclick="filterQuestions('all')" id="filter-all" class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium border-2 border-indigo-600 bg-indigo-600 text-white transition">
+                    All Questions ({{ total_questions }})
+                </button>
+                <button onclick="filterQuestions('correct')" id="filter-correct" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium border-2 border-green-600 text-green-600 hover:bg-green-50 transition">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Correct ({{ correct_count }})
+                    </span>
+                </button>
+                <button onclick="filterQuestions('wrong')" id="filter-wrong" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium border-2 border-red-600 text-red-600 hover:bg-red-50 transition">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Wrong ({{ wrong_count }})
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search and Sort Bar -->
+        <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+            <div class="flex-1 relative">
+                <input type="text" id="searchQuestions" placeholder="Search questions..." 
+                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="text-sm text-gray-500">Sort by:</span>
+                <select id="sortQuestions" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500">
+                    <option value="number">Question Number</option>
+                    <option value="subject">Subject</option>
+                    <option value="difficulty">Difficulty</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Questions List -->
+        <div id="questionsContainer" class="space-y-4">
+            {% for question in questions_data %}
+            <div class="question-card bg-white rounded-xl border border-gray-200 p-6 {% if question.is_correct %}correct{% elif question.is_answered %}wrong{% else %}skipped{% endif %}" 
+                 data-status="{% if question.is_correct %}correct{% elif question.is_answered %}wrong{% else %}skipped{% endif %}"
+                 data-subject="{{ question.subject }}"
+                 data-difficulty="{{ question.difficulty }}"
+                 data-number="{{ question.question_number }}">
+                
+                <!-- Question Header -->
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-semibold text-sm">
+                            {{ forloop.counter }}
+                        </span>
+                        <div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                {{ question.subject }}
+                            </span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ml-2 
+                                {% if question.difficulty == 'Easy' %}bg-green-100 text-green-800
+                                {% elif question.difficulty == 'Medium' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ question.difficulty }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {% if question.is_correct %}
+                        <span class="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full text-sm">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Correct
+                        </span>
+                        {% elif question.is_answered %}
+                        <span class="flex items-center text-red-600 bg-red-50 px-3 py-1 rounded-full text-sm">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Incorrect
+                        </span>
+                        {% else %}
+                        <span class="flex items-center text-gray-600 bg-gray-50 px-3 py-1 rounded-full text-sm">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Skipped
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Question Text -->
+                <div class="mb-4">
+                    <p class="text-gray-800 font-medium">{{ question.text }}</p>
+                </div>
+
+                <!-- Options -->
+                <div class="space-y-2 mb-4">
+                    {% for option in question.options %}
+                    <div class="option-item p-3 rounded-lg border 
+                        {% if option.is_correct %}option-correct{% endif %}
+                        {% if option.is_selected and not option.is_correct %}option-wrong{% endif %}
+                        {% if option.is_selected %}option-selected{% endif %}">
+                        <div class="flex items-center">
+                            <span class="w-6 h-6 flex items-center justify-center rounded-full 
+                                {% if option.is_correct %}bg-green-500 text-white
+                                {% elif option.is_selected and not option.is_correct %}bg-red-500 text-white
+                                {% else %}bg-gray-200 text-gray-700{% endif %} 
+                                text-xs font-medium mr-3">
+                                {{ forloop.counter|add:"64"|chr }}
+                            </span>
+                            <span class="flex-1 {% if option.is_correct %}font-medium{% endif %}">{{ option.text }}</span>
+                            {% if option.is_correct %}
+                            <svg class="w-5 h-5 text-green-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            {% endif %}
+                            {% if option.is_selected and not option.is_correct %}
+                            <svg class="w-5 h-5 text-red-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Answer Summary -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Your Answer</p>
+                            {% if question.is_answered %}
+                            <p class="text-sm font-medium {% if question.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ question.selected_option_text }}
+                            </p>
+                            {% else %}
+                            <p class="text-sm text-gray-400 italic">Not answered</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Correct Answer</p>
+                            <p class="text-sm font-medium text-green-600">{{ question.correct_option_text }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explanation (Collapsible) -->
+                <div class="border-t border-gray-100 pt-4">
+                    <button onclick="toggleExplanation({{ question.id }})" class="flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                        <svg class="w-4 h-4 mr-1 transition-transform" id="chevron-{{ question.id }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                        View Explanation
+                    </button>
+                    <div id="explanation-{{ question.id }}" class="hidden mt-3 p-4 bg-indigo-50 rounded-lg text-gray-700">
+                        {{ question.explanation|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- No Results Message -->
+        <div id="noResultsMessage" class="hidden text-center py-12">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-700 mb-2">No questions found</h3>
+            <p class="text-gray-500">Try adjusting your filters or search criteria</p>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+        <a href="{% url 'exams:result_dashboard' attempt.id %}" 
+           class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to Results
+        </a>
+        
+        <a href="{% url 'exams:view_rankings' attempt.id %}" 
+           class="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            View Rankings
+        </a>
+        
+        <a href="{% url 'exams:mocktest_detail' attempt.mock_test.id %}" 
+           class="inline-flex items-center px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-medium rounded-xl transition transform hover:-translate-y-0.5">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Retake Test
+        </a>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Template filter for converting numbers to letters (A, B, C, D)
+    function numberToLetter(num) {
+        return String.fromCharCode(64 + num);
+    }
+
+    // Toggle explanation visibility
+    function toggleExplanation(questionId) {
+        const explanation = document.getElementById(`explanation-${questionId}`);
+        const chevron = document.getElementById(`chevron-${questionId}`);
+        
+        if (explanation.classList.contains('hidden')) {
+            explanation.classList.remove('hidden');
+            chevron.classList.add('rotate-180');
+        } else {
+            explanation.classList.add('hidden');
+            chevron.classList.remove('rotate-180');
+        }
+    }
+
+    // Filter questions by status
+    function filterQuestions(status) {
+        const questions = document.querySelectorAll('.question-card');
+        const filterAll = document.getElementById('filter-all');
+        const filterCorrect = document.getElementById('filter-correct');
+        const filterWrong = document.getElementById('filter-wrong');
+        let visibleCount = 0;
+        
+        // Update active button styles
+        [filterAll, filterCorrect, filterWrong].forEach(btn => {
+            btn.classList.remove('active', 'bg-indigo-600', 'text-white');
+            btn.classList.add('border-2');
+        });
+        
+        if (status === 'all') {
+            filterAll.classList.add('active', 'bg-indigo-600', 'text-white');
+            filterAll.classList.remove('border-indigo-600');
+        } else if (status === 'correct') {
+            filterCorrect.classList.add('active', 'bg-indigo-600', 'text-white');
+            filterCorrect.classList.remove('border-green-600');
+        } else if (status === 'wrong') {
+            filterWrong.classList.add('active', 'bg-indigo-600', 'text-white');
+            filterWrong.classList.remove('border-red-600');
+        }
+        
+        // Filter questions
+        questions.forEach(question => {
+            if (status === 'all' || question.dataset.status === status) {
+                question.style.display = 'block';
+                visibleCount++;
+            } else {
+                question.style.display = 'none';
+            }
+        });
+        
+        // Show/hide no results message
+        const noResults = document.getElementById('noResultsMessage');
+        if (visibleCount === 0) {
+            noResults.classList.remove('hidden');
+        } else {
+            noResults.classList.add('hidden');
+        }
+    }
+
+    // Search functionality
+    document.getElementById('searchQuestions').addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        const questions = document.querySelectorAll('.question-card');
+        let visibleCount = 0;
+        
+        questions.forEach(question => {
+            const questionText = question.querySelector('.text-gray-800.font-medium').textContent.toLowerCase();
+            const subject = question.dataset.subject.toLowerCase();
+            
+            if (questionText.includes(searchTerm) || subject.includes(searchTerm)) {
+                question.style.display = 'block';
+                visibleCount++;
+            } else {
+                question.style.display = 'none';
+            }
+        });
+        
+        // Show/hide no results message
+        const noResults = document.getElementById('noResultsMessage');
+        if (visibleCount === 0) {
+            noResults.classList.remove('hidden');
+        } else {
+            noResults.classList.add('hidden');
+        }
+    });
+
+    // Sort functionality
+    document.getElementById('sortQuestions').addEventListener('change', function() {
+        const sortBy = this.value;
+        const container = document.getElementById('questionsContainer');
+        const questions = Array.from(document.querySelectorAll('.question-card'));
+        
+        questions.sort((a, b) => {
+            if (sortBy === 'number') {
+                return parseInt(a.dataset.number) - parseInt(b.dataset.number);
+            } else if (sortBy === 'subject') {
+                return a.dataset.subject.localeCompare(b.dataset.subject);
+            } else if (sortBy === 'difficulty') {
+                const difficultyOrder = {'Easy': 1, 'Medium': 2, 'Hard': 3};
+                return difficultyOrder[a.dataset.difficulty] - difficultyOrder[b.dataset.difficulty];
+            }
+        });
+        
+        // Reorder DOM elements
+        questions.forEach(question => container.appendChild(question));
+    });
+
+    // Initialize with all questions visible
+    document.addEventListener('DOMContentLoaded', function() {
+        filterQuestions('all');
+    });
+</script>
+
+<!-- Custom template filter for chr -->
+{% if False %}
+    <!-- This is just a placeholder for the chr filter -->
+    {% load my_filters %}
+{% endif %}
+{% endblock %}
+{% endblock %}
