@@ -23,10 +23,6 @@
     .question-card.skipped {
         border-left-color: #9ca3af;
     }
-    .tab-active {
-        background-color: #4f46e5;
-        color: white;
-    }
     .filter-btn.active {
         background-color: #4f46e5;
         color: white;
@@ -46,29 +42,125 @@
     .option-selected {
         border-width: 2px;
     }
+    .rotate-180 {
+        transform: rotate(180deg);
+    }
+    
+    /* Difficulty badges */
+    .difficulty-easy {
+        background-color: #10b981;
+        color: white;
+    }
+    .difficulty-medium {
+        background-color: #f59e0b;
+        color: white;
+    }
+    .difficulty-hard {
+        background-color: #ef4444;
+        color: white;
+    }
+    
+    /* Question text styling */
+    .question-text {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #1f2937;
+        background-color: #f9fafb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #4f46e5;
+    }
+    
+    /* Stats cards animation */
+    .stat-card {
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* Progress bar animation */
+    .progress-bar {
+        transition: width 0.5s ease-in-out;
+    }
+    
+    /* Loading spinner */
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #4f46e5;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Explanation styling */
+    .explanation-content {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    .explanation-content p {
+        margin-bottom: 0.75rem;
+    }
+    .explanation-content ul, .explanation-content ol {
+        margin-left: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header with Breadcrumb -->
-    <nav class="flex mb-6 text-sm text-gray-500">
-        <a href="{% url 'exams:dashboard' %}" class="hover:text-indigo-600 transition">Dashboard</a>
-        <span class="mx-2">/</span>
-        <a href="{% url 'exams:result_dashboard' attempt.id %}" class="hover:text-indigo-600 transition">Results</a>
-        <span class="mx-2">/</span>
-        <span class="text-gray-900 font-medium">Detailed Analysis</span>
+    <nav class="flex mb-6 text-sm text-gray-500" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2">
+            <li>
+                <a href="{% url 'exams:dashboard' %}" class="hover:text-indigo-600 transition flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li class="flex items-center">
+                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                </svg>
+                <a href="{% url 'exams:result_dashboard' attempt.id %}" class="ml-2 hover:text-indigo-600 transition">Results</a>
+            </li>
+            <li class="flex items-center">
+                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="ml-2 text-gray-900 font-medium">Detailed Analysis</span>
+            </li>
+        </ol>
     </nav>
 
     <!-- Header Card -->
     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-6 md:p-8 mb-8 text-white">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-                <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium mb-3">
-                    {{ attempt.mock_test.subcategory.name }}
-                </span>
-                <h1 class="text-2xl md:text-3xl font-bold mb-2">{{ attempt.mock_test.title }} - Detailed Analysis</h1>
-                <p class="text-white/80">Review your answers and learn from explanations</p>
+                <div class="flex items-center space-x-3 mb-3">
+                    <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
+                        {{ attempt.mock_test.subcategory.name|default:"General" }}
+                    </span>
+                    <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
+                        Submitted: {{ attempt.submitted_at|date:"M d, Y H:i" }}
+                    </span>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-bold mb-2">{{ attempt.mock_test.title }}</h1>
+                <p class="text-white/80 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    Review your answers and learn from detailed explanations
+                </p>
             </div>
             <div class="mt-4 md:mt-0 flex space-x-3">
                 <a href="{% url 'exams:result_dashboard' attempt.id %}" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition flex items-center">
@@ -81,21 +173,45 @@
         </div>
     </div>
 
+    <!-- Debug Info - Will show only if there are issues -->
+    {% if not questions_data %}
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded-r-lg" role="alert">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    <strong class="font-medium">No questions data available!</strong> 
+                    {% if error_message %}
+                        {{ error_message }}
+                    {% else %}
+                        This might be because no answers were saved for this attempt or there was an error loading the data.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div class="stat-card bg-white rounded-xl shadow-sm p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Total Questions</span>
-                <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
             </div>
             <p class="text-3xl font-bold text-gray-800">{{ total_questions }}</p>
+            <p class="text-xs text-gray-400 mt-1">questions attempted</p>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+        <div class="stat-card bg-white rounded-xl shadow-sm p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Correct</span>
                 <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -105,10 +221,15 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-green-600">{{ correct_count }}</p>
-            <p class="text-xs text-gray-400 mt-1">{{ accuracy }}% accuracy</p>
+            <div class="mt-2">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="progress-bar bg-green-600 h-2 rounded-full" style="width: {% widthratio correct_count total_questions 100 %}%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">{{ accuracy }}% accuracy</p>
+            </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+        <div class="stat-card bg-white rounded-xl shadow-sm p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Wrong</span>
                 <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
@@ -121,7 +242,7 @@
             <p class="text-xs text-gray-400 mt-1">{{ wrong_count|add:skipped_count }} incorrect/skipped</p>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+        <div class="stat-card bg-white rounded-xl shadow-sm p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Skipped</span>
                 <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -133,31 +254,62 @@
             <p class="text-3xl font-bold text-yellow-600">{{ skipped_count }}</p>
             <p class="text-xs text-gray-400 mt-1">Not attempted</p>
         </div>
+
+        <div class="stat-card bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Score</span>
+                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-purple-600">{{ attempt.score|floatformat:1 }}</p>
+            <p class="text-xs text-gray-400 mt-1">out of {{ total_questions }}</p>
+        </div>
     </div>
 
     <!-- Subject-wise Performance -->
     {% if subject_stats %}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">Subject-wise Performance</h2>
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            Subject-wise Performance
+        </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for subject, stats in subject_stats.items %}
-            <div class="bg-gray-50 rounded-xl p-4">
+            <div class="bg-gray-50 rounded-xl p-4 hover:shadow-md transition">
                 <div class="flex justify-between items-center mb-2">
                     <span class="font-medium text-gray-800">{{ subject }}</span>
                     <span class="text-sm font-bold 
-                        {% if stats.correct == stats.total %}text-green-600
-                        {% elif stats.correct > stats.total|divisibleby:2 %}text-yellow-600
+                        {% if stats.percentage >= 70 %}text-green-600
+                        {% elif stats.percentage >= 40 %}text-yellow-600
                         {% else %}text-red-600{% endif %}">
-                        {{ stats.correct }}/{{ stats.total }}
+                        {{ stats.correct }}/{{ stats.total }} ({{ stats.percentage }}%)
                     </span>
                 </div>
-                <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div class="h-full bg-green-500 rounded-full" style="width: {% widthratio stats.correct stats.total 100 %}%"></div>
+                <div class="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="progress-bar h-full rounded-full
+                        {% if stats.percentage >= 70 %}bg-green-500
+                        {% elif stats.percentage >= 40 %}bg-yellow-500
+                        {% else %}bg-red-500{% endif %}" 
+                        style="width: {{ stats.percentage }}%"></div>
                 </div>
                 <div class="flex justify-between text-xs text-gray-500 mt-2">
-                    <span>Correct: {{ stats.correct }}</span>
-                    <span>Wrong: {{ stats.wrong }}</span>
-                    <span>Skipped: {{ stats.skipped }}</span>
+                    <span class="flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                        Correct: {{ stats.correct }}
+                    </span>
+                    <span class="flex items-center">
+                        <span class="w-2 h-2 bg-red-500 rounded-full mr-1"></span>
+                        Wrong: {{ stats.wrong }}
+                    </span>
+                    <span class="flex items-center">
+                        <span class="w-2 h-2 bg-gray-500 rounded-full mr-1"></span>
+                        Skipped: {{ stats.skipped }}
+                    </span>
                 </div>
             </div>
             {% endfor %}
@@ -165,17 +317,28 @@
     </div>
     {% endif %}
 
-    <!-- Filter Tabs -->
+    <!-- Filter and Search Section -->
+    {% if questions_data %}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4 md:mb-0">Question Review</h2>
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 md:mb-0 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Question Review
+            </h2>
             
             <!-- Filter Buttons -->
             <div class="flex flex-wrap gap-2">
-                <button onclick="filterQuestions('all')" id="filter-all" class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium border-2 border-indigo-600 bg-indigo-600 text-white transition">
-                    All Questions ({{ total_questions }})
+                <button onclick="filterQuestions('all')" id="filter-all" class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium border-2 border-indigo-600 bg-indigo-600 text-white transition-all hover:shadow-md">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        All ({{ total_questions }})
+                    </span>
                 </button>
-                <button onclick="filterQuestions('correct')" id="filter-correct" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium border-2 border-green-600 text-green-600 hover:bg-green-50 transition">
+                <button onclick="filterQuestions('correct')" id="filter-correct" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium border-2 border-green-600 text-green-600 hover:bg-green-50 transition-all">
                     <span class="flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -183,7 +346,7 @@
                         Correct ({{ correct_count }})
                     </span>
                 </button>
-                <button onclick="filterQuestions('wrong')" id="filter-wrong" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium border-2 border-red-600 text-red-600 hover:bg-red-50 transition">
+                <button onclick="filterQuestions('wrong')" id="filter-wrong" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium border-2 border-red-600 text-red-600 hover:bg-red-50 transition-all">
                     <span class="flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -191,21 +354,55 @@
                         Wrong ({{ wrong_count }})
                     </span>
                 </button>
+                <button onclick="filterQuestions('skipped')" id="filter-skipped" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium border-2 border-gray-600 text-gray-600 hover:bg-gray-50 transition-all">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Skipped ({{ skipped_count }})
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Difficulty Filter Bar -->
+        <div class="flex flex-wrap items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+            <span class="text-sm font-medium text-gray-700">Filter by difficulty:</span>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="filterByDifficulty('all')" id="difficulty-all" class="difficulty-filter active px-4 py-1.5 rounded-full text-sm font-medium bg-indigo-600 text-white transition-all hover:shadow-md">
+                    All
+                </button>
+                <button onclick="filterByDifficulty('Easy')" id="difficulty-easy" class="difficulty-filter px-4 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-all">
+                    Easy
+                </button>
+                <button onclick="filterByDifficulty('Medium')" id="difficulty-medium" class="difficulty-filter px-4 py-1.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-200 transition-all">
+                    Medium
+                </button>
+                <button onclick="filterByDifficulty('Hard')" id="difficulty-hard" class="difficulty-filter px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-all">
+                    Hard
+                </button>
             </div>
         </div>
 
         <!-- Search and Sort Bar -->
         <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
             <div class="flex-1 relative">
-                <input type="text" id="searchQuestions" placeholder="Search questions..." 
-                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <input type="text" id="searchQuestions" placeholder="Search questions by text, subject, or topic..." 
+                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
+                {% if search_query %}
+                <button onclick="clearSearch()" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                {% endif %}
             </div>
             <div class="flex items-center space-x-2">
                 <span class="text-sm text-gray-500">Sort by:</span>
-                <select id="sortQuestions" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500">
+                <select id="sortQuestions" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="number">Question Number</option>
                     <option value="subject">Subject</option>
                     <option value="difficulty">Difficulty</option>
@@ -213,50 +410,80 @@
             </div>
         </div>
 
-        <!-- Questions List -->
+        <!-- Loading Spinner (hidden by default) -->
+        <div id="loadingSpinner" class="hidden flex justify-center py-8">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Questions Container -->
         <div id="questionsContainer" class="space-y-4">
             {% for question in questions_data %}
-            <div class="question-card bg-white rounded-xl border border-gray-200 p-6 {% if question.is_correct %}correct{% elif question.is_answered %}wrong{% else %}skipped{% endif %}" 
+            <div class="question-card bg-white rounded-xl border border-gray-200 p-6 
+                        {% if question.is_correct %}correct
+                        {% elif question.is_answered %}wrong
+                        {% else %}skipped{% endif %}" 
                  data-status="{% if question.is_correct %}correct{% elif question.is_answered %}wrong{% else %}skipped{% endif %}"
-                 data-subject="{{ question.subject }}"
+                 data-subject="{{ question.subject|lower }}"
                  data-difficulty="{{ question.difficulty }}"
-                 data-number="{{ question.question_number }}">
+                 data-number="{{ question.question_number }}"
+                 data-search="{{ question.text|lower }} {{ question.subject|lower }} {{ question.topic|lower }}">
                 
                 <!-- Question Header -->
-                <div class="flex items-start justify-between mb-4">
+                <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
                     <div class="flex items-center space-x-3">
-                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-semibold text-sm">
-                            {{ forloop.counter }}
+                        <span class="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm">
+                            {{ question.question_number }}
                         </span>
-                        <div>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <!-- Subject Badge -->
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
                                 {{ question.subject }}
                             </span>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ml-2 
+                            
+                            <!-- Difficulty Badge -->
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
                                 {% if question.difficulty == 'Easy' %}bg-green-100 text-green-800
                                 {% elif question.difficulty == 'Medium' %}bg-yellow-100 text-yellow-800
                                 {% else %}bg-red-100 text-red-800{% endif %}">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
                                 {{ question.difficulty }}
                             </span>
+                            
+                            <!-- Topic Badge if available -->
+                            {% if question.topic %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-5-5A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                </svg>
+                                {{ question.topic }}
+                            </span>
+                            {% endif %}
                         </div>
                     </div>
+                    
+                    <!-- Status Badge -->
                     <div class="flex items-center space-x-2">
                         {% if question.is_correct %}
-                        <span class="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full text-sm">
+                        <span class="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full text-sm font-medium">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             Correct
                         </span>
                         {% elif question.is_answered %}
-                        <span class="flex items-center text-red-600 bg-red-50 px-3 py-1 rounded-full text-sm">
+                        <span class="flex items-center text-red-600 bg-red-50 px-3 py-1 rounded-full text-sm font-medium">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                             Incorrect
                         </span>
                         {% else %}
-                        <span class="flex items-center text-gray-600 bg-gray-50 px-3 py-1 rounded-full text-sm">
+                        <span class="flex items-center text-gray-600 bg-gray-50 px-3 py-1 rounded-full text-sm font-medium">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
@@ -268,23 +495,26 @@
 
                 <!-- Question Text -->
                 <div class="mb-4">
-                    <p class="text-gray-800 font-medium">{{ question.text }}</p>
+                    <div class="question-text">
+                        {{ question.text|linebreaks }}
+                    </div>
                 </div>
 
                 <!-- Options -->
                 <div class="space-y-2 mb-4">
                     {% for option in question.options %}
                     <div class="option-item p-3 rounded-lg border 
-                        {% if option.is_correct %}option-correct{% endif %}
-                        {% if option.is_selected and not option.is_correct %}option-wrong{% endif %}
-                        {% if option.is_selected %}option-selected{% endif %}">
+                        {% if option.is_correct %}option-correct border-green-300{% endif %}
+                        {% if option.is_selected and not option.is_correct %}option-wrong border-red-300{% endif %}
+                        {% if option.is_selected %}option-selected{% endif %}
+                        hover:shadow-md transition">
                         <div class="flex items-center">
-                            <span class="w-6 h-6 flex items-center justify-center rounded-full 
+                            <span class="w-7 h-7 flex items-center justify-center rounded-full 
                                 {% if option.is_correct %}bg-green-500 text-white
                                 {% elif option.is_selected and not option.is_correct %}bg-red-500 text-white
                                 {% else %}bg-gray-200 text-gray-700{% endif %} 
-                                text-xs font-medium mr-3">
-                                {{ forloop.counter|add:"64"|chr }}
+                                text-sm font-medium mr-3">
+                                {{ option.letter }}
                             </span>
                             <span class="flex-1 {% if option.is_correct %}font-medium{% endif %}">{{ option.text }}</span>
                             {% if option.is_correct %}
@@ -304,58 +534,88 @@
 
                 <!-- Answer Summary -->
                 <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-xs text-gray-500 mb-1">Your Answer</p>
-                            {% if question.is_answered %}
-                            <p class="text-sm font-medium {% if question.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
-                                {{ question.selected_option_text }}
-                            </p>
-                            {% else %}
-                            <p class="text-sm text-gray-400 italic">Not answered</p>
-                            {% endif %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex items-start space-x-2">
+                            <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Your Answer</p>
+                                {% if question.is_answered %}
+                                <p class="text-sm font-medium {% if question.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {{ question.selected_option_text }}
+                                </p>
+                                {% else %}
+                                <p class="text-sm text-gray-400 italic">Not answered</p>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-xs text-gray-500 mb-1">Correct Answer</p>
-                            <p class="text-sm font-medium text-green-600">{{ question.correct_option_text }}</p>
+                        <div class="flex items-start space-x-2">
+                            <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Correct Answer</p>
+                                <p class="text-sm font-medium text-green-600">{{ question.correct_option_text }}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Explanation (Collapsible) -->
+                {% if question.explanation and question.explanation != 'No explanation available.' and question.explanation|length > 0 %}
                 <div class="border-t border-gray-100 pt-4">
-                    <button onclick="toggleExplanation({{ question.id }})" class="flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium">
-                        <svg class="w-4 h-4 mr-1 transition-transform" id="chevron-{{ question.id }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button onclick="toggleExplanation({{ question.id }}, this)" class="flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium transition group w-full text-left">
+                        <svg class="w-4 h-4 mr-1 transition-transform group-hover:scale-110" id="chevron-{{ question.id }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
-                        View Explanation
+                        <span id="explanation-btn-text-{{ question.id }}">View Explanation</span>
                     </button>
-                    <div id="explanation-{{ question.id }}" class="hidden mt-3 p-4 bg-indigo-50 rounded-lg text-gray-700">
-                        {{ question.explanation|linebreaks }}
+                    <div id="explanation-{{ question.id }}" class="hidden mt-3 p-4 bg-indigo-50 rounded-lg text-gray-700 border-l-4 border-indigo-500">
+                        <div class="explanation-content">
+                            {{ question.explanation|linebreaks }}
+                        </div>
                     </div>
                 </div>
+                {% else %}
+                <!-- Optional: Show a message when no explanation is available -->
+                <div class="border-t border-gray-100 pt-4">
+                    <p class="text-sm text-gray-400 italic">No explanation available for this question.</p>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
 
         <!-- No Results Message -->
         <div id="noResultsMessage" class="hidden text-center py-12">
-            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <h3 class="text-lg font-medium text-gray-700 mb-2">No questions found</h3>
-            <p class="text-gray-500">Try adjusting your filters or search criteria</p>
+            <div class="bg-gray-50 rounded-xl p-8">
+                <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-700 mb-2">No questions found</h3>
+                <p class="text-gray-500 mb-4">Try adjusting your filters or search criteria</p>
+                <button onclick="resetAllFilters()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                    Reset All Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Questions count -->
+        <div id="questionsCount" class="mt-4 text-sm text-gray-500 text-center">
+            Showing <span id="visibleCount">{{ total_questions }}</span> of {{ total_questions }} questions
         </div>
     </div>
+    {% endif %}
 
     <!-- Action Buttons -->
-    <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+    <div class="flex flex-wrap gap-4 justify-center md:justify-start mt-8">
         <a href="{% url 'exams:result_dashboard' attempt.id %}" 
            class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            Back to Results
+            Back to Results Dashboard
         </a>
         
         <a href="{% url 'exams:view_rankings' attempt.id %}" 
@@ -371,87 +631,122 @@
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
             </svg>
-            Retake Test
+            Retake This Test
         </a>
+        
+        <button onclick="window.print()" 
+           class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition transform hover:-translate-y-0.5">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+            </svg>
+            Print Analysis
+        </button>
     </div>
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
-    // Template filter for converting numbers to letters (A, B, C, D)
-    function numberToLetter(num) {
-        return String.fromCharCode(64 + num);
-    }
+    // Store the current filter state
+    let currentStatusFilter = 'all';
+    let currentDifficultyFilter = 'all';
+    let currentSearchTerm = '';
 
     // Toggle explanation visibility
-    function toggleExplanation(questionId) {
+    function toggleExplanation(questionId, button) {
+        console.log('Toggling explanation for question:', questionId);
+        
         const explanation = document.getElementById(`explanation-${questionId}`);
         const chevron = document.getElementById(`chevron-${questionId}`);
+        const buttonText = document.getElementById(`explanation-btn-text-${questionId}`);
         
-        if (explanation.classList.contains('hidden')) {
-            explanation.classList.remove('hidden');
-            chevron.classList.add('rotate-180');
+        if (explanation && chevron && buttonText) {
+            if (explanation.classList.contains('hidden')) {
+                // Show explanation
+                explanation.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+                buttonText.textContent = 'Hide Explanation';
+            } else {
+                // Hide explanation
+                explanation.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+                buttonText.textContent = 'View Explanation';
+            }
         } else {
-            explanation.classList.add('hidden');
-            chevron.classList.remove('rotate-180');
+            console.log('Explanation elements not found for question:', questionId);
         }
     }
 
     // Filter questions by status
     function filterQuestions(status) {
-        const questions = document.querySelectorAll('.question-card');
-        const filterAll = document.getElementById('filter-all');
-        const filterCorrect = document.getElementById('filter-correct');
-        const filterWrong = document.getElementById('filter-wrong');
-        let visibleCount = 0;
+        currentStatusFilter = status;
         
         // Update active button styles
-        [filterAll, filterCorrect, filterWrong].forEach(btn => {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active', 'bg-indigo-600', 'text-white');
             btn.classList.add('border-2');
         });
         
-        if (status === 'all') {
-            filterAll.classList.add('active', 'bg-indigo-600', 'text-white');
-            filterAll.classList.remove('border-indigo-600');
-        } else if (status === 'correct') {
-            filterCorrect.classList.add('active', 'bg-indigo-600', 'text-white');
-            filterCorrect.classList.remove('border-green-600');
-        } else if (status === 'wrong') {
-            filterWrong.classList.add('active', 'bg-indigo-600', 'text-white');
-            filterWrong.classList.remove('border-red-600');
+        const activeBtn = document.getElementById(`filter-${status}`);
+        if (activeBtn) {
+            activeBtn.classList.add('active', 'bg-indigo-600', 'text-white');
         }
         
-        // Filter questions
-        questions.forEach(question => {
-            if (status === 'all' || question.dataset.status === status) {
-                question.style.display = 'block';
-                visibleCount++;
-            } else {
-                question.style.display = 'none';
-            }
+        // Apply all filters
+        applyFilters();
+    }
+
+    // Filter by difficulty
+    function filterByDifficulty(difficulty) {
+        currentDifficultyFilter = difficulty;
+        
+        // Update active button styles
+        document.querySelectorAll('.difficulty-filter').forEach(btn => {
+            btn.classList.remove('active', 'bg-indigo-600', 'text-white');
+            btn.classList.add('border-2');
         });
         
-        // Show/hide no results message
-        const noResults = document.getElementById('noResultsMessage');
-        if (visibleCount === 0) {
-            noResults.classList.remove('hidden');
-        } else {
-            noResults.classList.add('hidden');
+        const activeBtn = document.getElementById(`difficulty-${difficulty}`);
+        if (activeBtn) {
+            activeBtn.classList.add('active', 'bg-indigo-600', 'text-white');
         }
+        
+        // Apply all filters
+        applyFilters();
     }
 
     // Search functionality
-    document.getElementById('searchQuestions').addEventListener('keyup', function() {
-        const searchTerm = this.value.toLowerCase();
+    function setupSearch() {
+        const searchInput = document.getElementById('searchQuestions');
+        if (searchInput) {
+            let searchTimeout;
+            
+            searchInput.addEventListener('keyup', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentSearchTerm = this.value.toLowerCase();
+                    applyFilters();
+                }, 300); // Debounce for better performance
+            });
+        }
+    }
+
+    // Apply all active filters
+    function applyFilters() {
         const questions = document.querySelectorAll('.question-card');
         let visibleCount = 0;
         
         questions.forEach(question => {
-            const questionText = question.querySelector('.text-gray-800.font-medium').textContent.toLowerCase();
-            const subject = question.dataset.subject.toLowerCase();
+            let showByStatus = currentStatusFilter === 'all' || question.dataset.status === currentStatusFilter;
+            let showByDifficulty = currentDifficultyFilter === 'all' || question.dataset.difficulty === currentDifficultyFilter;
+            let showBySearch = true;
             
-            if (questionText.includes(searchTerm) || subject.includes(searchTerm)) {
+            if (currentSearchTerm) {
+                const searchText = question.dataset.search || '';
+                showBySearch = searchText.includes(currentSearchTerm);
+            }
+            
+            if (showByStatus && showByDifficulty && showBySearch) {
                 question.style.display = 'block';
                 visibleCount++;
             } else {
@@ -459,46 +754,173 @@
             }
         });
         
+        // Update visible count
+        const countElement = document.getElementById('visibleCount');
+        if (countElement) {
+            countElement.textContent = visibleCount;
+        }
+        
         // Show/hide no results message
         const noResults = document.getElementById('noResultsMessage');
-        if (visibleCount === 0) {
-            noResults.classList.remove('hidden');
-        } else {
-            noResults.classList.add('hidden');
+        if (noResults) {
+            if (visibleCount === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+            }
         }
-    });
+    }
+
+    // Reset all filters
+    function resetAllFilters() {
+        // Reset status filter
+        currentStatusFilter = 'all';
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active', 'bg-indigo-600', 'text-white');
+        });
+        const allBtn = document.getElementById('filter-all');
+        if (allBtn) {
+            allBtn.classList.add('active', 'bg-indigo-600', 'text-white');
+        }
+        
+        // Reset difficulty filter
+        currentDifficultyFilter = 'all';
+        document.querySelectorAll('.difficulty-filter').forEach(btn => {
+            btn.classList.remove('active', 'bg-indigo-600', 'text-white');
+        });
+        const difficultyAll = document.getElementById('difficulty-all');
+        if (difficultyAll) {
+            difficultyAll.classList.add('active', 'bg-indigo-600', 'text-white');
+        }
+        
+        // Clear search
+        currentSearchTerm = '';
+        const searchInput = document.getElementById('searchQuestions');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        // Apply filters
+        applyFilters();
+    }
+
+    // Clear search
+    function clearSearch() {
+        currentSearchTerm = '';
+        const searchInput = document.getElementById('searchQuestions');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        applyFilters();
+    }
 
     // Sort functionality
-    document.getElementById('sortQuestions').addEventListener('change', function() {
-        const sortBy = this.value;
-        const container = document.getElementById('questionsContainer');
-        const questions = Array.from(document.querySelectorAll('.question-card'));
+    function setupSort() {
+        const sortSelect = document.getElementById('sortQuestions');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function() {
+                const sortBy = this.value;
+                const container = document.getElementById('questionsContainer');
+                const questions = Array.from(document.querySelectorAll('.question-card'));
+                
+                questions.sort((a, b) => {
+                    if (sortBy === 'number') {
+                        return parseInt(a.dataset.number) - parseInt(b.dataset.number);
+                    } else if (sortBy === 'subject') {
+                        return (a.dataset.subject || '').localeCompare(b.dataset.subject || '');
+                    } else if (sortBy === 'difficulty') {
+                        const difficultyOrder = {'Easy': 1, 'Medium': 2, 'Hard': 3};
+                        return (difficultyOrder[a.dataset.difficulty] || 0) - (difficultyOrder[b.dataset.difficulty] || 0);
+                    }
+                });
+                
+                // Reorder DOM elements
+                questions.forEach(question => container.appendChild(question));
+            });
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        setupSearch();
+        setupSort();
         
-        questions.sort((a, b) => {
-            if (sortBy === 'number') {
-                return parseInt(a.dataset.number) - parseInt(b.dataset.number);
-            } else if (sortBy === 'subject') {
-                return a.dataset.subject.localeCompare(b.dataset.subject);
-            } else if (sortBy === 'difficulty') {
-                const difficultyOrder = {'Easy': 1, 'Medium': 2, 'Hard': 3};
-                return difficultyOrder[a.dataset.difficulty] - difficultyOrder[b.dataset.difficulty];
-            }
+        // Initialize with all questions visible
+        filterQuestions('all');
+        
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
         });
         
-        // Reorder DOM elements
-        questions.forEach(question => container.appendChild(question));
-    });
-
-    // Initialize with all questions visible
-    document.addEventListener('DOMContentLoaded', function() {
-        filterQuestions('all');
+        // Add keyboard shortcut for search (Ctrl+K or Cmd+K)
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('searchQuestions')?.focus();
+            }
+        });
     });
 </script>
 
-<!-- Custom template filter for chr -->
-{% if False %}
-    <!-- This is just a placeholder for the chr filter -->
-    {% load my_filters %}
-{% endif %}
-{% endblock %}
+<!-- Print styles -->
+<style media="print">
+    @page {
+        size: A4;
+        margin: 2cm;
+    }
+    
+    body {
+        font-size: 12pt;
+        line-height: 1.5;
+        color: #000;
+    }
+    
+    .no-print, .filter-btn, .difficulty-filter, #searchQuestions, #sortQuestions,
+    .action-buttons, button, .bg-gradient-to-r {
+        display: none !important;
+    }
+    
+    .question-card {
+        page-break-inside: avoid;
+        border: 1px solid #ddd;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: white;
+    }
+    
+    .question-text {
+        background: none;
+        border-left: 2px solid #333;
+    }
+    
+    .option-item {
+        border: 1px solid #ccc;
+        margin: 5px 0;
+        padding: 8px;
+    }
+    
+    .option-correct {
+        background-color: #e8f5e9;
+    }
+    
+    .option-wrong {
+        background-color: #ffebee;
+    }
+    
+    /* Ensure explanations are visible in print */
+    .explanation-content {
+        display: block !important;
+        page-break-inside: avoid;
+    }
+</style>
 {% endblock %}

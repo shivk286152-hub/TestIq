@@ -207,51 +207,60 @@
     <div class="sidebar-content py-4 space-y-1">
       <ul class="space-y-1">
 
-  <!-- HOME -->
-  <li>
-    <a href="{% url 'home' %}"
-       class="flex items-center px-4 py-3 hover:bg-gray-600
+        <!-- HOME -->
+        <li>
+          <a href="{% url 'exams:home' %}" class="flex items-center px-4 py-3 hover:bg-gray-600
        {% if request.resolver_match.url_name == 'home' %}
            bg-gray-800 border-l-4 border-blue-500 text-white font-semibold
        {% endif %}">
-      <i class="fa fa-home w-6"></i>
-      <span class="label ml-3">Home</span>
-    </a>
-  </li>
+            <i class="fa fa-home w-6"></i>
+            <span class="label ml-3">Home</span>
+          </a>
+        </li>
 
-  <!-- TEST -->
-  <li>
-    <a href="#"
-       class="flex items-center px-4 py-3 hover:bg-gray-600">
-      <i class="fa fa-pen w-6"></i>
-      <span class="label ml-3">Test</span>
-    </a>
-  </li>
+        <!-- TEST -->
+        <li>
+          <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
+            <i class="fa fa-pen w-6"></i>
+            <span class="label ml-3">Test</span>
+          </a>
+        </li>
 
-  <!-- CURRENT AFFAIRS -->
-  <li>
-    <a href="{% url 'current_affairs_list' %}"
-       class="flex items-center px-4 py-3 hover:bg-gray-600
+        <!-- USER DASHBOARD - Only shown when user is logged in -->
+        {% if user.is_authenticated %}
+        <li>
+          <a href="{% url 'exams:dashboard' %}" class="flex items-center px-4 py-3 hover:bg-gray-600
+     {% if request.resolver_match.url_name == 'dashboard' %}
+         bg-gray-800 border-l-4 border-blue-500 text-white font-semibold
+     {% endif %}">
+            <i class="fa fa-tachometer-alt w-6"></i>
+            <span class="label ml-3">Dashboard</span>
+          </a>
+        </li>
+        {% endif %}
+
+        <!-- CURRENT AFFAIRS -->
+        <li>
+          <a href="{% url 'current_affairs_list' %}" class="flex items-center px-4 py-3 hover:bg-gray-600
        {% if request.resolver_match.url_name == 'current_affairs_list' %}
            bg-gray-800 border-l-4 border-blue-500 text-white font-semibold
        {% endif %}">
-      <i class="fa fa-newspaper w-6"></i>
-      <span class="label ml-3">Current Affairs</span>
-    </a>
-  </li>
+            <i class="fa fa-newspaper w-6"></i>
+            <span class="label ml-3">Current Affairs</span>
+          </a>
+        </li>
 
-  <!-- EXAM NEWS -->
-  <li>
-    <a href="#"
-       class="flex items-center px-4 py-3 hover:bg-gray-600">
-      <i class="fa fa-book w-6"></i>
-      <span class="label ml-3">Exam News</span>
-    </a>
-  </li>
+        <!-- EXAM NEWS -->
+        <li>
+          <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600">
+            <i class="fa fa-book w-6"></i>
+            <span class="label ml-3">Exam News</span>
+          </a>
+        </li>
 
-</ul>
+      </ul>
 
-      
+
 
     </div>
 
@@ -281,39 +290,7 @@
 
     </div>
 
-<<<<<<< HEAD
-<!-- ===== BOTTOM HEADER WITH 4 NAV LINKS (mobile only, glassmorphism) ===== -->
-<div id="bottomHeader" class="fixed bottom-0 left-0 w-full h-16 bg-white/80 backdrop-blur-lg border-t border-white/20 shadow-lg md:hidden flex items-center justify-around px-2 z-50 transition-transform duration-300" style="transform: translateY(0);">
-    
-    <a href="{% url 'home' %}" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
-        <i class="fa fa-home text-xl"></i>
-        <span class="text-xs mt-1">Home</span>
-    </a>
-    
-    <a href="#" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
-        <i class="fa fa-pen text-xl"></i>
-        <span class="text-xs mt-1">Test</span>
-    </a>
-    
-    <a href="#" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
-        <i class="fa fa-newspaper text-xl"></i>
-        <span class="text-xs mt-1">Examclass</span>
-    </a>
-    
-    <a href="{% url 'profile' %}" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
-        <i class="fa fa-user text-xl"></i>
-        <span class="text-xs mt-1">Profile</span>
-    </a>
-    
-</div>
-
-<script>
-const sidebar=document.getElementById("sidebar");
-const main=document.getElementById("main");
-const overlay=document.getElementById("overlay");
-=======
   </aside>
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
 
   <div id="overlay" class="overlay"></div>
 
@@ -369,38 +346,6 @@ const overlay=document.getElementById("overlay");
       main.classList.toggle("collapsed");
     };
 
-<<<<<<< HEAD
-observer.observe(loginBtn);
-}
-
-// ===== BOTTOM HEADER HIDE/SHOW ON SCROLL (mobile only) =====
-const bottomHeader = document.getElementById('bottomHeader');
-let lastScroll = 0;
-
-window.addEventListener('scroll', () => {
-  if (window.innerWidth <= 768) {
-    const currentScroll = window.scrollY;
-    
-    if (currentScroll > lastScroll && currentScroll > 50) {
-      // Scrolling down - hide
-      bottomHeader.style.transform = 'translateY(100%)';
-    } else {
-      // Scrolling up - show
-      bottomHeader.style.transform = 'translateY(0)';
-    }
-    
-    lastScroll = currentScroll;
-  }
-});
-
-// Reset on resize
-window.addEventListener('resize', () => {
-  if (window.innerWidth > 768) {
-    bottomHeader.style.transform = 'translateY(0)';
-  }
-});
-</script>
-=======
     /* close mobile */
     overlay.onclick = () => {
       sidebar.classList.remove("open");
@@ -471,7 +416,6 @@ window.addEventListener('resize', () => {
     });
   </script>
   {% block extra_js %} {% endblock %}
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
 </body>
 
 </html>

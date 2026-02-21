@@ -45,45 +45,6 @@ urlpatterns = [
         name="result_dashboard"
     ),
 
-<<<<<<< HEAD
-    # ===== NEW RANKING & REVIEW URLS =====
-    
-    # Test Review
-    path(
-        "review/<int:attempt_id>/",
-        views.test_review,
-        name="test_review"
-    ),
-    
-    # Save Question Feedback (AJAX)
-    path(
-        "save-question-feedback/",
-        views.save_question_feedback,
-        name="save_question_feedback"
-    ),
-    
-    # Complete Review Session
-    path(
-        "review/complete/<int:session_id>/",
-        views.complete_review_session,
-        name="complete_review_session"
-    ),
-    
-    # Rankings
-    path("rankings/", views.rankings, name="rankings"),
-    path("rankings/<int:test_id>/", views.test_rankings, name="test_rankings"),
-    
-    # Leaderboard
-    path("leaderboard/", views.leaderboard, name="leaderboard"),
-    
-    # User History & Performance
-    path("my-attempts/", views.my_attempts, name="my_attempts"),
-    path("my-performance/", views.my_performance, name="my_performance"),
-    
-    # Dashboard (already exists above)
-    # path("dashboard/", views.dashboard, name="dashboard"),  # Already have this
-]
-=======
     # Dashboard
     path("dashboard/", views.dashboard, name="dashboard"),
     
@@ -91,4 +52,3 @@ urlpatterns = [
      # ... existing URLs ...
     path('detailed-analysis/<int:attempt_id>/', views.detailed_analysis, name='detailed_analysis'),
 ]
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)

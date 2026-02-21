@@ -2,18 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.http import JsonResponse
-<<<<<<< HEAD
-from django.db.models import Count, Avg, Q
-from django.core.paginator import Paginator
-from django.contrib import messages
-import json
-
-from .models import (
-    ExamCategory, SubCategory, MockTest, Question, Subject,
-    Option, MockTestAttempt, UserAnswer, TestRank, TopRanker,
-    UserRankHistory, RankStatistics, QuestionReview, AttemptReview,
-    QuestionFeedback, ReviewSession
-=======
 from django.core.paginator import Paginator
 from django.db.models import Count, Avg, F, Q
 
@@ -25,30 +13,32 @@ from .models import (
     Subject,
     MockTestAttempt,
     UserAnswer
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
 )
 
 # ==============================
 # HOME
 # ==============================
 def home(request):
-    categories = ExamCategory.objects.all()
-    mock_tests = MockTest.objects.filter(is_active=True)[:5]
-    
-    # Get popular tests
-    popular_tests = MockTest.objects.filter(
-        is_active=True,
-        attempts__is_completed=True
-    ).annotate(
-        attempt_count=Count('attempts')
-    ).order_by('-attempt_count')[:3]
+    try:
+        categories = ExamCategory.objects.all()
+        mock_tests = MockTest.objects.filter(is_active=True)[:5]
 
-    return render(request, "exams/home.html", {
-        "categories": categories,
-        "mock_tests": mock_tests,
-        "popular_tests": popular_tests,
-        "site_name": "TestIQ",
-    })
+        return render(request, "exams/home.html", {
+            "categories": categories,
+            "mock_tests": mock_tests,
+            "site_name": "TestIQ",
+            "hero_title": "Master Your Competitive Exams",
+            "hero_desc": "Practice. Analyze. Improve. Succeed."
+        })
+    except Exception as e:
+        import traceback
+        print("="*50)
+        print("ERROR in home view:")
+        print(traceback.format_exc())
+        print("="*50)
+        # Return a simple error message
+        from django.http import HttpResponse
+        return HttpResponse(f"Error: {str(e)}", status=500)
 
 
 # ==============================
@@ -69,52 +59,10 @@ def category_detail(request, slug):
 # ==============================
 def subcategory_detail(request, subcategory_id):
     subcategory = get_object_or_404(SubCategory, id=subcategory_id)
-    tests = MockTest.objects.filter(subcategory=subcategory, is_active=True)
-    
-    # Pagination
-    paginator = Paginator(tests, 9)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    tests = MockTest.objects.filter(subcategory=subcategory)
 
     return render(request, "exams/mocktest_list.html", {
         "subcategory": subcategory,
-<<<<<<< HEAD
-        "page_obj": page_obj,
-    })
-
-
-# ==============================
-# MOCK TEST DETAIL
-# ==============================
-def mocktest_detail(request, pk):
-    mock_test = get_object_or_404(MockTest, id=pk, is_active=True)
-    questions = Question.objects.filter(mock_test=mock_test)
-    
-    # Get test statistics
-    total_attempts = MockTestAttempt.objects.filter(
-        mock_test=mock_test,
-        is_completed=True
-    ).count()
-    
-    avg_score = MockTestAttempt.objects.filter(
-        mock_test=mock_test,
-        is_completed=True
-    ).aggregate(Avg('percentage'))['percentage__avg'] or 0
-    
-    # Check if user has attempted
-    user_attempt = None
-    if request.user.is_authenticated:
-        user_attempt = MockTestAttempt.objects.filter(
-            user=request.user,
-            mock_test=mock_test,
-            is_completed=True
-        ).order_by('-submitted_at').first()
-    
-    # Get top rankers for this test
-    top_rankers = TopRanker.objects.filter(
-        mock_test=mock_test
-    ).select_related('user').order_by('rank')[:3]
-=======
         "tests": tests,
     })
 
@@ -122,17 +70,10 @@ def mocktest_detail(request, pk):
     mock_test = get_object_or_404(MockTest, id=pk)
 
     questions = Question.objects.filter(mock_test=mock_test)
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
 
     return render(request, "exams/mocktest_detail.html", {
         "mock_test": mock_test,
         "questions": questions,
-<<<<<<< HEAD
-        "total_attempts": total_attempts,
-        "avg_score": round(avg_score, 2),
-        "user_attempt": user_attempt,
-        "top_rankers": top_rankers,
-=======
     })
 # ==============================
 # START TEST (CREATE ATTEMPT)
@@ -186,106 +127,14 @@ def attempt_test(request, mocktest_id):
         "questions": questions,
         "subjects": subjects,
         "remaining_seconds": remaining_seconds,
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
     })
 
 
 # ==============================
-<<<<<<< HEAD
-# START TEST (CREATE ATTEMPT)
-# ==============================
-@login_required
-def start_test(request, mocktest_id):
-    mocktest = get_object_or_404(MockTest, id=mocktest_id, is_active=True)
-    
-    # Check for existing incomplete attempt
-    existing_attempt = MockTestAttempt.objects.filter(
-        user=request.user,
-        mock_test=mocktest,
-        is_completed=False
-    ).first()
-    
-    if existing_attempt:
-        return redirect("exams:attempt_test", mocktest_id=mocktest.id)
-    
-    # Create new attempt
-    attempt = MockTestAttempt.objects.create(
-        user=request.user,
-        mock_test=mocktest,
-        started_at=timezone.now(),
-        is_completed=False,
-        total_marks=mocktest.questions.count()
-    )
-    
-    # Create review session
-    ReviewSession.objects.create(
-        user=request.user,
-        attempt=attempt
-    )
-
-    return redirect("exams:attempt_test", mocktest_id=mocktest.id)
-
-
-# ==============================
-# ATTEMPT TEST (SERVER TIMER)
-# ==============================
-@login_required
-def attempt_test(request, mocktest_id):
-    mocktest = get_object_or_404(MockTest, id=mocktest_id)
-    
-    attempt = get_object_or_404(
-        MockTestAttempt,
-        user=request.user,
-        mock_test=mocktest,
-        is_completed=False
-    )
-    
-    # Remaining time
-    duration = mocktest.duration * 60
-    elapsed = (timezone.now() - attempt.started_at).total_seconds()
-    remaining_seconds = int(duration - elapsed)
-    
-    # Auto submit if time over
-    if remaining_seconds <= 0:
-        return redirect("exams:submit_test", mocktest_id=mocktest.id)
-    
-    subjects = Subject.objects.filter(
-        questions__mock_test=mocktest
-    ).distinct()
-    
-    questions = mocktest.questions.all().order_by("id")
-    
-    # Get saved answers from session
-    saved_answers = request.session.get(f"answers_{mocktest.id}", {})
-    
-    return render(request, "exams/attempt_test.html", {
-        "mocktest": mocktest,
-        "questions": questions,
-        "subjects": subjects,
-        "remaining_seconds": remaining_seconds,
-        "saved_answers": saved_answers,
-    })
-
-
-# ==============================
-=======
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
 # SAVE ANSWER (SESSION)
 # ==============================
 @login_required
 def save_answer(request):
-<<<<<<< HEAD
-    if request.method == "POST":
-        for key, value in request.POST.items():
-            if key.startswith("question_"):
-                qid = int(key.replace("question_", ""))
-                question = get_object_or_404(Question, id=qid)
-                
-                answers = request.session.get(
-                    f"answers_{question.mock_test.id}", {}
-                )
-                
-=======
 
     if request.method == "POST":
 
@@ -299,18 +148,10 @@ def save_answer(request):
                     f"answers_{question.mock_test.id}", {}
                 )
 
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
                 if value == "":
                     answers.pop(str(qid), None)
                 else:
                     answers[str(qid)] = int(value)
-<<<<<<< HEAD
-                
-                request.session[f"answers_{question.mock_test.id}"] = answers
-                
-        return JsonResponse({"status": "ok"})
-    
-=======
 
                 request.session[
                     f"answers_{question.mock_test.id}"
@@ -318,7 +159,6 @@ def save_answer(request):
 
         return JsonResponse({"status": "ok"})
 
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
     return JsonResponse({"status": "error"})
 
 
@@ -327,42 +167,18 @@ def save_answer(request):
 # ==============================
 @login_required
 def ajax_question(request, mocktest_id):
-<<<<<<< HEAD
-=======
 
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
     questions = Question.objects.filter(
         mock_test=mocktest
     ).prefetch_related("options").order_by("id")
-<<<<<<< HEAD
-    
-    q_number = request.GET.get("q", 1)
-    
-=======
 
     q_number = request.GET.get("q")
 
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
     try:
         q_number = int(q_number)
     except:
         q_number = 1
-<<<<<<< HEAD
-    
-    q_number = max(1, min(q_number, questions.count()))
-    question = questions[q_number - 1]
-    
-    saved_answers = request.session.get(f"answers_{mocktest.id}", {})
-    selected_option = saved_answers.get(str(question.id))
-    
-    # Get question review data if exists
-    try:
-        review = QuestionReview.objects.get(question=question)
-    except QuestionReview.DoesNotExist:
-        review = None
-    
-=======
 
     q_number = max(1, min(q_number, questions.count()))
     question = questions[q_number - 1]
@@ -373,202 +189,11 @@ def ajax_question(request, mocktest_id):
 
     selected_option = saved_answers.get(str(question.id))
 
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
     return render(request, "exams/ajax_question.html", {
         "question": question,
         "question_number": q_number,
         "total_questions": questions.count(),
         "selected_option": selected_option,
-<<<<<<< HEAD
-        "review": review,
-    })
-
-
-# ==============================
-# SUBMIT TEST (AUTO + MANUAL)
-# ==============================
-@login_required
-def submit_test(request, mocktest_id):
-    mocktest = get_object_or_404(MockTest, id=mocktest_id)
-    
-    attempt = MockTestAttempt.objects.filter(
-        user=request.user,
-        mock_test=mocktest,
-        is_completed=False
-    ).first()
-    
-    if not attempt:
-        messages.error(request, "No active test found.")
-        return redirect("exams:home")
-    
-    # Prevent double submit
-    if attempt.is_completed:
-        return redirect("exams:result_dashboard", attempt_id=attempt.id)
-    
-    attempt.submitted_at = timezone.now()
-    attempt.is_completed = True
-    
-    questions = Question.objects.filter(mock_test=mocktest)
-    session_answers = request.session.get(f"answers_{mocktest.id}", {})
-    
-    correct = 0
-    wrong = 0
-    skipped = 0
-    
-    # Create UserAnswer objects and calculate scores
-    for question in questions:
-        selected_id = session_answers.get(str(question.id))
-        
-        if not selected_id:
-            skipped += 1
-            UserAnswer.objects.create(
-                attempt=attempt,
-                question=question,
-                selected_option=None
-            )
-            continue
-        
-        selected_option = Option.objects.get(id=selected_id)
-        ua = UserAnswer.objects.create(
-            attempt=attempt,
-            question=question,
-            selected_option=selected_option
-        )
-        
-        if selected_option.is_correct:
-            correct += 1
-        else:
-            wrong += 1
-    
-    # Update attempt with scores
-    attempt.correct_answers = correct
-    attempt.wrong_answers = wrong
-    attempt.skipped_answers = skipped
-    attempt.total_marks = questions.count()
-    attempt.score = correct  # Assuming 1 mark per correct
-    
-    # Apply negative marking if any
-    # attempt.score = correct - (wrong * 0.25)  # Uncomment if you want negative marking
-    
-    attempt.save()
-    
-    # Calculate rank
-    rank_info = calculate_rank(attempt)
-    
-    # Create attempt review
-    create_attempt_review(attempt)
-    
-    # Clear session answers
-    request.session.pop(f"answers_{mocktest.id}", None)
-    
-    messages.success(request, "Test submitted successfully!")
-    return redirect("exams:result_dashboard", attempt_id=attempt.id)
-
-
-# ==============================
-# RESULT DASHBOARD
-# ==============================
-@login_required
-def result_dashboard(request, attempt_id):
-    attempt = get_object_or_404(
-        MockTestAttempt,
-        id=attempt_id,
-        user=request.user,
-        is_completed=True
-    )
-    
-    answers = attempt.answers.select_related(
-        "question",
-        "selected_option"
-    ).prefetch_related("question__options")
-    
-    # Get rank info
-    rank_info = TestRank.objects.filter(attempt=attempt).first()
-    
-    # Get top 3 rankers for this test
-    top_rankers = TopRanker.objects.filter(
-        mock_test=attempt.mock_test
-    ).select_related('user').order_by('rank')[:3]
-    
-    # Get next rankers (4-10)
-    next_rankers = TopRanker.objects.filter(
-        mock_test=attempt.mock_test,
-        rank__gt=3,
-        rank__lte=10
-    ).select_related('user').order_by('rank')
-    
-    # Get subject-wise stats
-    subject_stats = []
-    subjects = Subject.objects.filter(mock_test=attempt.mock_test)
-    
-    for subject in subjects:
-        subject_questions = Question.objects.filter(
-            mock_test=attempt.mock_test,
-            subject=subject
-        )
-        q_ids = subject_questions.values_list('id', flat=True)
-        
-        subject_answers = UserAnswer.objects.filter(
-            attempt=attempt,
-            question_id__in=q_ids
-        )
-        
-        correct = subject_answers.filter(selected_option__is_correct=True).count()
-        total = subject_questions.count()
-        wrong = subject_answers.filter(
-            selected_option__isnull=False,
-            selected_option__is_correct=False
-        ).count()
-        skipped = total - subject_answers.count()
-        
-        subject_stats.append({
-            'subject': subject.name,
-            'correct': correct,
-            'wrong': wrong,
-            'skipped': skipped,
-            'total': total,
-            'marks': round((correct / total) * 100, 2) if total > 0 else 0,
-        })
-    
-    # Get attempt review
-    try:
-        attempt_review = AttemptReview.objects.get(attempt=attempt)
-    except AttemptReview.DoesNotExist:
-        attempt_review = None
-    
-    recent_attempts = MockTestAttempt.objects.filter(
-        user=request.user,
-        is_completed=True
-    ).exclude(id=attempt.id).order_by("-submitted_at")[:5]
-    
-    context = {
-        "attempt": attempt,
-        "answers": answers,
-        "rank_info": rank_info,
-        "top_rankers": top_rankers,
-        "next_rankers": next_rankers,
-        "subject_stats": subject_stats,
-        "attempt_review": attempt_review,
-        "attempts": recent_attempts,
-        "correct": attempt.correct_answers,
-        "wrong": attempt.wrong_answers,
-        "skipped": attempt.skipped_answers,
-        "total_questions": attempt.mock_test.questions.count(),
-        "percentage": attempt.percentage,
-    }
-    
-    return render(request, "exams/result_dashboard.html", context)
-
-
-# ==============================
-= TEST REVIEW
-# ==============================
-@login_required
-def test_review(request, attempt_id):
-    attempt = get_object_or_404(
-        MockTestAttempt,
-        id=attempt_id,
-=======
     })
 
 
@@ -711,465 +336,10 @@ def view_rankings(request, attempt_id):
     current_attempt = get_object_or_404(
         MockTestAttempt, 
         id=attempt_id, 
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
         user=request.user,
         is_completed=True
     )
     
-<<<<<<< HEAD
-    questions = Question.objects.filter(
-        mock_test=attempt.mock_test
-    ).order_by('question_number').prefetch_related('options')
-    
-    user_answers = {
-        ans.question_id: ans 
-        for ans in UserAnswer.objects.filter(attempt=attempt)
-    }
-    
-    question_data = []
-    for q in questions:
-        answer = user_answers.get(q.id)
-        selected_option = answer.selected_option if answer else None
-        correct_option = q.options.filter(is_correct=True).first()
-        
-        # Get review data
-        try:
-            review = QuestionReview.objects.get(question=q)
-        except QuestionReview.DoesNotExist:
-            review = None
-        
-        question_data.append({
-            'question': q,
-            'selected_option': selected_option,
-            'correct_option': correct_option,
-            'is_correct': answer and answer.selected_option and answer.selected_option.is_correct if answer else False,
-            'user_answer': answer,
-            'review': review,
-        })
-    
-    # Get or create review session
-    review_session, created = ReviewSession.objects.get_or_create(
-        user=request.user,
-        attempt=attempt,
-        is_completed=False
-    )
-    
-    context = {
-        'attempt': attempt,
-        'question_data': question_data,
-        'review_session': review_session,
-        'total': len(questions),
-        'correct': attempt.correct_answers,
-        'wrong': attempt.wrong_answers,
-        'skipped': attempt.skipped_answers,
-    }
-    
-    return render(request, "exams/test_review.html", context)
-
-
-# ==============================
-# SAVE QUESTION FEEDBACK
-# ==============================
-@login_required
-def save_question_feedback(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        attempt_id = data.get('attempt_id')
-        question_id = data.get('question_id')
-        found_difficult = data.get('found_difficult', False)
-        personal_notes = data.get('personal_notes', '')
-        marked_for_review = data.get('marked_for_review', False)
-        time_spent = data.get('time_spent', 0)
-        
-        attempt = get_object_or_404(MockTestAttempt, id=attempt_id, user=request.user)
-        question = get_object_or_404(Question, id=question_id)
-        
-        user_answer = UserAnswer.objects.filter(
-            attempt=attempt,
-            question=question
-        ).first()
-        
-        feedback, created = QuestionFeedback.objects.update_or_create(
-            attempt=attempt,
-            question=question,
-            defaults={
-                'user_answer': user_answer,
-                'is_correct': user_answer.selected_option.is_correct if user_answer and user_answer.selected_option else False,
-                'found_difficult': found_difficult,
-                'personal_notes': personal_notes,
-                'marked_for_review': marked_for_review,
-                'time_spent': time_spent,
-            }
-        )
-        
-        return JsonResponse({'status': 'success'})
-    
-    return JsonResponse({'status': 'error'})
-
-
-# ==============================
-# COMPLETE REVIEW SESSION
-# ==============================
-@login_required
-def complete_review_session(request, session_id):
-    session = get_object_or_404(
-        ReviewSession,
-        id=session_id,
-        user=request.user
-    )
-    
-    session.is_completed = True
-    session.ended_at = timezone.now()
-    session.save()
-    
-    messages.success(request, "Review session completed!")
-    return redirect('exams:result_dashboard', attempt_id=session.attempt.id)
-
-
-# ==============================
-# RANKINGS PAGE
-# ==============================
-@login_required
-def rankings(request):
-    # Get overall top rankers
-    top_overall = TopRanker.objects.select_related(
-        'user', 'mock_test'
-    ).order_by('-percentage')[:50]
-    
-    # Get popular tests
-    popular_tests = MockTest.objects.filter(
-        is_active=True,
-        attempts__is_completed=True
-    ).annotate(
-        attempt_count=Count('attempts')
-    ).order_by('-attempt_count')[:10]
-    
-    # Get user's best rank
-    user_best = UserRankHistory.objects.filter(
-        user=request.user
-    ).order_by('rank').first()
-    
-    context = {
-        'top_overall': top_overall,
-        'popular_tests': popular_tests,
-        'user_best': user_best,
-    }
-    
-    return render(request, "exams/rankings.html", context)
-
-
-# ==============================
-= TEST RANKINGS
-# ==============================
-@login_required
-def test_rankings(request, test_id):
-    test = get_object_or_404(MockTest, id=test_id)
-    
-    # Get all ranks for this test
-    ranks = TestRank.objects.filter(
-        attempt__mock_test=test
-    ).select_related('attempt__user').order_by('rank')[:100]
-    
-    # Get current user's rank
-    user_rank = TestRank.objects.filter(
-        attempt__mock_test=test,
-        attempt__user=request.user
-    ).first()
-    
-    # Get statistics
-    stats = RankStatistics.objects.filter(mock_test=test).first()
-    
-    context = {
-        'test': test,
-        'ranks': ranks,
-        'user_rank': user_rank,
-        'stats': stats,
-    }
-    
-    return render(request, "exams/test_rankings.html", context)
-
-
-# ==============================
-# LEADERBOARD
-# ==============================
-@login_required
-def leaderboard(request):
-    # Top users by average score
-    top_users = MockTestAttempt.objects.filter(
-        is_completed=True
-    ).values(
-        'user__id',
-        'user__username'
-    ).annotate(
-        avg_score=Avg('percentage'),
-        tests_taken=Count('id'),
-        best_score=Max('percentage')
-    ).order_by('-avg_score')[:100]
-    
-    # Add rank
-    for idx, user in enumerate(top_users, 1):
-        user['rank'] = idx
-    
-    context = {
-        'top_users': top_users,
-    }
-    
-    return render(request, "exams/leaderboard.html", context)
-
-
-# ==============================
-# MY ATTEMPTS HISTORY
-# ==============================
-@login_required
-def my_attempts(request):
-    attempts = MockTestAttempt.objects.filter(
-        user=request.user,
-        is_completed=True
-    ).select_related('mock_test').order_by('-submitted_at')
-    
-    # Pagination
-    paginator = Paginator(attempts, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'page_obj': page_obj,
-    }
-    
-    return render(request, "exams/my_attempts.html", context)
-
-
-# ==============================
-# MY PERFORMANCE ANALYTICS
-# ==============================
-@login_required
-def my_performance(request):
-    # Overall stats
-    total_attempts = MockTestAttempt.objects.filter(
-        user=request.user,
-        is_completed=True
-    ).count()
-    
-    avg_score = MockTestAttempt.objects.filter(
-        user=request.user,
-        is_completed=True
-    ).aggregate(Avg('percentage'))['percentage__avg'] or 0
-    
-    best_score = MockTestAttempt.objects.filter(
-        user=request.user,
-        is_completed=True
-    ).order_by('-percentage').first()
-    
-    # Subject-wise performance
-    subject_performance = []
-    user_answers = UserAnswer.objects.filter(
-        attempt__user=request.user,
-        attempt__is_completed=True
-    ).select_related('question__subject')
-    
-    subjects_data = {}
-    for answer in user_answers:
-        subject_name = answer.question.subject.name if answer.question.subject else 'General'
-        if subject_name not in subjects_data:
-            subjects_data[subject_name] = {'correct': 0, 'total': 0}
-        
-        subjects_data[subject_name]['total'] += 1
-        if answer.selected_option and answer.selected_option.is_correct:
-            subjects_data[subject_name]['correct'] += 1
-    
-    for subject, data in subjects_data.items():
-        accuracy = (data['correct'] / data['total']) * 100 if data['total'] > 0 else 0
-        subject_performance.append({
-            'subject': subject,
-            'accuracy': round(accuracy, 2),
-            'attempted': data['total'],
-            'correct': data['correct'],
-        })
-    
-    # Rank history
-    rank_history = UserRankHistory.objects.filter(
-        user=request.user
-    ).select_related('mock_test').order_by('-achieved_at')[:10]
-    
-    context = {
-        'total_attempts': total_attempts,
-        'avg_score': round(avg_score, 2),
-        'best_score': best_score,
-        'subject_performance': subject_performance,
-        'rank_history': rank_history,
-    }
-    
-    return render(request, "exams/my_performance.html", context)
-
-
-# ==============================
-# USER DASHBOARD
-# ==============================
-@login_required
-def dashboard(request):
-    # Get all completed attempts
-    attempts = MockTestAttempt.objects.filter(
-        user=request.user,
-        is_completed=True
-    ).select_related("mock_test").order_by("-submitted_at")
-    
-    # Get in-progress attempts
-    in_progress = MockTestAttempt.objects.filter(
-        user=request.user,
-        is_completed=False
-    ).select_related("mock_test").first()
-    
-    # Calculate statistics
-    total_tests = attempts.count()
-    avg_score = attempts.aggregate(Avg('percentage'))['percentage__avg'] or 0
-    
-    # Get best rank
-    best_rank = UserRankHistory.objects.filter(
-        user=request.user
-    ).order_by('rank').first()
-    
-    # Get recent activities
-    recent_activities = []
-    
-    # Add test completions
-    for attempt in attempts[:5]:
-        recent_activities.append({
-            'type': 'test_completed',
-            'description': f'Completed {attempt.mock_test.title}',
-            'timestamp': attempt.submitted_at,
-            'score': f"{attempt.percentage}%",
-        })
-    
-    # Add rank achievements
-    for rank in UserRankHistory.objects.filter(user=request.user)[:3]:
-        recent_activities.append({
-            'type': 'rank_achieved',
-            'description': f'Achieved Rank #{rank.rank} in {rank.mock_test.title}',
-            'timestamp': rank.achieved_at,
-        })
-    
-    # Sort by timestamp
-    recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
-    
-    context = {
-        "attempts": attempts[:5],
-        "in_progress": in_progress,
-        "total_tests": total_tests,
-        "avg_score": round(avg_score, 2),
-        "best_rank": best_rank,
-        "recent_activities": recent_activities[:10],
-    }
-    
-    return render(request, "exams/dashboard.html", context)
-
-
-# ==============================
-# HELPER FUNCTIONS
-# ==============================
-def calculate_rank(attempt):
-    """Calculate and save rank for an attempt"""
-    # Get all completed attempts for this test
-    all_attempts = MockTestAttempt.objects.filter(
-        mock_test=attempt.mock_test,
-        is_completed=True
-    ).order_by('-percentage', 'submitted_at')
-    
-    # Find current attempt's position
-    rank = 1
-    for idx, a in enumerate(all_attempts, 1):
-        if a.id == attempt.id:
-            rank = idx
-            break
-    
-    total = all_attempts.count()
-    percentile = ((total - rank) / total) * 100 if total > 0 else 0
-    
-    # Save rank
-    rank_info, created = TestRank.objects.update_or_create(
-        attempt=attempt,
-        defaults={
-            'rank': rank,
-            'total_participants': total,
-            'percentile': round(percentile, 2)
-        }
-    )
-    
-    # Update or create top ranker cache
-    if rank <= 10:
-        TopRanker.objects.update_or_create(
-            mock_test=attempt.mock_test,
-            rank=rank,
-            defaults={
-                'user': attempt.user,
-                'attempt': attempt,
-                'percentage': attempt.percentage,
-                'time_taken': attempt.time_taken or '00:00:00',
-                'achieved_at': attempt.submitted_at or timezone.now()
-            }
-        )
-    
-    # Save to user history
-    UserRankHistory.objects.create(
-        user=attempt.user,
-        mock_test=attempt.mock_test,
-        attempt=attempt,
-        rank=rank,
-        total_participants=total,
-        percentile=round(percentile, 2),
-        achieved_at=attempt.submitted_at or timezone.now()
-    )
-    
-    # Update test statistics
-    stats, created = RankStatistics.objects.get_or_create(
-        mock_test=attempt.mock_test
-    )
-    stats.update_stats()
-    
-    return rank_info
-
-def create_attempt_review(attempt):
-    """Create automatic review for an attempt"""
-    # Get all answers
-    answers = UserAnswer.objects.filter(attempt=attempt).select_related('question')
-    
-    # Calculate difficulty-wise performance
-    easy_correct = easy_total = 0
-    medium_correct = medium_total = 0
-    hard_correct = hard_total = 0
-    
-    for answer in answers:
-        # This assumes you have difficulty field on Question
-        # If not, you can modify or remove this part
-        pass
-    
-    # Create review
-    review, created = AttemptReview.objects.get_or_create(
-        attempt=attempt,
-        defaults={
-            'easy_correct': easy_correct,
-            'easy_total': easy_total,
-            'medium_correct': medium_correct,
-            'medium_total': medium_total,
-            'hard_correct': hard_correct,
-            'hard_total': hard_total,
-            'average_time_correct': 0,
-            'average_time_incorrect': 0,
-        }
-    )
-    
-    # Generate strengths and weaknesses
-    # This is a simplified version
-    if attempt.percentage >= 80:
-        review.strengths = "Excellent performance! You've mastered this topic."
-    elif attempt.percentage >= 60:
-        review.strengths = "Good performance. Keep practicing to improve further."
-    else:
-        review.weaknesses = "Need more practice. Focus on understanding concepts."
-    
-    review.save()
-    
-    return review
-=======
     mock_test = current_attempt.mock_test
     
     # Get all completed attempts for this mock test
@@ -1314,6 +484,7 @@ def calculate_percentile(ranked_attempts, current_attempt_id):
 
 # views.py - Add this function
 
+# views.py - Update your detailed_analysis function
 @login_required
 def detailed_analysis(request, attempt_id):
     """
@@ -1328,6 +499,10 @@ def detailed_analysis(request, attempt_id):
             is_completed=True
         )
         
+        # DEBUG: Print attempt info
+        print(f"Attempt ID: {attempt.id}")
+        print(f"User: {request.user.username}")
+        
         # Get all answers with related data
         answers = attempt.answers.select_related(
             'question',
@@ -1335,9 +510,12 @@ def detailed_analysis(request, attempt_id):
             'question__subject'
         ).prefetch_related('question__options').all()
         
+        # DEBUG: Check answers count
+        print(f"Number of answers: {answers.count()}")
+        
         # Check if answers exist
         if not answers.exists():
-            # Handle case with no answers
+            print("No answers found for this attempt!")
             return render(request, 'exams/detailed_analysis.html', {
                 'attempt': attempt,
                 'questions_data': [],
@@ -1350,24 +528,46 @@ def detailed_analysis(request, attempt_id):
                 'error_message': 'No answers found for this attempt.'
             })
         
+        # Get user's language preference
+        user_language = request.session.get('django_language', 'en')
+        
         # Prepare questions data with detailed information
         questions_data = []
         correct_count = 0
         wrong_count = 0
+        skipped_count = 0
         
         for index, answer in enumerate(answers, start=1):
             question = answer.question
             selected_option = answer.selected_option
             
+            # DEBUG: Print question info
+            print(f"Processing question {index}: ID {question.id}")
+            # Try different possible field names for question text
+            question_text_field = getattr(question, 'question_en', None) or \
+                                  getattr(question, 'question', None) or \
+                                  getattr(question, 'text', '')
+            print(f"Question text: {str(question_text_field)[:50]}...")
+            
             # Get all options for this question
             options = question.options.all().order_by('id')
+            
+            # DEBUG: Print options count
+            print(f"Options count: {options.count()}")
+            for opt in options:
+                # Try different possible field names for option text
+                opt_text = getattr(opt, 'option_en', None) or \
+                          getattr(opt, 'option', None) or \
+                          getattr(opt, 'text', 'No text')
+                print(f"  Option ID: {opt.id}, Text: {str(opt_text)[:30]}, Correct: {opt.is_correct}")
             
             # Determine if answer is correct
             is_correct = False
             correct_option = None
             
             if selected_option:
-                is_correct = getattr(selected_option, 'is_correct', False)
+                # Check if selected option is correct
+                is_correct = selected_option.is_correct
                 if is_correct:
                     correct_count += 1
                 else:
@@ -1375,68 +575,84 @@ def detailed_analysis(request, attempt_id):
                     
                 # Find the correct option for explanation
                 correct_option = question.options.filter(is_correct=True).first()
+                print(f"Selected option: {selected_option.id}, Correct: {is_correct}")
+            else:
+                skipped_count += 1
+                print("No selected option")
             
-            # Prepare option details with safe attribute access
+            # Prepare option details
             options_data = []
             for opt_index, option in enumerate(options, start=1):
+                # Get option text - try different possible field names
+                option_text = getattr(option, 'option_en', None) or \
+                             getattr(option, 'option', None) or \
+                             getattr(option, 'text', f'Option {opt_index}')
+                
                 option_dict = {
                     'id': option.id,
-                    'text': getattr(option, 'text', ''),
-                    'is_correct': getattr(option, 'is_correct', False),
+                    'text': option_text,
+                    'is_correct': option.is_correct,
                     'is_selected': selected_option and selected_option.id == option.id,
-                    'is_wrong_selection': selected_option and selected_option.id == option.id and not getattr(option, 'is_correct', False),
                     'letter': chr(64 + opt_index)  # A, B, C, D
                 }
                 options_data.append(option_dict)
             
-            # Get subject name safely
-            subject_name = 'General'
-            if hasattr(question, 'subject') and question.subject:
-                subject_name = getattr(question.subject, 'name', 'General')
+            # Get question text - try different possible field names
+            question_text = getattr(question, 'question_en', None) or \
+                           getattr(question, 'question', None) or \
+                           getattr(question, 'text', 'Question text not available')
             
-            # Get difficulty safely
-            difficulty = 'Medium'
-            if hasattr(question, 'difficulty'):
-                difficulty = question.difficulty
+            # Get subject name
+            subject_name = question.subject.name if question.subject else 'General'
             
-            # Get explanation safely
-            explanation = 'No explanation available.'
-            if hasattr(question, 'explanation') and question.explanation:
-                explanation = question.explanation
+            # Get difficulty
+            difficulty = getattr(question, 'difficulty', 'Medium')
             
-            # Get selected option text safely
+            # Get explanation
+            explanation = getattr(question, 'explanation', 'No explanation available.')
+            
+            # Get selected option text
             selected_option_text = 'Not Answered'
-            if selected_option and hasattr(selected_option, 'text'):
-                selected_option_text = selected_option.text
+            if selected_option:
+                selected_option_text = getattr(selected_option, 'option_en', None) or \
+                                      getattr(selected_option, 'option', None) or \
+                                      getattr(selected_option, 'text', 'Selected option')
             
-            # Get correct option text safely
+            # Get correct option text
             correct_option_text = 'No correct option found'
-            if correct_option and hasattr(correct_option, 'text'):
-                correct_option_text = correct_option.text
+            if correct_option:
+                correct_option_text = getattr(correct_option, 'option_en', None) or \
+                                     getattr(correct_option, 'option', None) or \
+                                     getattr(correct_option, 'text', 'Correct option')
+            
+            # Get topic
+            topic = getattr(question, 'topic', '')
             
             question_data = {
                 'id': question.id,
                 'question_number': index,
-                'text': getattr(question, 'text', ''),
+                'text': question_text,
                 'subject': subject_name,
+                'topic': topic,
                 'difficulty': difficulty,
                 'explanation': explanation,
                 'options': options_data,
-                'selected_option': selected_option,
                 'selected_option_text': selected_option_text,
+                'correct_option_text': correct_option_text,
                 'is_correct': is_correct,
                 'is_answered': selected_option is not None,
-                'correct_option': correct_option,
-                'correct_option_text': correct_option_text,
             }
             questions_data.append(question_data)
         
+        # DEBUG: Final check
+        print(f"Total questions_data: {len(questions_data)}")
+        if questions_data:
+            print(f"First question options count: {len(questions_data[0]['options'])}")
+        
         # Calculate statistics
         total_questions = len(questions_data)
-        answered_count = correct_count + wrong_count
-        skipped_count = total_questions - answered_count
         
-        # Calculate accuracy safely
+        # Calculate accuracy
         accuracy = 0
         if total_questions > 0:
             accuracy = round((correct_count / total_questions * 100), 1)
@@ -1481,18 +697,16 @@ def detailed_analysis(request, attempt_id):
         return render(request, 'exams/detailed_analysis.html', context)
     
     except Exception as e:
-        # Log the error for debugging
         import logging
+        import traceback
         logger = logging.getLogger(__name__)
         logger.error(f"Error in detailed_analysis for attempt {attempt_id}: {str(e)}")
+        logger.error(traceback.format_exc())
         
-        # Return a friendly error page
         return render(request, 'exams/error.html', {
-            'error_message': 'Unable to load detailed analysis. Please try again later.',
+            'error_message': f'Unable to load detailed analysis: {str(e)}',
             'attempt_id': attempt_id
         })
-        
-# views.py - Update your dashboard view
 
 @login_required
 def dashboard(request):
@@ -1535,4 +749,3 @@ def dashboard(request):
     }
     
     return render(request, 'exams/dashboard.html', context)        
->>>>>>> 90d6b74 (Updated Django project with models and admin configuration)
