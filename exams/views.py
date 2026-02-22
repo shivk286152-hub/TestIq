@@ -18,28 +18,77 @@ from .models import (
 # ==============================
 # HOME
 # ==============================
+from django.shortcuts import render
+from django.db.models import Count, Avg, Q
+from django.utils import timezone
+
 def home(request):
     try:
-        categories = ExamCategory.objects.all()
-        mock_tests = MockTest.objects.filter(is_active=True)[:5]
-
-        return render(request, "exams/home.html", {
-            "categories": categories,
-            "mock_tests": mock_tests,
-            "site_name": "TestIQ",
-            "hero_title": "Master Your Competitive Exams",
-            "hero_desc": "Practice. Analyze. Improve. Succeed."
-        })
+        # Get categories with test counts
+        categories = ExamCategory.objects.annotate(
+            test_count=Count('subcategories__mock_tests', filter=Q(subcategories__mock_tests__is_active=True))
+        ).filter(test_count__gt=0).order_by('name')[:6]
+        
+        # Get featured mock tests
+        mock_tests = MockTest.objects.filter(
+            is_active=True
+        ).select_related('subcategory__category').annotate(
+            question_count=Count('questions')
+        ).order_by('-created_at')[:4]
+        
+        # Get user dashboard data if authenticated
+        user_dashboard = None
+        if request.user.is_authenticated:
+            attempts = MockTestAttempt.objects.filter(
+                user=request.user,
+                is_completed=True
+            ).select_related('mock_test').order_by('-submitted_at')[:5]
+            
+            total_tests = attempts.count()
+            if total_tests > 0:
+                avg_score = sum(attempt.score for attempt in attempts) / total_tests
+                total_questions = sum(attempt.total_marks for attempt in attempts)
+                correct_answers = sum(attempt.correct_answers for attempt in attempts)
+                
+                # Get subject wise performance
+                subject_performance = []
+                for attempt in attempts[:3]:  # Show last 3 tests
+                    subject_performance.append({
+                        'test_name': attempt.mock_test.title,
+                        'score': attempt.score,
+                        'total': attempt.total_marks,
+                        'percentage': round((attempt.correct_answers / attempt.total_marks * 100), 1) if attempt.total_marks > 0 else 0,
+                        'date': attempt.submitted_at
+                    })
+                
+                user_dashboard = {
+                    'total_tests': total_tests,
+                    'avg_score': round(avg_score, 1),
+                    'total_questions': total_questions,
+                    'correct_answers': correct_answers,
+                    'accuracy': round((correct_answers / total_questions * 100), 1) if total_questions > 0 else 0,
+                    'recent_tests': subject_performance,
+                    'best_score': max(attempt.score for attempt in attempts) if attempts else 0,
+                }
+        
+        context = {
+            'site_name': 'TestIQ',
+            'hero_title': 'Master Your Competitive Exams',
+            'hero_desc': 'Practice with real exam-like tests and track your progress',
+            'categories': categories,
+            'mock_tests': mock_tests,
+            'user_dashboard': user_dashboard,
+            'current_year': timezone.now().year,
+        }
+        
+        return render(request, "exams/home.html", context)
+        
     except Exception as e:
-        import traceback
-        print("="*50)
-        print("ERROR in home view:")
-        print(traceback.format_exc())
-        print("="*50)
-        # Return a simple error message
-        from django.http import HttpResponse
-        return HttpResponse(f"Error: {str(e)}", status=500)
-
+        return render(request, "exams/home.html", {
+            'site_name': 'TestIQ',
+            'hero_title': 'Master Your Competitive Exams',
+            'hero_desc': 'Practice. Analyze. Improve. Succeed.',
+        })
 
 # ==============================
 # CATEGORY
