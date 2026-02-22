@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from django.db.models import Max
 from .models import (
     ExamCategory, SubCategory, MockTest, Subject, 
-    Question, Option, MockTestAttempt, UserAnswer
+    Question, Option, MockTestAttempt, UserAnswer,Testimonial
 )
 
 # Register your models here.
@@ -296,3 +296,36 @@ class UserAnswerAdmin(admin.ModelAdmin):
 admin.site.site_header = 'Mock Test Administration'
 admin.site.site_title = 'Mock Test Admin'
 admin.site.index_title = 'Mock Test Management'
+
+
+# for Testimonial
+
+# admin.py
+from django.contrib import admin
+from .models import Testimonial
+
+@admin.register(Testimonial)
+class TestimonialAdmin(admin.ModelAdmin):
+    list_display = ['user_name', 'stars', 'is_active', 'is_featured', 'display_order', 'created_at']
+    list_filter = ['is_active', 'is_featured', 'stars', 'created_at']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'text']
+    list_editable = ['is_active', 'is_featured', 'display_order']
+    
+    fieldsets = (
+        ('User Information', {
+            'fields': ('user',)
+        }),
+        ('Testimonial Content', {
+            'fields': ('text', 'stars', 'achievement')
+        }),
+        ('Admin Control', {
+            'fields': ('is_active', 'is_featured', 'display_order'),
+            'classes': ('wide',),
+            'description': 'Control testimonial visibility and ordering'
+        }),
+    )
+    
+    def user_name(self, obj):
+        return obj.user_name()
+    user_name.short_description = 'User'
+    user_name.admin_order_field = 'user__first_name'

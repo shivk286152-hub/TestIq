@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Count, Avg, F, Q
+from django.http import HttpResponse
 
 from .models import (
     ExamCategory,
@@ -12,83 +13,58 @@ from .models import (
     Question,
     Subject,
     MockTestAttempt,
-    UserAnswer
+    UserAnswer,
+    Testimonial 
 )
 
 # ==============================
 # HOME
 # ==============================
-from django.shortcuts import render
-from django.db.models import Count, Avg, Q
-from django.utils import timezone
-
+# views.py - Update your home view
 def home(request):
     try:
-        # Get categories with test counts
-        categories = ExamCategory.objects.annotate(
-            test_count=Count('subcategories__mock_tests', filter=Q(subcategories__mock_tests__is_active=True))
-        ).filter(test_count__gt=0).order_by('name')[:6]
+        categories = ExamCategory.objects.all()
+        mock_tests = MockTest.objects.filter(is_active=True)[:5]
         
-        # Get featured mock tests
-        mock_tests = MockTest.objects.filter(
+        # Get active testimonials (admin controlled)
+        testimonials = Testimonial.objects.filter(
             is_active=True
-        ).select_related('subcategory__category').annotate(
-            question_count=Count('questions')
-        ).order_by('-created_at')[:4]
+        ).select_related('user')[:10]  # Limit to 10 testimonials
         
-        # Get user dashboard data if authenticated
-        user_dashboard = None
+        # Check if current user has already submitted a testimonial
+        user_testimonial = None
         if request.user.is_authenticated:
-            attempts = MockTestAttempt.objects.filter(
-                user=request.user,
-                is_completed=True
-            ).select_related('mock_test').order_by('-submitted_at')[:5]
-            
-            total_tests = attempts.count()
-            if total_tests > 0:
-                avg_score = sum(attempt.score for attempt in attempts) / total_tests
-                total_questions = sum(attempt.total_marks for attempt in attempts)
-                correct_answers = sum(attempt.correct_answers for attempt in attempts)
-                
-                # Get subject wise performance
-                subject_performance = []
-                for attempt in attempts[:3]:  # Show last 3 tests
-                    subject_performance.append({
-                        'test_name': attempt.mock_test.title,
-                        'score': attempt.score,
-                        'total': attempt.total_marks,
-                        'percentage': round((attempt.correct_answers / attempt.total_marks * 100), 1) if attempt.total_marks > 0 else 0,
-                        'date': attempt.submitted_at
-                    })
-                
-                user_dashboard = {
-                    'total_tests': total_tests,
-                    'avg_score': round(avg_score, 1),
-                    'total_questions': total_questions,
-                    'correct_answers': correct_answers,
-                    'accuracy': round((correct_answers / total_questions * 100), 1) if total_questions > 0 else 0,
-                    'recent_tests': subject_performance,
-                    'best_score': max(attempt.score for attempt in attempts) if attempts else 0,
-                }
+            user_testimonial = Testimonial.objects.filter(
+                user=request.user
+            ).first()
         
-        context = {
-            'site_name': 'TestIQ',
-            'hero_title': 'Master Your Competitive Exams',
-            'hero_desc': 'Practice with real exam-like tests and track your progress',
-            'categories': categories,
-            'mock_tests': mock_tests,
-            'user_dashboard': user_dashboard,
-            'current_year': timezone.now().year,
-        }
-        
-        return render(request, "exams/home.html", context)
-        
-    except Exception as e:
+        # Add user progress for each category (optional)
+        if request.user.is_authenticated:
+            for cat in categories:
+                # Calculate user progress for this category
+                # You can implement this based on your logic
+                cat.user_progress = 65  # Placeholder
+
         return render(request, "exams/home.html", {
-            'site_name': 'TestIQ',
-            'hero_title': 'Master Your Competitive Exams',
-            'hero_desc': 'Practice. Analyze. Improve. Succeed.',
+            "categories": categories,
+            "mock_tests": mock_tests,
+            "testimonials": testimonials,
+            "user_testimonial": user_testimonial,
+            "site_name": "TestIQ",
+            "hero_title": "Master Your Competitive Exams",
+            "hero_desc": "Practice. Analyze. Improve. Succeed."
         })
+    except Exception as e:
+        import traceback
+        print("="*50)
+        print("ERROR in home view:")
+        print(traceback.format_exc())
+        print("="*50)
+        from django.http import HttpResponse
+        return HttpResponse(f"Error: {str(e)}", status=500)
+
+
+
 
 # ==============================
 # CATEGORY
@@ -767,6 +743,13 @@ def dashboard(request):
         is_completed=True
     ).select_related('mock_test', 'mock_test__subcategory').order_by('-submitted_at')
     
+    # Get user's testimonial if exists
+    try:
+        user_testimonial = Testimonial.objects.filter(user=request.user).first()
+    except:
+        # If Testimonial model doesn't exist yet (migrations not run), set to None
+        user_testimonial = None
+    
     # Calculate overall statistics
     total_tests = attempts.count()
     
@@ -786,8 +769,14 @@ def dashboard(request):
         avg_score = round(total_percentage / total_tests, 1)
         best_score = round(best_score, 1)
     
-    # Get subject-wise performance (you can enhance this based on your data)
-    subject_stats = []  # Add your subject stats logic here
+    # Get subject-wise performance
+    subject_stats = []
+    
+    # Optional: Add subject-wise stats if you have the data
+    # This is just a placeholder - customize based on your data structure
+    if attempts.exists():
+        # You can add logic here to calculate subject-wise performance
+        pass
     
     context = {
         'attempts': attempts,
@@ -795,6 +784,78 @@ def dashboard(request):
         'avg_score': avg_score,
         'best_score': best_score,
         'subject_stats': subject_stats,
+        'user_testimonial': user_testimonial,  # Add this line
     }
     
-    return render(request, 'exams/dashboard.html', context)        
+    return render(request, 'exams/dashboard.html', context)
+
+# Add these imports at the top of your views.py if not already present
+from django.contrib import messages
+from django.http import JsonResponse
+from .forms import TestimonialForm
+from .models import Testimonial
+
+# ==============================
+# TESTIMONIAL VIEWS
+# ==============================
+@login_required
+def submit_testimonial(request):
+    """Allow users to submit testimonials"""
+    # Check if user already has a testimonial
+    existing = Testimonial.objects.filter(user=request.user).first()
+    if existing:
+        messages.warning(request, 'You have already submitted a testimonial. You can edit it from your dashboard.')
+        return redirect('exams:dashboard')
+    
+    if request.method == 'POST':
+        form = TestimonialForm(request.POST)
+        if form.is_valid():
+            testimonial = form.save(commit=False)
+            testimonial.user = request.user
+            testimonial.save()
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'success',
+                    'message': 'Thank you for your testimonial! It will be reviewed by our team.'
+                })
+            
+            messages.success(request, 'Thank you for your testimonial! It will be reviewed by our team.')
+            return redirect('exams:dashboard')
+    else:
+        form = TestimonialForm()
+    
+    return render(request, 'exams/submit_testimonial.html', {'form': form})
+
+@login_required
+def edit_testimonial(request, testimonial_id):
+    """Allow users to edit their own testimonials"""
+    testimonial = get_object_or_404(Testimonial, id=testimonial_id, user=request.user)
+    
+    if request.method == 'POST':
+        form = TestimonialForm(request.POST, instance=testimonial)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your testimonial has been updated!')
+            return redirect('exams:dashboard')
+    else:
+        form = TestimonialForm(instance=testimonial)
+    
+    return render(request, 'exams/edit_testimonial.html', {
+        'form': form, 
+        'testimonial': testimonial
+    })
+
+@login_required
+def delete_testimonial(request, testimonial_id):
+    """Allow users to delete their own testimonials"""
+    testimonial = get_object_or_404(Testimonial, id=testimonial_id, user=request.user)
+    
+    if request.method == 'POST':
+        testimonial.delete()
+        messages.success(request, 'Your testimonial has been deleted.')
+        return redirect('exams:dashboard')
+    
+    return render(request, 'exams/confirm_delete_testimonial.html', {
+        'testimonial': testimonial
+    })

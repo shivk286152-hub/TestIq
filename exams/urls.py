@@ -51,4 +51,9 @@ urlpatterns = [
     path('rankings/<int:attempt_id>/', views.view_rankings, name='view_rankings'),
      # ... existing URLs ...
     path('detailed-analysis/<int:attempt_id>/', views.detailed_analysis, name='detailed_analysis'),
+    # ... existing urls ...
+    path('testimonial/submit/', views.submit_testimonial, name='submit_testimonial'),
+    path('testimonial/<int:testimonial_id>/edit/', views.edit_testimonial, name='edit_testimonial'),
+    path('testimonial/<int:testimonial_id>/delete/', views.delete_testimonial, name='delete_testimonial'),
+
 ]

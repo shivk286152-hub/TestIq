@@ -308,3 +308,69 @@ class UserAnswer(models.Model):
         minutes = self.time_taken // 60
         seconds = self.time_taken % 60
         return f"{minutes}:{seconds:02d}"
+    
+    
+# Add this model to your models.py first:
+
+# models.py - Add this Testimonial model
+# models.py - Add this model
+
+class Testimonial(models.Model):
+    user = models.ForeignKey(
+        'auth.User', 
+        on_delete=models.CASCADE,
+        related_name='testimonials'
+    )
+    text = models.TextField(
+        max_length=500,
+        help_text="Share your experience with our platform"
+    )
+    stars = models.IntegerField(
+        default=5,
+        choices=[(i, f'{i} Star{"s" if i > 1 else ""}') for i in range(1, 6)]
+    )
+    achievement = models.CharField(
+        max_length=200, 
+        blank=True,
+        help_text="e.g., 'Selected in UPSC 2023', 'Scored 95% in JEE'"
+    )
+    
+    # Admin control fields
+    is_featured = models.BooleanField(
+        default=False,
+        help_text="Show this testimonial as featured"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Only active testimonials will be displayed"
+    )
+    display_order = models.IntegerField(
+        default=0,
+        help_text="Lower numbers appear first"
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['display_order', '-is_featured', '-created_at']
+        verbose_name = "Testimonial"
+        verbose_name_plural = "Testimonials"
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.stars} Stars"
+    
+    def user_name(self):
+        """Get user's full name or username"""
+        if self.user.get_full_name():
+            return self.user.get_full_name()
+        return self.user.username
+    
+    def user_initials(self):
+        """Get user initials for avatar"""
+        name = self.user_name()
+        if ' ' in name:
+            parts = name.split()
+            return f"{parts[0][0]}{parts[1][0]}".upper()
+        return name[:2].upper()
