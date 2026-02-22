@@ -1,199 +1,509 @@
-Home.html
-
-
 {% extends "base.html" %}
 {% load static %}
 
 {% block title %}Home | {{ site_name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Modern Minimal Styles */
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --secondary: #0ea5e9;
+        --dark: #0f172a;
+        --light: #f8fafc;
+        --gray: #64748b;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* Dashboard Slide Panel */
+    .dashboard-panel {
+        position: fixed;
+        top: 80px;
+        right: -400px;
+        width: 380px;
+        height: calc(100vh - 80px);
+        background: white;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 40;
+        border-left: 1px solid #e2e8f0;
+        overflow-y: auto;
+    }
+
+    .dashboard-panel.open {
+        right: 0;
+    }
+
+    .dashboard-toggle {
+        position: fixed;
+        top: 90px;
+        right: 20px;
+        z-index: 45;
+        background: var(--primary);
+        color: white;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .dashboard-toggle:hover {
+        background: var(--primary-dark);
+        transform: scale(1.1);
+    }
+
+    .dashboard-toggle svg {
+        width: 24px;
+        height: 24px;
+        transition: transform 0.3s ease;
+    }
+
+    .dashboard-toggle.open svg {
+        transform: rotate(180deg);
+    }
+
+    /* Overlay */
+    .dashboard-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 35;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(4px);
+    }
+
+    .dashboard-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        min-height: 600px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 10;
+    }
+
+    .hero-title {
+        font-size: clamp(2.5rem, 8vw, 4.5rem);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+
+    /* Card Styles */
+    .modern-card {
+        background: white;
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+    }
+
+    .modern-card:hover {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        border-color: var(--primary);
+    }
+
+    /* Category Cards */
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .category-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.1);
+    }
+
+    .category-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        color: white;
+        font-size: 24px;
+    }
+
+    /* Dashboard Stats */
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 20px;
+        color: white;
+    }
+
+    .stat-item {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 12px;
+        backdrop-filter: blur(4px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-panel {
+            width: 100%;
+            right: -100%;
+        }
+        
+        .dashboard-toggle {
+            top: 80px;
+            right: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<!-- Dashboard Toggle Button (only for logged in users) -->
+{% if user.is_authenticated %}
+<button class="dashboard-toggle" id="dashboardToggle" onclick="toggleDashboard()">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+    </svg>
+</button>
 
-<!-- HERO SECTION -->
-<section class="relative w-full h-[90vh] flex items-center justify-center text-white">
+<!-- Dashboard Panel -->
+<div class="dashboard-panel" id="dashboardPanel">
+    <div class="p-6">
+        <!-- Dashboard Header -->
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800">Your Dashboard</h2>
+            <span class="px-3 py-1 bg-green-100 text-green-600 rounded-full text-sm font-medium">
+                {{ user.username }}
+            </span>
+        </div>
 
-    <!-- Background -->
-    <img src="{% static 'images/Hero.jpg' %}" 
-         class="absolute inset-0 w-full h-full object-cover">
+        {% if user_dashboard %}
+        <!-- Stats Overview -->
+        <div class="stat-card mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-white/80">Overall Performance</span>
+                <span class="text-2xl font-bold">{{ user_dashboard.accuracy }}%</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="stat-item">
+                    <div class="text-xs text-white/60">Tests</div>
+                    <div class="text-xl font-semibold">{{ user_dashboard.total_tests }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="text-xs text-white/60">Avg Score</div>
+                    <div class="text-xl font-semibold">{{ user_dashboard.avg_score }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="text-xs text-white/60">Correct</div>
+                    <div class="text-xl font-semibold">{{ user_dashboard.correct_answers }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="text-xs text-white/60">Best</div>
+                    <div class="text-xl font-semibold">{{ user_dashboard.best_score }}</div>
+                </div>
+            </div>
+        </div>
 
-    <!-- Gradient Overlay -->
-    <div class="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-purple-900/70 to-black/80"></div>
+        <!-- Recent Tests -->
+        <div class="mb-6">
+            <h3 class="font-semibold text-gray-700 mb-3">Recent Tests</h3>
+            <div class="space-y-3">
+                {% for test in user_dashboard.recent_tests %}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-medium text-gray-800 text-sm">{{ test.test_name|truncatechars:30 }}</h4>
+                            <p class="text-xs text-gray-500">{{ test.date|date:"M d, Y" }}</p>
+                        </div>
+                        <span class="text-sm font-bold {% if test.percentage >= 70 %}text-green-600{% else %}text-yellow-600{% endif %}">
+                            {{ test.percentage }}%
+                        </span>
+                    </div>
+                    <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-indigo-600 rounded-full" style="width: {{ test.percentage }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
 
-    <div class="relative z-10 text-center px-4 max-w-3xl">
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{% url 'exams:dashboard' %}" class="block text-center bg-indigo-50 text-indigo-600 py-3 rounded-xl text-sm font-medium hover:bg-indigo-100 transition">
+                Full Dashboard
+            </a>
+            <a href="{% url 'exams:view_rankings' %}" class="block text-center bg-purple-50 text-purple-600 py-3 rounded-xl text-sm font-medium hover:bg-purple-100 transition">
+                Rankings
+            </a>
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <div class="text-gray-400 mb-3">📊</div>
+            <p class="text-gray-600 mb-4">No test data yet</p>
+            <a href="#categories" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-indigo-700 transition">
+                Start Your First Test
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
 
-        <h1 class="text-4xl md:text-6xl font-extrabold mb-6">
-            {{ hero_title }}
-        </h1>
+<!-- Overlay -->
+<div class="dashboard-overlay" id="dashboardOverlay" onclick="closeDashboard()"></div>
+{% endif %}
 
-        <p class="text-xl md:text-2xl">
-            <span id="typed-text" class="bg-indigo-600/70 px-3 py-1 rounded-lg"></span>
-            <span class="animate-pulse">|</span>
-        </p>
-
-        <span id="hero-full-text" class="hidden">
-            {{ hero_desc }}
-        </span>
-
-        <a href="#categories"
-           class="inline-block mt-8 bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-full font-semibold shadow-lg">
-           Start Learning 🚀
-        </a>
-
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+        <div class="hero-content max-w-3xl">
+            <h1 class="hero-title text-white font-bold mb-6">
+                {{ hero_title }}
+            </h1>
+            <p class="text-xl text-white/90 mb-8 leading-relaxed">
+                {{ hero_desc }}
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <a href="#categories" 
+                   class="px-8 py-4 bg-white text-indigo-600 rounded-xl font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                    Explore Categories
+                </a>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" 
+                   class="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 transition-all">
+                    Sign In
+                </a>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </section>
 
+<!-- Categories Section -->
+<section id="categories" class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <span class="text-indigo-600 font-semibold text-sm uppercase tracking-wider">Browse Categories</span>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Choose Your Path</h2>
+            <p class="text-gray-600 mt-4 max-w-2xl mx-auto">Select from our wide range of exam categories and start your preparation journey</p>
+        </div>
 
-<!-- SCRIPT -->
-{% block scripts %}
-<script>
-document.addEventListener("DOMContentLoaded", function(){
-    const text = document.getElementById("hero-full-text").textContent.trim();
-    const typedText = document.getElementById("typed-text");
-    let i = 0;
-
-    function type(){
-        if(i <= text.length){
-            typedText.innerHTML = text.slice(0,i);
-            i++;
-            setTimeout(type,40);
-        }
-    }
-    type();
-});
-</script>
-{% endblock %}
-
-
-<!-- CATEGORIES -->
-<section id="categories" class="bg-gradient-to-b from-gray-50 to-gray-200 py-14">
-
-<div class="max-w-7xl mx-auto px-4">
-<h2 class="text-3xl font-bold mb-10 text-center">✨ Explore Categories</h2>
-
-<div class="flex gap-8 overflow-x-auto pb-6">
-
-{% for cat in categories %}
-<div class="min-w-[230px] bg-white/70 backdrop-blur-lg border border-gray-200 rounded-2xl p-6 text-center shadow-lg hover:scale-105 transition">
-
-    {% if cat.logo %}
-    <img src="{{ cat.logo.url }}" class="w-20 h-20 mx-auto mb-4">
-    {% else %}
-    <div class="w-20 h-20 bg-indigo-200 rounded-full mx-auto mb-4"></div>
-    {% endif %}
-
-    <h3 class="font-bold text-lg mb-4">{{ cat.name }}</h3>
-
-    <a href="{% url 'exams:category_detail' cat.slug %}"
-       class="bg-indigo-600 text-white px-5 py-2 rounded-full hover:bg-indigo-700">
-       Start Test
-    </a>
-
-</div>
-{% endfor %}
-
-</div>
-</div>
+        <div class="category-grid">
+            {% for category in categories %}
+            <a href="{% url 'exams:category_detail' category.slug %}" class="category-card">
+                <div class="category-icon">
+                    {{ category.name|slice:":1" }}
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-2">{{ category.name }}</h3>
+                <p class="text-sm text-gray-500">{{ category.test_count }} Tests</p>
+            </a>
+            {% empty %}
+            <div class="col-span-full text-center py-12 text-gray-500">
+                No categories available yet.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </section>
 
+<!-- Featured Tests -->
+{% if mock_tests %}
+<section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-end mb-12">
+            <div>
+                <span class="text-indigo-600 font-semibold text-sm uppercase tracking-wider">Start Testing</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Featured Mock Tests</h2>
+            </div>
+            <a href="{% url 'exams:dashboard' %}" class="text-indigo-600 hover:text-indigo-700 font-medium hidden sm:block">
+                View All →
+            </a>
+        </div>
 
-<!-- MOCK TEST -->
-{% if user.is_authenticated %}
-<section class="max-w-7xl mx-auto px-4 py-14">
-
-<h2 class="text-3xl font-bold mb-8">🔥 New Mock Tests</h2>
-
-<div class="grid md:grid-cols-2 gap-6">
-
-{% for test in mock_tests %}
-<div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg flex justify-between items-center">
-
-<div>
-<h3 class="text-xl font-semibold">{{ test.title }}</h3>
-<p class="text-sm opacity-80">Boost your exam confidence</p>
-</div>
-
-<a href="{% url 'exams:start_test' test.id %}"
-   class="bg-white text-indigo-700 px-5 py-2 rounded-full font-semibold">
-   Start →
-</a>
-
-</div>
-{% endfor %}
-
-</div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for test in mock_tests %}
+            <div class="modern-card group">
+                <div class="mb-4">
+                    <span class="text-xs font-medium text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                        {{ test.subcategory.category.name }}
+                    </span>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2 group-hover:text-indigo-600 transition">
+                    {{ test.title|truncatechars:30 }}
+                </h3>
+                <p class="text-sm text-gray-500 mb-4">{{ test.question_count }} Questions • {{ test.duration }} mins</p>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-400">{{ test.subcategory.name }}</span>
+                    <a href="{% url 'exams:start_test' test.id %}" 
+                       class="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium text-sm">
+                        Start Test
+                        <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Mobile View All Link -->
+        <div class="text-center mt-8 sm:hidden">
+            <a href="{% url 'exams:dashboard' %}" class="text-indigo-600 hover:text-indigo-700 font-medium">
+                View All Tests →
+            </a>
+        </div>
+    </div>
 </section>
 {% endif %}
 
-
-<!-- ABOUT -->
-<section class="bg-gradient-to-r from-indigo-900 to-purple-900 text-white py-16">
-
-<div class="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-10">
-
-<div>
-<h3 class="text-3xl font-bold mb-4">Why Choose Us?</h3>
-<p class="leading-relaxed text-lg opacity-90">
-We help students crack competitive exams with real exam-like mock tests,
-smart analytics, and structured practice.
-</p>
-
-<ul class="mt-6 space-y-2">
-<li>✔ Real Exam Interface</li>
-<li>✔ Detailed Solutions</li>
-<li>✔ Performance Tracking</li>
-<li>✔ Unlimited Practice</li>
-</ul>
-</div>
-
-<div>
-<h3 class="text-3xl font-bold mb-4">All Categories</h3>
-
-<div class="grid grid-cols-2 gap-3">
-{% for cat in categories %}
-<a href="{% url 'exams:category_detail' cat.slug %}"
-class="bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30">
-{{ cat.name }}
-</a>
-{% endfor %}
-</div>
-
-</div>
-
-</div>
-</section>
-
-
-<!-- FOOTER -->
-<footer class="bg-black text-gray-300 py-10">
-
-<div class="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-8">
-
-<div>
-<h3 class="text-xl font-bold text-white mb-3">{{ site_name }}</h3>
-<p class="text-sm">
-Your trusted platform for mock tests and exam success.
-</p>
-</div>
-
-<div>
-<h4 class="font-semibold text-white mb-3">Quick Links</h4>
-<ul class="space-y-2 text-sm">
-<li><a href="#" class="hover:text-white">Home</a></li>
-<li><a href="#" class="hover:text-white">Tests</a></li>
-<li><a href="#" class="hover:text-white">Contact</a></li>
-</ul>
-</div>
-
-<div>
-<h4 class="font-semibold text-white mb-3">Follow Us</h4>
-<p class="text-sm">Stay connected for updates 🚀</p>
-</div>
-
-</div>
-
-<div class="text-center mt-8 border-t border-gray-700 pt-4 text-sm">
-© {{ site_name }} {% now "Y" %} | All rights reserved.
-</div>
-
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-8">
+            <div>
+                <h3 class="text-white text-lg font-bold mb-4">{{ site_name }}</h3>
+                <p class="text-sm">Your trusted platform for competitive exam preparation.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Quick Links</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#categories" class="hover:text-white transition">Categories</a></li>
+                    <li><a href="#" class="hover:text-white transition">About Us</a></li>
+                    <li><a href="#" class="hover:text-white transition">Contact</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Support</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-white transition">FAQ</a></li>
+                    <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:text-white transition">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Follow Us</h4>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:text-white transition">📘</a>
+                    <a href="#" class="hover:text-white transition">🐦</a>
+                    <a href="#" class="hover:text-white transition">📷</a>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 mt-8 pt-8 text-sm text-center">
+            © {{ current_year }} {{ site_name }}. All rights reserved.
+        </div>
+    </div>
 </footer>
+{% endblock %}
 
+{% block extra_js %}
+<script>
+    // Dashboard Toggle Function
+    function toggleDashboard() {
+        const panel = document.getElementById('dashboardPanel');
+        const overlay = document.getElementById('dashboardOverlay');
+        const toggle = document.getElementById('dashboardToggle');
+        
+        panel.classList.toggle('open');
+        overlay.classList.toggle('active');
+        toggle.classList.toggle('open');
+        
+        // Prevent body scroll when dashboard is open
+        if (panel.classList.contains('open')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    function closeDashboard() {
+        const panel = document.getElementById('dashboardPanel');
+        const overlay = document.getElementById('dashboardOverlay');
+        const toggle = document.getElementById('dashboardToggle');
+        
+        panel.classList.remove('open');
+        overlay.classList.remove('active');
+        toggle.classList.remove('open');
+        document.body.style.overflow = 'auto';
+    }
+
+    // Close dashboard with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDashboard();
+        }
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Add animation on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.category-card, .modern-card').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s ease';
+        observer.observe(el);
+    });
+</script>
 {% endblock %}
