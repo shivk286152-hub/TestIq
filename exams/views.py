@@ -712,27 +712,25 @@ def detailed_analysis(request, attempt_id):
 @login_required
 def dashboard(request):
     """
-    User dashboard showing all test attempts and statistics
+    User dashboard showing all test attempts, statistics, and performance charts.
     """
+    # Get all completed attempts
     attempts = MockTestAttempt.objects.filter(
         user=request.user,
         is_completed=True
     ).select_related('mock_test', 'mock_test__subcategory').order_by('-submitted_at')
-    
+
     # Get user's testimonial if exists
     try:
         user_testimonial = Testimonial.objects.filter(user=request.user).first()
     except:
-        # If Testimonial model doesn't exist yet (migrations not run), set to None
         user_testimonial = None
-    
-    # Calculate overall statistics
+
+    # ----- Overall statistics -----
     total_tests = attempts.count()
-    
-    # Calculate average score
     avg_score = 0
     best_score = 0
-    
+
     if total_tests > 0:
         total_percentage = 0
         for attempt in attempts:
@@ -741,30 +739,72 @@ def dashboard(request):
                 total_percentage += percentage
                 if percentage > best_score:
                     best_score = percentage
-        
+
         avg_score = round(total_percentage / total_tests, 1)
         best_score = round(best_score, 1)
-    
-    # Get subject-wise performance
-    subject_stats = []
-    
-    # Optional: Add subject-wise stats if you have the data
-    # This is just a placeholder - customize based on your data structure
-    if attempts.exists():
-        # You can add logic here to calculate subject-wise performance
-        pass
-    
+
+    # ----- Subject‑wise performance for bar chart -----
+    # Get all answers from the user's completed attempts
+    user_answers = UserAnswer.objects.filter(
+        attempt__user=request.user,
+        attempt__is_completed=True
+    ).select_related('question__subject', 'selected_option')
+
+    # Aggregate per subject
+    subject_stats_qs = user_answers.values(
+        subject_name=F('question__subject__name')
+    ).annotate(
+        total=Count('id'),
+        correct=Count(Case(
+            When(selected_option__is_correct=True, then=1),
+            output_field=IntegerField()
+        ))
+    ).order_by('subject_name')
+
+    # Build the lists needed for the chart
+    subject_labels = []
+    subject_scores = []
+    for stat in subject_stats_qs:
+        subject_labels.append(stat['subject_name'] or 'Uncategorized')
+        # Avoid division by zero (shouldn't happen, but safe)
+        percentage = (stat['correct'] / stat['total'] * 100) if stat['total'] > 0 else 0
+        subject_scores.append(round(percentage, 1))
+
+    # ----- Attempts data for line chart (chronological order) -----
+    attempts_chrono = attempts.order_by('submitted_at')  # oldest first
+    attempts_data = []
+    for attempt in attempts_chrono:
+        if attempt.total_marks > 0:
+            score_percentage = (attempt.correct_answers / attempt.total_marks) * 100
+        else:
+            score_percentage = 0
+
+        attempts_data.append({
+            'date': attempt.submitted_at.strftime('%Y-%m-%d'),  # you can also include time if needed
+            'test_name': attempt.mock_test.title,
+            'score': round(score_percentage, 1),
+        })
+
+    # Convert to JSON strings for safe use in JavaScript
+    import json
+    subject_labels_json = json.dumps(subject_labels)
+    subject_scores_json = json.dumps(subject_scores)
+    attempts_json = json.dumps(attempts_data)
+
     context = {
         'attempts': attempts,
         'total_tests': total_tests,
         'avg_score': avg_score,
         'best_score': best_score,
-        'subject_stats': subject_stats,
-        'user_testimonial': user_testimonial,  # Add this line
+        'subject_stats': subject_stats_qs,          # if you still want the original list
+        'user_testimonial': user_testimonial,
+        # New keys for charts
+        'subject_labels_json': subject_labels_json,
+        'subject_scores_json': subject_scores_json,
+        'attempts_json': attempts_json,
     }
-    
-    return render(request, 'exams/dashboard.html', context)
 
+    return render(request, 'exams/dashboard.html', context)
 # Add these imports at the top of your views.py if not already present
 from django.contrib import messages
 from django.http import JsonResponse
