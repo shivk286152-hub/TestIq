@@ -144,6 +144,47 @@
     </div>
     {% endif %}
 
+    <!-- Performance Charts Section -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+        <h2 class="font-semibold text-gray-800 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                </path>
+            </svg>
+            Performance Overview
+        </h2>
+        
+        <!-- Two charts grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Bar chart - Subject Mastery -->
+            <div>
+                <h3 class="text-sm font-medium text-gray-600 mb-2">Subject Mastery</h3>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="subjectChart"></canvas>
+                </div>
+                {% if not subject_labels_json or subject_labels_json == "[]" %}
+                <div class="text-center py-8 text-gray-400">
+                    <p>No subject data yet. Take tests to see your subject-wise performance!</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Line chart - Score Trend -->
+            <div>
+                <h3 class="text-sm font-medium text-gray-600 mb-2">Score Trend</h3>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+                {% if not attempts %}
+                <div class="text-center py-8 text-gray-400">
+                    <p>No test attempts yet. Take your first test to see your progress!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Left Column - Recent Activity -->
@@ -238,21 +279,6 @@
                 </div>
                 {% endif %}
             </div>
-
-            <!-- Performance Chart Section -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 class="font-semibold text-gray-800 mb-4 flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                        </path>
-                    </svg>
-                    Performance Overview
-                </h2>
-                <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                    <p class="text-gray-400">Chart will be displayed here</p>
-                </div>
-            </div>
         </div>
 
         <!-- Right Column - Stats & Actions -->
@@ -332,4 +358,156 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Get data from Django context
+    const subjectLabels = {{ subject_labels_json|safe }};
+    const subjectScores = {{ subject_scores_json|safe }};
+    const attempts = {{ attempts_json|safe }};
+    
+    // Function to get bar colour based on score
+    function getBarColor(value) {
+        if (value < 33) return '#ef4444';      // red for below 33%
+        if (value < 50) return '#f59e0b';      // yellow/orange for 33-49%
+        if (value < 75) return '#8b5cf6';      // violet for 50-75%
+        return '#10b981';                       // green for above 75%
+    }
+
+    // ---------- BAR CHART (Subject Mastery) ----------
+    const subjectCtx = document.getElementById('subjectChart')?.getContext('2d');
+    if (subjectCtx && subjectLabels && subjectLabels.length > 0) {
+        const barColors = subjectScores.map(score => getBarColor(score));
+        
+        new Chart(subjectCtx, {
+            type: 'bar',
+            data: {
+                labels: subjectLabels,
+                datasets: [{
+                    label: 'Average Score (%)',
+                    data: subjectScores,
+                    backgroundColor: barColors,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: { 
+                            display: true, 
+                            text: 'Score (%)' 
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `Score: ${ctx.raw}%`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ---------- LINE CHART (Score Trend) ----------
+    const trendCtx = document.getElementById('trendChart')?.getContext('2d');
+    if (trendCtx && attempts && attempts.length > 0) {
+        // Extract data for chart
+        const labels = attempts.map(a => a.date);
+        const scores = attempts.map(a => a.score);
+        const testNames = attempts.map(a => a.test_name);
+
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Your Score',
+                    data: scores,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    tension: 0.2,
+                    pointBackgroundColor: '#4f46e5',
+                    pointBorderColor: 'white',
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: { 
+                            display: true, 
+                            text: 'Score (%)' 
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        title: { 
+                            display: true, 
+                            text: 'Test Date' 
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: (tooltipItems) => {
+                                const index = tooltipItems[0].dataIndex;
+                                return attempts[index].test_name;
+                            },
+                            label: (ctx) => {
+                                const index = ctx.dataIndex;
+                                const attempt = attempts[index];
+                                return [`Date: ${attempt.date}`, `Score: ${attempt.score}%`];
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+
+<!-- Add a little CSS for better chart appearance -->
+<style>
+    canvas {
+        max-width: 100%;
+        height: auto !important;
+    }
+</style>
 {% endblock %}
