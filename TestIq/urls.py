@@ -8,7 +8,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('exams.urls', 'exams'), namespace='exams')),
 
-    path("accounts/", include("accounts.urls")),
+   path('account/', include('accounts.urls',)),
     path("notification/", include("ExamNotification.urls")),
     path("profile/", include("User.urls")),
     path('current-affairs/', include('CurrentAffairs.urls')),

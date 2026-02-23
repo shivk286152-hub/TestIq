@@ -524,9 +524,8 @@ def detailed_analysis(request, attempt_id):
             is_completed=True
         )
         
-        # DEBUG: Print attempt info
-        print(f"Attempt ID: {attempt.id}")
-        print(f"User: {request.user.username}")
+        # Get user's language preference
+        user_language = request.session.get('django_language', 'en')
         
         # Get all answers with related data
         answers = attempt.answers.select_related(
@@ -535,12 +534,8 @@ def detailed_analysis(request, attempt_id):
             'question__subject'
         ).prefetch_related('question__options').all()
         
-        # DEBUG: Check answers count
-        print(f"Number of answers: {answers.count()}")
-        
         # Check if answers exist
         if not answers.exists():
-            print("No answers found for this attempt!")
             return render(request, 'exams/detailed_analysis.html', {
                 'attempt': attempt,
                 'questions_data': [],
@@ -553,9 +548,6 @@ def detailed_analysis(request, attempt_id):
                 'error_message': 'No answers found for this attempt.'
             })
         
-        # Get user's language preference
-        user_language = request.session.get('django_language', 'en')
-        
         # Prepare questions data with detailed information
         questions_data = []
         correct_count = 0
@@ -566,25 +558,8 @@ def detailed_analysis(request, attempt_id):
             question = answer.question
             selected_option = answer.selected_option
             
-            # DEBUG: Print question info
-            print(f"Processing question {index}: ID {question.id}")
-            # Try different possible field names for question text
-            question_text_field = getattr(question, 'question_en', None) or \
-                                  getattr(question, 'question', None) or \
-                                  getattr(question, 'text', '')
-            print(f"Question text: {str(question_text_field)[:50]}...")
-            
             # Get all options for this question
-            options = question.options.all().order_by('id')
-            
-            # DEBUG: Print options count
-            print(f"Options count: {options.count()}")
-            for opt in options:
-                # Try different possible field names for option text
-                opt_text = getattr(opt, 'option_en', None) or \
-                          getattr(opt, 'option', None) or \
-                          getattr(opt, 'text', 'No text')
-                print(f"  Option ID: {opt.id}, Text: {str(opt_text)[:30]}, Correct: {opt.is_correct}")
+            options = question.options.all().order_by('order', 'id')
             
             # Determine if answer is correct
             is_correct = False
@@ -600,18 +575,18 @@ def detailed_analysis(request, attempt_id):
                     
                 # Find the correct option for explanation
                 correct_option = question.options.filter(is_correct=True).first()
-                print(f"Selected option: {selected_option.id}, Correct: {is_correct}")
             else:
                 skipped_count += 1
-                print("No selected option")
             
-            # Prepare option details
+            # Prepare option details - FIXED: Use text_en/text_hi based on language
             options_data = []
             for opt_index, option in enumerate(options, start=1):
-                # Get option text - try different possible field names
-                option_text = getattr(option, 'option_en', None) or \
-                             getattr(option, 'option', None) or \
-                             getattr(option, 'text', f'Option {opt_index}')
+                # Get option text based on user's language preference
+                if user_language == 'hi' and hasattr(option, 'text_hi') and option.text_hi:
+                    option_text = option.text_hi
+                else:
+                    # Default to English or fallback to any available text
+                    option_text = option.text_en if hasattr(option, 'text_en') and option.text_en else f"Option {opt_index}"
                 
                 option_dict = {
                     'id': option.id,
@@ -622,10 +597,12 @@ def detailed_analysis(request, attempt_id):
                 }
                 options_data.append(option_dict)
             
-            # Get question text - try different possible field names
-            question_text = getattr(question, 'question_en', None) or \
-                           getattr(question, 'question', None) or \
-                           getattr(question, 'text', 'Question text not available')
+            # Get question text based on language preference
+            question_text = "Question text not available"
+            if user_language == 'hi' and hasattr(question, 'question_hi') and question.question_hi:
+                question_text = question.question_hi
+            else:
+                question_text = question.question_en if hasattr(question, 'question_en') and question.question_en else "Question text not available"
             
             # Get subject name
             subject_name = question.subject.name if question.subject else 'General'
@@ -636,19 +613,21 @@ def detailed_analysis(request, attempt_id):
             # Get explanation
             explanation = getattr(question, 'explanation', 'No explanation available.')
             
-            # Get selected option text
+            # Get selected option text based on language
             selected_option_text = 'Not Answered'
             if selected_option:
-                selected_option_text = getattr(selected_option, 'option_en', None) or \
-                                      getattr(selected_option, 'option', None) or \
-                                      getattr(selected_option, 'text', 'Selected option')
+                if user_language == 'hi' and hasattr(selected_option, 'text_hi') and selected_option.text_hi:
+                    selected_option_text = selected_option.text_hi
+                else:
+                    selected_option_text = selected_option.text_en if hasattr(selected_option, 'text_en') and selected_option.text_en else "Selected option"
             
-            # Get correct option text
+            # Get correct option text based on language
             correct_option_text = 'No correct option found'
             if correct_option:
-                correct_option_text = getattr(correct_option, 'option_en', None) or \
-                                     getattr(correct_option, 'option', None) or \
-                                     getattr(correct_option, 'text', 'Correct option')
+                if user_language == 'hi' and hasattr(correct_option, 'text_hi') and correct_option.text_hi:
+                    correct_option_text = correct_option.text_hi
+                else:
+                    correct_option_text = correct_option.text_en if hasattr(correct_option, 'text_en') and correct_option.text_en else "Correct option"
             
             # Get topic
             topic = getattr(question, 'topic', '')
@@ -668,11 +647,6 @@ def detailed_analysis(request, attempt_id):
                 'is_answered': selected_option is not None,
             }
             questions_data.append(question_data)
-        
-        # DEBUG: Final check
-        print(f"Total questions_data: {len(questions_data)}")
-        if questions_data:
-            print(f"First question options count: {len(questions_data[0]['options'])}")
         
         # Calculate statistics
         total_questions = len(questions_data)
@@ -724,15 +698,17 @@ def detailed_analysis(request, attempt_id):
     except Exception as e:
         import logging
         import traceback
+        
         logger = logging.getLogger(__name__)
         logger.error(f"Error in detailed_analysis for attempt {attempt_id}: {str(e)}")
         logger.error(traceback.format_exc())
         
+        # Return a friendly error page
         return render(request, 'exams/error.html', {
             'error_message': f'Unable to load detailed analysis: {str(e)}',
             'attempt_id': attempt_id
         })
-
+        
 @login_required
 def dashboard(request):
     """
