@@ -311,13 +311,13 @@
                 {% endif %}
               {% else %}
               <li>
-                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
+                <a href="{% url 'login' %}?next={{ request.path }}" class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
                   <i class="fa fa-sign-in w-4 mr-2"></i>
                   Sign in to take tests
                 </a>
               </li>
               <li>
-                <a href="{% url 'accounts:register' %}" class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
+                <a href="{% url 'register' %}" class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
                   <i class="fa fa-user-plus w-4 mr-2"></i>
                   Register now
                 </a>
