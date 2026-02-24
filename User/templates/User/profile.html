@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% load form_tags math_filters %}
 {% load form_tags %}
+{% load math_filters %}  <!-- Load this if you created the math_filters.py file -->
 
 {% block title %}Profile{% endblock %}
 
@@ -146,12 +146,10 @@
 
                     <!-- ACTIONS -->
                     <div class="flex justify-end gap-4 pt-4 border-t">
-                        <button type="reset">
-                            <a href="{% url 'exams:home' %}"
-                                class="px-5 py-2 rounded-lg border text-gray-600 hover:bg-gray-200 hover:border-zinc-500 inline-block">
-                                Cancel
-                            </a>
-                        </button>
+                        <a href="{% url 'User:profile' %}" 
+                           class="px-5 py-2 rounded-lg border text-gray-600 hover:bg-gray-200 hover:border-zinc-500 inline-block">
+                            Cancel
+                        </a>
                         <button type="submit" class="px-6 py-2 rounded-lg bg-blue-600 text-white
                                    hover:bg-blue-700 transition">
                             Save Changes
@@ -164,10 +162,10 @@
 
     <!-- USER DASHBOARD SECTION WITH REAL DATA -->
     <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">User Dashboard</h2>
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Dashboard</h2>
         
         <!-- Dashboard Stats Grid with Real Data -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <!-- Stats Card 1 - Total Exams -->
             <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
                 <div class="flex items-center justify-between">
@@ -181,15 +179,15 @@
                 </div>
             </div>
 
-            <!-- Stats Card 2 - Completed -->
-            <div class="bg-green-50 rounded-lg p-4 border border-green-100">
+            <!-- Stats Card 2 - In Progress -->
+            <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-green-600 font-medium">Completed</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ total_tests|default:0 }}</p>
+                        <p class="text-sm text-yellow-600 font-medium">In Progress</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ in_progress_tests|default:0 }}</p>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                        <i class="fa-solid fa-check-circle"></i>
+                    <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
+                        <i class="fa-regular fa-clock"></i>
                     </div>
                 </div>
             </div>
@@ -206,6 +204,45 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Stats Card 4 - Accuracy -->
+            <div class="bg-green-50 rounded-lg p-4 border border-green-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-green-600 font-medium">Accuracy</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ accuracy_rate|default:0 }}%</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Stats Row (Optional) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center">
+            <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-500">Questions Answered</p>
+                <p class="text-lg font-semibold text-gray-800">{{ total_questions_answered|default:0 }}</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-500">Correct Answers</p>
+                <p class="text-lg font-semibold text-green-600">{{ correct_answers|default:0 }}</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-500">Best Score</p>
+                <p class="text-lg font-semibold text-blue-600">{{ best_score|default:0 }}%</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-500">Last Activity</p>
+                <p class="text-lg font-semibold text-gray-800">
+                    {% if last_activity_date %}
+                        {{ last_activity_date|date:"d M" }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </p>
+            </div>
         </div>
 
         <!-- Recent Activity with Real Data -->
@@ -213,7 +250,7 @@
             <h3 class="text-lg font-medium text-gray-700 mb-3">Recent Activity</h3>
             <div class="space-y-3">
                 {% for attempt in recent_attempts %}
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                     <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                         <i class="fa-solid fa-pen-to-square text-sm"></i>
                     </div>
@@ -228,17 +265,25 @@
                     </div>
                     {% if attempt.total_marks > 0 %}
                         {% with percentage=attempt.correct_answers|div:attempt.total_marks|mul:100 %}
-                            <span class="text-sm font-medium 
-                                {% if percentage >= 80 %}text-green-600
-                                {% elif percentage >= 60 %}text-yellow-600
-                                {% else %}text-red-600{% endif %}">
+                            <span class="text-sm font-medium px-2 py-1 rounded
+                                {% if percentage >= 80 %}bg-green-100 text-green-700
+                                {% elif percentage >= 60 %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
                                 {{ percentage|floatformat:1 }}%
                             </span>
                         {% endwith %}
                     {% endif %}
                 </div>
                 {% empty %}
-                <p class="text-gray-500 text-sm text-center py-4">No completed tests yet</p>
+                <div class="text-center py-8">
+                    <div class="text-gray-400 mb-2">
+                        <i class="fa-solid fa-chart-line text-4xl"></i>
+                    </div>
+                    <p class="text-gray-500">No completed tests yet</p>
+                    <a href="{% url 'exams:mock-test-list' %}" class="text-sm text-blue-600 hover:underline mt-2 inline-block">
+                        Start your first test →
+                    </a>
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -247,20 +292,20 @@
         <div>
             <h3 class="text-lg font-medium text-gray-700 mb-3">Quick Actions</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <a href="{% url 'exams:mock-test-list' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                    <i class="fa-solid fa-book-open text-blue-600 mb-1"></i>
+                <a href="{% url 'exams:mock-test-list' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                    <i class="fa-solid fa-book-open text-blue-600 mb-1 group-hover:scale-110 transition"></i>
                     <span class="text-xs text-gray-600">New Exam</span>
                 </a>
-                <a href="{% url 'exams:dashboard' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                    <i class="fa-solid fa-chart-simple text-green-600 mb-1"></i>
+                <a href="{% url 'exams:dashboard' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                    <i class="fa-solid fa-chart-simple text-green-600 mb-1 group-hover:scale-110 transition"></i>
                     <span class="text-xs text-gray-600">Analytics</span>
                 </a>
-                <a href="#" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                    <i class="fa-solid fa-download text-purple-600 mb-1"></i>
+                <a href="#" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                    <i class="fa-solid fa-download text-purple-600 mb-1 group-hover:scale-110 transition"></i>
                     <span class="text-xs text-gray-600">Reports</span>
                 </a>
-                <a href="#" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                    <i class="fa-solid fa-gear text-gray-600 mb-1"></i>
+                <a href="#" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                    <i class="fa-solid fa-gear text-gray-600 mb-1 group-hover:scale-110 transition"></i>
                     <span class="text-xs text-gray-600">Settings</span>
                 </a>
             </div>
@@ -271,4 +316,19 @@
 
 <!-- Add Alpine.js for collapse functionality -->
 <script src="//unpkg.com/alpinejs" defer></script>
+
+<!-- Display Django messages if any -->
+{% if messages %}
+<div class="fixed top-4 right-4 z-50 space-y-2">
+    {% for message in messages %}
+    <div class="px-4 py-3 rounded-lg shadow-lg 
+        {% if message.tags == 'success' %}bg-green-500 text-white
+        {% elif message.tags == 'error' %}bg-red-500 text-white
+        {% else %}bg-blue-500 text-white{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 {% endblock %}
