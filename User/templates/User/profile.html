@@ -382,33 +382,31 @@
 
 <!-- Add Alpine.js for collapse functionality -->
 <script src="//unpkg.com/alpinejs" defer></script>
-
 <!-- Chart.js and Chart Initialization -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     try {
-        // Prepare data from Django template
-        const subjectStats = {{ subject_stats|safe|default:'[]' }};
+        // Get data from Django context
+        const subjectStats = {{ subject_stats_json|safe }};
+        const recentAttempts = {{ recent_attempts_json|safe }};
         
-        // Bar Chart Data
-        const subjectLabels = subjectStats.map(s => s.subject_name || 'Uncategorized');
-        const subjectScores = subjectStats.map(s => 
-            s.total > 0 ? (s.correct / s.total * 100) : 0
-        );
-
-        // Function to get bar colour based on score
-        function getBarColor(value) {
-            if (value < 33) return '#ef4444';      // red for below 33%
-            if (value < 50) return '#f59e0b';      // yellow for 33-49%
-            if (value < 75) return '#8b5cf6';      // violet for 50-75%
-            return '#10b981';                       // green for above 75%
-        }
-
         // ---------- BAR CHART (Subject Mastery) ----------
         const subjectCtx = document.getElementById('subjectChart')?.getContext('2d');
-        if (subjectCtx && subjectLabels.length > 0) {
+        
+        if (subjectCtx && subjectStats && subjectStats.length > 0) {
+            const subjectLabels = subjectStats.map(s => s.subject_name);
+            const subjectScores = subjectStats.map(s => s.percentage);
+
+            // Function to get bar colour based on score
+            function getBarColor(value) {
+                if (value < 33) return '#ef4444';      // red for below 33%
+                if (value < 50) return '#f59e0b';      // yellow for 33-49%
+                if (value < 75) return '#8b5cf6';      // violet for 50-75%
+                return '#10b981';                       // green for above 75%
+            }
+
             const barColors = subjectScores.map(score => getBarColor(score));
             
             new Chart(subjectCtx, {
@@ -417,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     labels: subjectLabels,
                     datasets: [{
                         label: 'Average Score (%)',
-                        data: subjectScores.map(s => Math.round(s * 10) / 10),
+                        data: subjectScores,
                         backgroundColor: barColors,
                         borderWidth: 1,
                         borderRadius: 4,
@@ -433,14 +431,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             title: { 
                                 display: true, 
                                 text: 'Score (%)' 
-                            },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
                             }
                         }
                     },
@@ -457,92 +447,77 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // ---------- LINE CHART (Score Trend) ----------
-        // Get recent attempts data
-        const recentAttempts = {{ recent_attempts|safe|default:'[]' }};
+        const trendCtx = document.getElementById('trendChart')?.getContext('2d');
         
-        if (recentAttempts.length > 1) {  // Need at least 2 points for a line
+        if (trendCtx && recentAttempts && recentAttempts.length > 1) {
             // Sort by date (oldest first for the chart)
-            const sortedAttempts = [...recentAttempts].reverse();
+            const sortedAttempts = [...recentAttempts].sort((a, b) => 
+                new Date(a.submitted_at) - new Date(b.submitted_at)
+            );
             
             const labels = sortedAttempts.map(a => {
+                if (!a.submitted_at) return 'N/A';
                 const date = new Date(a.submitted_at);
                 return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             });
             
-            const scores = sortedAttempts.map(a => 
-                a.total_marks > 0 ? (a.correct_answers / a.total_marks * 100) : 0
-            );
+            const scores = sortedAttempts.map(a => a.percentage);
 
-            const trendCtx = document.getElementById('trendChart')?.getContext('2d');
-            if (trendCtx) {
-                new Chart(trendCtx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Your Score',
-                            data: scores.map(s => Math.round(s * 10) / 10),
-                            borderColor: '#4f46e5',
-                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                            tension: 0.2,
-                            pointBackgroundColor: '#4f46e5',
-                            pointBorderColor: 'white',
-                            pointRadius: 6,
-                            pointHoverRadius: 8,
-                            fill: true,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                title: { 
-                                    display: true, 
-                                    text: 'Score (%)' 
-                                },
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.05)'
-                                }
-                            },
-                            x: {
-                                title: { 
-                                    display: true, 
-                                    text: 'Test Date' 
-                                },
-                                grid: {
-                                    display: false
-                                }
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Your Score',
+                        data: scores,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        tension: 0.2,
+                        pointBackgroundColor: '#4f46e5',
+                        pointBorderColor: 'white',
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { 
+                                display: true, 
+                                text: 'Score (%)' 
                             }
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: (ctx) => {
-                                        const attempt = sortedAttempts[ctx.dataIndex];
-                                        return [
-                                            `Score: ${ctx.raw}%`,
-                                            `Correct: ${attempt.correct_answers}/${attempt.total_marks}`
-                                        ];
-                                    }
+                        x: {
+                            title: { 
+                                display: true, 
+                                text: 'Test Date' 
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const attempt = sortedAttempts[ctx.dataIndex];
+                                    return [
+                                        `Score: ${ctx.raw}%`,
+                                        `Correct: ${attempt.correct_answers}/${attempt.total_marks}`
+                                    ];
                                 }
-                            },
-                            legend: {
-                                display: true,
-                                position: 'top',
                             }
                         }
                     }
-                });
-            }
-        } else {
-            // Hide or show placeholder
-            const trendCanvas = document.getElementById('trendChart');
-            if (trendCanvas) {
-                trendCanvas.style.display = 'none';
-            }
+                }
+            });
+        } else if (trendCtx) {
+            // Show placeholder if less than 2 attempts
+            const parent = trendCtx.canvas.parentNode;
+            parent.innerHTML = '<div class="text-center py-8 text-gray-400">Take at least 2 tests to see your progress trend</div>';
         }
     } catch(error) {
         console.log('Chart error:', error);
