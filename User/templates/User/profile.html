@@ -2,6 +2,7 @@
 {% load form_tags %}
 
 {% block title %}Profile{% endblock %}
+
 {% block content %}
 <div class="max-w-4xl mx-auto">
 
@@ -160,18 +161,18 @@
         </div>
     </div>
 
-    <!-- USER DASHBOARD SECTION -->
+    <!-- USER DASHBOARD SECTION WITH REAL DATA -->
     <div class="bg-white rounded-xl shadow p-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">User Dashboard</h2>
         
-        <!-- Dashboard Stats Grid -->
+        <!-- Dashboard Stats Grid with Real Data -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <!-- Stats Card 1 -->
+            <!-- Stats Card 1 - Total Exams -->
             <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-blue-600 font-medium">Total Exams</p>
-                        <p class="text-2xl font-bold text-gray-800">12</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ total_tests|default:0 }}</p>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                         <i class="fa-solid fa-file-lines"></i>
@@ -179,12 +180,12 @@
                 </div>
             </div>
 
-            <!-- Stats Card 2 -->
+            <!-- Stats Card 2 - Completed -->
             <div class="bg-green-50 rounded-lg p-4 border border-green-100">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-green-600 font-medium">Completed</p>
-                        <p class="text-2xl font-bold text-gray-800">8</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ total_tests|default:0 }}</p>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
                         <i class="fa-solid fa-check-circle"></i>
@@ -192,12 +193,12 @@
                 </div>
             </div>
 
-            <!-- Stats Card 3 -->
+            <!-- Stats Card 3 - Avg. Score -->
             <div class="bg-purple-50 rounded-lg p-4 border border-purple-100">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-purple-600 font-medium">Avg. Score</p>
-                        <p class="text-2xl font-bold text-gray-800">85%</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ avg_score|default:0 }}%</p>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
                         <i class="fa-solid fa-chart-line"></i>
@@ -206,45 +207,38 @@
             </div>
         </div>
 
-        <!-- Recent Activity -->
+        <!-- Recent Activity with Real Data -->
         <div class="mb-6">
             <h3 class="text-lg font-medium text-gray-700 mb-3">Recent Activity</h3>
             <div class="space-y-3">
-                <!-- Activity Item 1 -->
+                {% for attempt in recent_attempts %}
                 <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                         <i class="fa-solid fa-pen-to-square text-sm"></i>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-800">Mathematics Exam</p>
-                        <p class="text-xs text-gray-500">Completed • 2 days ago</p>
+                        <p class="text-sm font-medium text-gray-800">{{ attempt.mock_test.title }}</p>
+                        <p class="text-xs text-gray-500">
+                            Completed • {{ attempt.submitted_at|timesince }} ago
+                            {% if attempt.total_marks > 0 %}
+                                • Score: {{ attempt.correct_answers }}/{{ attempt.total_marks }}
+                            {% endif %}
+                        </p>
                     </div>
-                    <span class="text-sm font-medium text-green-600">92%</span>
+                    {% if attempt.total_marks > 0 %}
+                        {% with percentage=attempt.correct_answers|div:attempt.total_marks|mul:100 %}
+                            <span class="text-sm font-medium 
+                                {% if percentage >= 80 %}text-green-600
+                                {% elif percentage >= 60 %}text-yellow-600
+                                {% else %}text-red-600{% endif %}">
+                                {{ percentage|floatformat:1 }}%
+                            </span>
+                        {% endwith %}
+                    {% endif %}
                 </div>
-
-                <!-- Activity Item 2 -->
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
-                        <i class="fa-regular fa-clock"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-800">Physics Practice Test</p>
-                        <p class="text-xs text-gray-500">In Progress • 70% complete</p>
-                    </div>
-                    <span class="text-sm font-medium text-yellow-600">70%</span>
-                </div>
-
-                <!-- Activity Item 3 -->
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
-                        <i class="fa-solid fa-trophy"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-800">Chemistry Challenge</p>
-                        <p class="text-xs text-gray-500">Achievement unlocked</p>
-                    </div>
-                    <span class="text-sm font-medium text-purple-600">Top 10%</span>
-                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm text-center py-4">No completed tests yet</p>
+                {% endfor %}
             </div>
         </div>
 
@@ -252,11 +246,11 @@
         <div>
             <h3 class="text-lg font-medium text-gray-700 mb-3">Quick Actions</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <a href="#" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <a href="{% url 'exams:mock-test-list' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                     <i class="fa-solid fa-book-open text-blue-600 mb-1"></i>
                     <span class="text-xs text-gray-600">New Exam</span>
                 </a>
-                <a href="#" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <a href="{% url 'exams:dashboard' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                     <i class="fa-solid fa-chart-simple text-green-600 mb-1"></i>
                     <span class="text-xs text-gray-600">Analytics</span>
                 </a>
