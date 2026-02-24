@@ -1,9 +1,12 @@
-# User/views.py (or wherever your profile view is located)
+# User/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Case, When, IntegerField, F, Q
 from django.contrib import messages
-from .forms import ProfileForm  # Make sure this import path is correct
+import json
+from datetime import datetime
+
+from .forms import ProfileForm
 
 # Import from your exams app
 from exams.models import MockTestAttempt, UserAnswer, Testimonial
@@ -25,7 +28,7 @@ def profile_view(request):
                 user.email = form.cleaned_data['email']
                 user.save()
             messages.success(request, 'Your profile has been updated successfully!')
-            return redirect('User:profile')  # Updated URL pattern with app name
+            return redirect('User:profile')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -61,14 +64,14 @@ def profile_view(request):
         avg_score = round(total_percentage / total_tests, 1)
         best_score = round(best_score, 1)
 
-    # ----- Subject performance data -----
+    # ----- Subject performance data for bar chart -----
     user_answers = UserAnswer.objects.filter(
         attempt__user=user,
         attempt__is_completed=True
     ).select_related('question__subject', 'selected_option')
 
     # Aggregate per subject
-    subject_stats = user_answers.values(
+    subject_stats_qs = user_answers.values(
         subject_name=F('question__subject__name')
     ).annotate(
         total=Count('id'),
@@ -78,8 +81,35 @@ def profile_view(request):
         ))
     ).order_by('subject_name')
 
-    # ----- Recent activity (latest 3 attempts) -----
-    recent_attempts = attempts[:3]
+    # Convert to list for template (makes it easier to work with)
+    subject_stats = []
+    for stat in subject_stats_qs:
+        subject_stats.append({
+            'subject_name': stat['subject_name'] or 'Uncategorized',
+            'total': stat['total'],
+            'correct': stat['correct'],
+            'percentage': round((stat['correct'] / stat['total'] * 100), 1) if stat['total'] > 0 else 0
+        })
+
+    # ----- Recent activity (latest 5 attempts) -----
+    recent_attempts = attempts[:5]
+    
+    # Prepare recent attempts data for line chart (convert to list of dicts)
+    recent_attempts_list = []
+    for attempt in recent_attempts:
+        if attempt.total_marks > 0:
+            percentage = (attempt.correct_answers / attempt.total_marks) * 100
+        else:
+            percentage = 0
+            
+        recent_attempts_list.append({
+            'id': attempt.id,
+            'mock_test__title': attempt.mock_test.title,
+            'submitted_at': attempt.submitted_at.isoformat() if attempt.submitted_at else None,
+            'correct_answers': attempt.correct_answers,
+            'total_marks': attempt.total_marks,
+            'percentage': round(percentage, 1)
+        })
     
     # ----- Additional useful stats -----
     in_progress_tests = MockTestAttempt.objects.filter(
@@ -103,13 +133,16 @@ def profile_view(request):
     latest_attempt = attempts.first()
     last_activity_date = latest_attempt.submitted_at if latest_attempt else None
     
+    # Convert subject_stats to JSON for JavaScript
+    subject_stats_json = json.dumps(subject_stats)
+    
     context = {
         'form': form,
         # Core dashboard stats
         'total_tests': total_tests,
         'avg_score': avg_score,
         'best_score': best_score,
-        'recent_attempts': recent_attempts,
+        'recent_attempts': attempts[:3],  # Keep original for template loop
         'user_testimonial': user_testimonial,
         
         # Additional stats
@@ -121,8 +154,12 @@ def profile_view(request):
         'correct_answers': correct_answers,
         'last_activity_date': last_activity_date,
         
-        # Subject data
-        'subject_stats': subject_stats,
+        # Subject data for both template and charts
+        'subject_stats': subject_stats,  # For template loop
+        'subject_stats_json': subject_stats_json,  # For charts
+        
+        # Recent attempts for line chart
+        'recent_attempts_json': json.dumps(recent_attempts_list),
     }
     
-    return render(request, 'User/profile.html', request)  # Make sure template path is correct
+    return render(request, 'User/profile.html', context)
