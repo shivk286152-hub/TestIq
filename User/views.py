@@ -1,9 +1,9 @@
-# profile/views.py
+# User/views.py (or wherever your profile view is located)
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Case, When, IntegerField, F, Q
 from django.contrib import messages
-from .forms import ProfileForm
+from .forms import ProfileForm  # Make sure this import path is correct
 
 # Import from your exams app
 from exams.models import MockTestAttempt, UserAnswer, Testimonial
@@ -25,13 +25,13 @@ def profile_view(request):
                 user.email = form.cleaned_data['email']
                 user.save()
             messages.success(request, 'Your profile has been updated successfully!')
-            return redirect('profile')  # Make sure this URL name matches your URL pattern
+            return redirect('User:profile')  # Updated URL pattern with app name
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
         form = ProfileForm(instance=user.profile)
     
-    # ----- DASHBOARD DATA (copied from your dashboard view) -----
+    # ----- DASHBOARD DATA (from your exams app) -----
     # Get all completed attempts
     attempts = MockTestAttempt.objects.filter(
         user=user,
@@ -61,13 +61,13 @@ def profile_view(request):
         avg_score = round(total_percentage / total_tests, 1)
         best_score = round(best_score, 1)
 
-    # ----- Subject performance data (for potential future expansion) -----
+    # ----- Subject performance data -----
     user_answers = UserAnswer.objects.filter(
         attempt__user=user,
         attempt__is_completed=True
     ).select_related('question__subject', 'selected_option')
 
-    # Aggregate per subject (if you want to show subject-wise stats)
+    # Aggregate per subject
     subject_stats = user_answers.values(
         subject_name=F('question__subject__name')
     ).annotate(
@@ -79,20 +79,18 @@ def profile_view(request):
     ).order_by('subject_name')
 
     # ----- Recent activity (latest 3 attempts) -----
-    recent_attempts = attempts[:3]  # Get latest 3 attempts
+    recent_attempts = attempts[:3]
     
-    # ----- Calculate in-progress tests (if needed) -----
+    # ----- Additional useful stats -----
     in_progress_tests = MockTestAttempt.objects.filter(
         user=user,
         is_completed=False
     ).count()
     
-    # ----- Calculate total questions answered -----
     total_questions_answered = UserAnswer.objects.filter(
         attempt__user=user
     ).count()
     
-    # ----- Calculate accuracy rate -----
     correct_answers = UserAnswer.objects.filter(
         attempt__user=user,
         selected_option__is_correct=True
@@ -102,7 +100,6 @@ def profile_view(request):
     if total_questions_answered > 0:
         accuracy_rate = round((correct_answers / total_questions_answered) * 100, 1)
     
-    # ----- Get latest attempt date -----
     latest_attempt = attempts.first()
     last_activity_date = latest_attempt.submitted_at if latest_attempt else None
     
@@ -115,41 +112,17 @@ def profile_view(request):
         'recent_attempts': recent_attempts,
         'user_testimonial': user_testimonial,
         
-        # Additional stats you might want to display
+        # Additional stats
         'attempts_count': total_tests,
-        'completed_exams': total_tests,  # Since is_completed=True, total_tests = completed
+        'completed_exams': total_tests,
         'in_progress_tests': in_progress_tests,
         'total_questions_answered': total_questions_answered,
         'accuracy_rate': accuracy_rate,
         'correct_answers': correct_answers,
         'last_activity_date': last_activity_date,
         
-        # Subject data (if you want to display subject-wise performance)
+        # Subject data
         'subject_stats': subject_stats,
-        
-        # For debugging (remove in production)
-        'debug_attempts': attempts[:5],  # Show first 5 attempts for debugging
     }
     
-    return render(request, 'profile/profile.html', context)
-
-
-@login_required
-def profile_edit_view(request):
-    """
-    Separate view for editing profile if you want a dedicated edit page.
-    """
-    if request.method == 'POST':
-        form = ProfileForm(request.POST, request.FILES, instance=request.user.profile)
-        if form.is_valid():
-            form.save()
-            # Update email
-            if form.cleaned_data['email'] != request.user.email:
-                request.user.email = form.cleaned_data['email']
-                request.user.save()
-            messages.success(request, 'Profile updated successfully!')
-            return redirect('profile')
-    else:
-        form = ProfileForm(instance=request.user.profile)
-    
-    return render(request, 'profile/profile_edit.html', {'form': form})
+    return render(request, 'User/profile.html', request)  # Make sure template path is correct
