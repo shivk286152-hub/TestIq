@@ -1,5 +1,4 @@
-
-# profile/templatetags/math_filters.py
+# User/templatetags/math_filters.py
 from django import template
 
 register = template.Library()
