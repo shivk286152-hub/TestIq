@@ -1,16 +1,17 @@
+<!-- templates/User/profile.html -->
 {% extends "base.html" %}
 {% load form_tags %}
-{% load math_filters %}  <!-- Load this if you created the math_filters.py file -->
+{% load math_filters %}
 
-{% block title %}Profile{% endblock %}
+{% block title %}Profile - TestIQ{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     <!-- PAGE HEADER -->
     <div class="mb-6">
         <h1 class="text-2xl font-semibold text-gray-800">Profile Settings</h1>
-        <p class="text-sm text-gray-500">Update your personal information</p>
+        <p class="text-sm text-gray-500">Update your personal information and track your progress</p>
     </div>
 
     <!-- COLLAPSIBLE PROFILE CARD -->
@@ -160,6 +161,40 @@
         </div>
     </div>
 
+    <!-- PERFORMANCE CHARTS SECTION -->
+    <div class="bg-white rounded-xl shadow p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Performance Overview</h2>
+        
+        <!-- Two charts grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Bar chart - Subject Mastery -->
+            <div>
+                <h3 class="text-sm font-medium text-gray-600 mb-2">Subject Mastery</h3>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="subjectChart"></canvas>
+                </div>
+                {% if not subject_stats %}
+                <div class="text-center py-4 text-gray-400 text-sm">
+                    <p>Take tests to see subject-wise performance</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Line chart - Score Trend -->
+            <div>
+                <h3 class="text-sm font-medium text-gray-600 mb-2">Score Trend</h3>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+                {% if not recent_attempts %}
+                <div class="text-center py-4 text-gray-400 text-sm">
+                    <p>Take tests to see your progress</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <!-- USER DASHBOARD SECTION WITH REAL DATA -->
     <div class="bg-white rounded-xl shadow p-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Dashboard</h2>
@@ -219,7 +254,7 @@
             </div>
         </div>
 
-        <!-- Additional Stats Row (Optional) -->
+        <!-- Additional Stats Row -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center">
             <div class="bg-gray-50 rounded-lg p-3">
                 <p class="text-xs text-gray-500">Questions Answered</p>
@@ -245,6 +280,36 @@
             </div>
         </div>
 
+        <!-- Subject-wise Performance (Text Version) -->
+        {% if subject_stats %}
+        <div class="mb-6">
+            <h3 class="text-lg font-medium text-gray-700 mb-3">Subject-wise Performance</h3>
+            <div class="space-y-3">
+                {% for subject in subject_stats %}
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm text-gray-600">{{ subject.subject_name }}</span>
+                        <span class="text-sm font-medium">
+                            {{ subject.correct }}/{{ subject.total }} ({{ subject.correct|div:subject.total|mul:100|floatformat:1 }}%)
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        {% with percentage=subject.correct|div:subject.total|mul:100 %}
+                        <div class="h-2 rounded-full 
+                            {% if percentage >= 75 %}bg-green-500
+                            {% elif percentage >= 50 %}bg-blue-500
+                            {% elif percentage >= 33 %}bg-yellow-500
+                            {% else %}bg-red-500{% endif %}" 
+                            style="width: {{ percentage }}%">
+                        </div>
+                        {% endwith %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Recent Activity with Real Data -->
         <div class="mb-6">
             <h3 class="text-lg font-medium text-gray-700 mb-3">Recent Activity</h3>
@@ -266,8 +331,9 @@
                     {% if attempt.total_marks > 0 %}
                         {% with percentage=attempt.correct_answers|div:attempt.total_marks|mul:100 %}
                             <span class="text-sm font-medium px-2 py-1 rounded
-                                {% if percentage >= 80 %}bg-green-100 text-green-700
-                                {% elif percentage >= 60 %}bg-yellow-100 text-yellow-700
+                                {% if percentage >= 75 %}bg-green-100 text-green-700
+                                {% elif percentage >= 50 %}bg-blue-100 text-blue-700
+                                {% elif percentage >= 33 %}bg-yellow-100 text-yellow-700
                                 {% else %}bg-red-100 text-red-700{% endif %}">
                                 {{ percentage|floatformat:1 }}%
                             </span>
@@ -280,7 +346,7 @@
                         <i class="fa-solid fa-chart-line text-4xl"></i>
                     </div>
                     <p class="text-gray-500">No completed tests yet</p>
-                    <a href="{% url 'exams:mock-test-list' %}" class="text-sm text-blue-600 hover:underline mt-2 inline-block">
+                    <a href="{% url 'exams:home' %}" class="text-sm text-blue-600 hover:underline mt-2 inline-block">
                         Start your first test →
                     </a>
                 </div>
@@ -292,7 +358,7 @@
         <div>
             <h3 class="text-lg font-medium text-gray-700 mb-3">Quick Actions</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <a href="{% url 'exams:mock-test-list' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                <a href="{% url 'exams:home' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
                     <i class="fa-solid fa-book-open text-blue-600 mb-1 group-hover:scale-110 transition"></i>
                     <span class="text-xs text-gray-600">New Exam</span>
                 </a>
@@ -317,6 +383,173 @@
 <!-- Add Alpine.js for collapse functionality -->
 <script src="//unpkg.com/alpinejs" defer></script>
 
+<!-- Chart.js and Chart Initialization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    try {
+        // Prepare data from Django template
+        const subjectStats = {{ subject_stats|safe|default:'[]' }};
+        
+        // Bar Chart Data
+        const subjectLabels = subjectStats.map(s => s.subject_name || 'Uncategorized');
+        const subjectScores = subjectStats.map(s => 
+            s.total > 0 ? (s.correct / s.total * 100) : 0
+        );
+
+        // Function to get bar colour based on score
+        function getBarColor(value) {
+            if (value < 33) return '#ef4444';      // red for below 33%
+            if (value < 50) return '#f59e0b';      // yellow for 33-49%
+            if (value < 75) return '#8b5cf6';      // violet for 50-75%
+            return '#10b981';                       // green for above 75%
+        }
+
+        // ---------- BAR CHART (Subject Mastery) ----------
+        const subjectCtx = document.getElementById('subjectChart')?.getContext('2d');
+        if (subjectCtx && subjectLabels.length > 0) {
+            const barColors = subjectScores.map(score => getBarColor(score));
+            
+            new Chart(subjectCtx, {
+                type: 'bar',
+                data: {
+                    labels: subjectLabels,
+                    datasets: [{
+                        label: 'Average Score (%)',
+                        data: subjectScores.map(s => Math.round(s * 10) / 10),
+                        backgroundColor: barColors,
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { 
+                                display: true, 
+                                text: 'Score (%)' 
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `Score: ${ctx.raw}%`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ---------- LINE CHART (Score Trend) ----------
+        // Get recent attempts data
+        const recentAttempts = {{ recent_attempts|safe|default:'[]' }};
+        
+        if (recentAttempts.length > 1) {  // Need at least 2 points for a line
+            // Sort by date (oldest first for the chart)
+            const sortedAttempts = [...recentAttempts].reverse();
+            
+            const labels = sortedAttempts.map(a => {
+                const date = new Date(a.submitted_at);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            
+            const scores = sortedAttempts.map(a => 
+                a.total_marks > 0 ? (a.correct_answers / a.total_marks * 100) : 0
+            );
+
+            const trendCtx = document.getElementById('trendChart')?.getContext('2d');
+            if (trendCtx) {
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Your Score',
+                            data: scores.map(s => Math.round(s * 10) / 10),
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            tension: 0.2,
+                            pointBackgroundColor: '#4f46e5',
+                            pointBorderColor: 'white',
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: { 
+                                    display: true, 
+                                    text: 'Score (%)' 
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                title: { 
+                                    display: true, 
+                                    text: 'Test Date' 
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const attempt = sortedAttempts[ctx.dataIndex];
+                                        return [
+                                            `Score: ${ctx.raw}%`,
+                                            `Correct: ${attempt.correct_answers}/${attempt.total_marks}`
+                                        ];
+                                    }
+                                }
+                            },
+                            legend: {
+                                display: true,
+                                position: 'top',
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            // Hide or show placeholder
+            const trendCanvas = document.getElementById('trendChart');
+            if (trendCanvas) {
+                trendCanvas.style.display = 'none';
+            }
+        }
+    } catch(error) {
+        console.log('Chart error:', error);
+    }
+});
+</script>
+
 <!-- Display Django messages if any -->
 {% if messages %}
 <div class="fixed top-4 right-4 z-50 space-y-2">
@@ -330,5 +563,16 @@
     {% endfor %}
 </div>
 {% endif %}
+
+<!-- Add this CSS for better chart appearance -->
+<style>
+    canvas {
+        max-width: 100%;
+        height: auto !important;
+    }
+    .rotate-90 {
+        transform: rotate(90deg);
+    }
+</style>
 
 {% endblock %}
