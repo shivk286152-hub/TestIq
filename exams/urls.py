@@ -15,8 +15,11 @@ urlpatterns = [
     # Mocktest detail
     path("mocktest/<int:pk>/", views.mocktest_detail, name="mocktest_detail"),
 
-    # Start test page
-    path("start/<int:mocktest_id>/", views.start_test, name="start_test"),
+    # NEW: Pretest detail page (instructions, terms, language)
+    path("test/<int:mocktest_id>/pretest/", views.pretest_detail, name="pretest_detail"),
+
+    # Start test page (handles form submission from pretest)
+    path("test/<int:mocktest_id>/start/", views.start_test, name="start_test"),
 
     # Attempt test (main exam page)
     path("attempt/<int:mocktest_id>/", views.attempt_test, name="attempt_test"),
@@ -49,9 +52,10 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
     
     path('rankings/<int:attempt_id>/', views.view_rankings, name='view_rankings'),
-     # ... existing URLs ...
+    
     path('detailed-analysis/<int:attempt_id>/', views.detailed_analysis, name='detailed_analysis'),
-    # ... existing urls ...
+    
+    # Testimonial URLs
     path('testimonial/submit/', views.submit_testimonial, name='submit_testimonial'),
     path('testimonial/<int:testimonial_id>/edit/', views.edit_testimonial, name='edit_testimonial'),
     path('testimonial/<int:testimonial_id>/delete/', views.delete_testimonial, name='delete_testimonial'),

@@ -1,10 +1,12 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
-from django.db.models import Count, Avg, F, Q
-from django.http import HttpResponse
+from django.db.models import Count, Avg, F, Q, Case, When, IntegerField
+from django.contrib import messages
+
 
 from .models import (
     ExamCategory,
@@ -16,6 +18,8 @@ from .models import (
     UserAnswer,
     Testimonial 
 )
+from .forms import TestimonialForm
+
 
 # ==============================
 # HOME
@@ -287,16 +291,11 @@ def submit_test(request, mocktest_id):
     attempt.save()
 
     request.session.pop(f"answers_{mocktest.id}", None)
-
-    return redirect(
-        "exams:result_dashboard",
-        attempt_id=attempt.id
-    )
-
-
-# ==============================
-# RESULT DASHBOARD
-# ==============================
+    
+     
+    # ADD THIS MISSING RETURN STATEMENT
+    return redirect("exams:result_dashboard", attempt_id=attempt.id)
+    
 @login_required
 def result_dashboard(request, attempt_id):
     attempt = get_object_or_404(
@@ -312,16 +311,7 @@ def result_dashboard(request, attempt_id):
 
     # Basic calculations
     total_questions = answers.count()
-    correct = answers.filter(
-        selected_option__is_correct=True
-    ).count()  # This works if selected_option has is_correct field
-    
-    # Or calculate manually if the above doesn't work
-    # correct = 0
-    # for answer in answers:
-    #     if answer.selected_option and answer.selected_option.is_correct:
-    #         correct += 1
-    
+    correct = answers.filter(selected_option__is_correct=True).count()
     wrong = total_questions - correct
     
     # Calculate percentage
@@ -329,7 +319,44 @@ def result_dashboard(request, attempt_id):
     if total_questions > 0:
         percentage = round((correct / total_questions) * 100, 1)
     
-    # Simple subject stats (if you have subjects)
+    # Calculate RANK and PERCENTILE
+    rank = None
+    percentile = None
+    
+    # Get all completed attempts for this mock test with calculated percentages
+    from django.db.models import F, ExpressionWrapper, FloatField
+    
+    all_attempts = MockTestAttempt.objects.filter(
+        mock_test=attempt.mock_test,
+        is_completed=True
+    ).annotate(
+        score_percentage=ExpressionWrapper(
+            F('correct_answers') * 100.0 / F('total_marks'),
+            output_field=FloatField()
+        )
+    ).order_by('-score_percentage')
+    
+    if all_attempts.exists():
+        # Calculate rank (with tie handling)
+        current_rank = 1
+        prev_score = None
+        for idx, att in enumerate(all_attempts):
+            if prev_score != att.score_percentage:
+                current_rank = idx + 1
+            
+            if att.id == attempt.id:
+                rank = current_rank
+                break
+            
+            prev_score = att.score_percentage
+        
+        # Calculate percentile
+        total_attempts = all_attempts.count()
+        if total_attempts > 0:
+            lower_count = all_attempts.filter(score_percentage__lt=percentage).count()
+            percentile = round((lower_count / total_attempts) * 100, 1)
+    
+    # Subject stats (if you have subjects)
     subject_stats = []
     # You can add subject stats logic here if needed
     
@@ -346,11 +373,10 @@ def result_dashboard(request, attempt_id):
         "correct": correct,
         "wrong": wrong,
         "percentage": percentage,
-        "subject_stats": subject_stats,  # Pass empty list if not used
-    })
-
-
-   # Add this to your existing views.py
+        "rank": rank,
+        "percentile": percentile,
+        "subject_stats": subject_stats,
+    })    
 
 @login_required
 def view_rankings(request, attempt_id):
@@ -712,27 +738,25 @@ def detailed_analysis(request, attempt_id):
 @login_required
 def dashboard(request):
     """
-    User dashboard showing all test attempts and statistics
+    User dashboard showing all test attempts, statistics, and performance charts.
     """
+    # Get all completed attempts
     attempts = MockTestAttempt.objects.filter(
         user=request.user,
         is_completed=True
     ).select_related('mock_test', 'mock_test__subcategory').order_by('-submitted_at')
-    
+
     # Get user's testimonial if exists
     try:
         user_testimonial = Testimonial.objects.filter(user=request.user).first()
     except:
-        # If Testimonial model doesn't exist yet (migrations not run), set to None
         user_testimonial = None
-    
-    # Calculate overall statistics
+
+    # ----- Overall statistics -----
     total_tests = attempts.count()
-    
-    # Calculate average score
     avg_score = 0
     best_score = 0
-    
+
     if total_tests > 0:
         total_percentage = 0
         for attempt in attempts:
@@ -741,35 +765,72 @@ def dashboard(request):
                 total_percentage += percentage
                 if percentage > best_score:
                     best_score = percentage
-        
+
         avg_score = round(total_percentage / total_tests, 1)
         best_score = round(best_score, 1)
-    
-    # Get subject-wise performance
-    subject_stats = []
-    
-    # Optional: Add subject-wise stats if you have the data
-    # This is just a placeholder - customize based on your data structure
-    if attempts.exists():
-        # You can add logic here to calculate subject-wise performance
-        pass
-    
+
+    # ----- Subject‑wise performance for bar chart -----
+    # Get all answers from the user's completed attempts
+    user_answers = UserAnswer.objects.filter(
+        attempt__user=request.user,
+        attempt__is_completed=True
+    ).select_related('question__subject', 'selected_option')
+
+    # Aggregate per subject
+    subject_stats_qs = user_answers.values(
+        subject_name=F('question__subject__name')
+    ).annotate(
+        total=Count('id'),
+        correct=Count(Case(
+            When(selected_option__is_correct=True, then=1),
+            output_field=IntegerField()
+        ))
+    ).order_by('subject_name')
+
+    # Build the lists needed for the chart
+    subject_labels = []
+    subject_scores = []
+    for stat in subject_stats_qs:
+        subject_labels.append(stat['subject_name'] or 'Uncategorized')
+        # Avoid division by zero (shouldn't happen, but safe)
+        percentage = (stat['correct'] / stat['total'] * 100) if stat['total'] > 0 else 0
+        subject_scores.append(round(percentage, 1))
+
+    # ----- Attempts data for line chart (chronological order) -----
+    attempts_chrono = attempts.order_by('submitted_at')  # oldest first
+    attempts_data = []
+    for attempt in attempts_chrono:
+        if attempt.total_marks > 0:
+            score_percentage = (attempt.correct_answers / attempt.total_marks) * 100
+        else:
+            score_percentage = 0
+
+        attempts_data.append({
+            'date': attempt.submitted_at.strftime('%Y-%m-%d'),  # you can also include time if needed
+            'test_name': attempt.mock_test.title,
+            'score': round(score_percentage, 1),
+        })
+
+    # Convert to JSON strings for safe use in JavaScript
+    import json
+    subject_labels_json = json.dumps(subject_labels)
+    subject_scores_json = json.dumps(subject_scores)
+    attempts_json = json.dumps(attempts_data)
+
     context = {
         'attempts': attempts,
         'total_tests': total_tests,
         'avg_score': avg_score,
         'best_score': best_score,
-        'subject_stats': subject_stats,
-        'user_testimonial': user_testimonial,  # Add this line
+        'subject_stats': subject_stats_qs,          # if you still want the original list
+        'user_testimonial': user_testimonial,
+        # New keys for charts
+        'subject_labels_json': subject_labels_json,
+        'subject_scores_json': subject_scores_json,
+        'attempts_json': attempts_json,
     }
-    
-    return render(request, 'exams/dashboard.html', context)
 
-# Add these imports at the top of your views.py if not already present
-from django.contrib import messages
-from django.http import JsonResponse
-from .forms import TestimonialForm
-from .models import Testimonial
+    return render(request, 'exams/dashboard.html', context)
 
 # ==============================
 # TESTIMONIAL VIEWS
@@ -788,6 +849,7 @@ def submit_testimonial(request):
         if form.is_valid():
             testimonial = form.save(commit=False)
             testimonial.user = request.user
+            testimonial.is_active = False  # IMPORTANT: Set to False until admin approves
             testimonial.save()
             
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -802,7 +864,6 @@ def submit_testimonial(request):
         form = TestimonialForm()
     
     return render(request, 'exams/submit_testimonial.html', {'form': form})
-
 @login_required
 def edit_testimonial(request, testimonial_id):
     """Allow users to edit their own testimonials"""
@@ -835,3 +896,78 @@ def delete_testimonial(request, testimonial_id):
     return render(request, 'exams/confirm_delete_testimonial.html', {
         'testimonial': testimonial
     })
+    
+ # ==============================
+# PRETEST DETAIL PAGE
+# ==============================
+@login_required
+def pretest_detail(request, mocktest_id):
+    """
+    Pretest page showing instructions, terms, and language selection
+    """
+    mocktest = get_object_or_404(MockTest, id=mocktest_id)
+    
+    # Check if there's an incomplete attempt (to resume)
+    existing_attempt = MockTestAttempt.objects.filter(
+        user=request.user,
+        mock_test=mocktest,
+        is_completed=False
+    ).first()
+    
+    context = {
+        'mocktest': mocktest,
+        'existing_attempt': existing_attempt,
+        'languages': [
+            {'code': 'en', 'name': 'English'},
+            {'code': 'hi', 'name': 'हिन्दी (Hindi)'},
+        ]
+    }
+    return render(request, 'exams/pretest_detail.html', context)
+
+
+# ==============================
+# VERIFY AND START TEST
+# ==============================
+@login_required
+def start_test(request, mocktest_id):
+    """
+    Verify terms acceptance and language selection before starting
+    """
+    if request.method == 'POST':
+        mocktest = get_object_or_404(MockTest, id=mocktest_id)
+        
+        # Check if terms were accepted
+        terms_accepted = request.POST.get('terms_accepted')
+        selected_language = request.POST.get('language')
+        
+        if not terms_accepted:
+            messages.error(request, 'You must accept the terms and conditions to start the test.')
+            return redirect('exams:pretest_detail', mocktest_id=mocktest.id)
+        
+        if not selected_language:
+            messages.error(request, 'Please select your preferred language.')
+            return redirect('exams:pretest_detail', mocktest_id=mocktest.id)
+        
+        # Store language preference in session
+        request.session['test_language'] = selected_language
+        request.session[f'test_{mocktest.id}_language'] = selected_language
+        
+        # Create or get existing attempt
+        attempt, created = MockTestAttempt.objects.get_or_create(
+            user=request.user,
+            mock_test=mocktest,
+            is_completed=False,
+            defaults={"started_at": timezone.now()}
+        )
+        
+        # If attempt exists but not started, update started_at
+        if not created and not attempt.started_at:
+            attempt.started_at = timezone.now()
+            attempt.save()
+        
+        # Redirect to the actual test
+        return redirect("exams:attempt_test", mocktest_id=mocktest.id)
+    
+    # If not POST, redirect to pretest page
+    return redirect('exams:pretest_detail', mocktest_id=mocktest_id)   
+    

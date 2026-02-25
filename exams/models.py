@@ -341,7 +341,7 @@ class Testimonial(models.Model):
         help_text="Show this testimonial as featured"
     )
     is_active = models.BooleanField(
-        default=True,
+        default=False,
         help_text="Only active testimonials will be displayed"
     )
     display_order = models.IntegerField(

@@ -310,6 +310,7 @@ class TestimonialAdmin(admin.ModelAdmin):
     list_filter = ['is_active', 'is_featured', 'stars', 'created_at']
     search_fields = ['user__username', 'user__first_name', 'user__last_name', 'text']
     list_editable = ['is_active', 'is_featured', 'display_order']
+    actions = ['approve_testimonials', 'feature_testimonials']  # Add this line
     
     fieldsets = (
         ('User Information', {
@@ -329,3 +330,14 @@ class TestimonialAdmin(admin.ModelAdmin):
         return obj.user_name()
     user_name.short_description = 'User'
     user_name.admin_order_field = 'user__first_name'
+    
+    # Add these custom actions
+    def approve_testimonials(self, request, queryset):
+        queryset.update(is_active=True)
+        self.message_user(request, f"{queryset.count()} testimonials were approved.")
+    approve_testimonials.short_description = "Approve selected testimonials"
+    
+    def feature_testimonials(self, request, queryset):
+        queryset.update(is_featured=True)
+        self.message_user(request, f"{queryset.count()} testimonials are now featured.")
+    feature_testimonials.short_description = "Feature selected testimonials"

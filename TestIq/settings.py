@@ -1,4 +1,5 @@
 import os
+import dj_database_url
 from pathlib import Path
 
 # ----------------------------
@@ -37,11 +38,26 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
+    'ckeditor',
+    'taggit',
     'exams',
     'ExamNotification',
     'User',
     'CurrentAffairs',
 ]
+
+# CKEditor Configuration
+# CKEditor configuration
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        'height': 500,
+        'width': '100%',
+    },
+}
+# To suppress the CKEditor warning (optional)
+import warnings
+warnings.filterwarnings('ignore', message='django-ckeditor bundles CKEditor 4.22.1')
 
 # ----------------------------
 # MIDDLEWARE
@@ -72,7 +88,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.request',  # ✅ MUST BE HERE
+                'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.i18n',
@@ -93,13 +109,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'TestIq.wsgi.application'
 
 # ----------------------------
-# DATABASE
+# DATABASE (Fixed)
 # ----------------------------
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',  # fallback for local dev
+        conn_max_age=600,
+        ssl_require=os.environ.get('DATABASE_URL') is not None  # True only on Render
+    )
 }
 
 # ----------------------------
@@ -119,18 +136,23 @@ MEDIA_ROOT = BASE_DIR / "media"
 # LOGIN
 # ----------------------------
 LOGIN_REDIRECT_URL = "home"
-LOGIN_URL = '/login/'
+LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'home'
+
+# File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+
 
 # ----------------------------
 # DEFAULT AUTO FIELD
 # ----------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-
-# SESSION COOKIE SECURE 
-
+# ----------------------------
+# SESSION COOKIE SECURE
+# ----------------------------
 CSRF_TRUSTED_ORIGINS = [
     "https://testiq-3.onrender.com"
 ]

@@ -39,11 +39,11 @@
             <!-- INFO -->
             <div class="flex justify-between text-xs md:text-sm text-gray-500 mb-3">
                 <span>📝 {{ test.total_questions }} Questions</span>
-                <span>⏱ {{ test.time_limit }} min</span>
+                <span>⏱ {{ test.duration }} min</span>  <!-- Changed from time_limit to duration to match your model -->
             </div>
 
-            <!-- START BUTTON -->
-            <a href="{% url 'exams:start_test' test.id %}"
+            <!-- START BUTTON - FIXED: use test.id instead of mock_test.id -->
+            <a href="{% url 'exams:pretest_detail' test.id %}"
                class="block text-center bg-green-600 text-white py-2 rounded hover:bg-green-700 transition text-sm">
                 Start Test
             </a>
