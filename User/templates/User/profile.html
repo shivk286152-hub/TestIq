@@ -1,39 +1,42 @@
-<!-- templates/User/profile.html -->
 {% extends "base.html" %}
 {% load form_tags %}
-{% load math_filters %}
+{% load math_filters %}  <!-- Create this if you need math filters -->
 
-{% block title %}Profile - TestIQ{% endblock %}
+{% block title %}Profile{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-4xl mx-auto">
 
     <!-- PAGE HEADER -->
     <div class="mb-6">
         <h1 class="text-2xl font-semibold text-gray-800">Profile Settings</h1>
-        <p class="text-sm text-gray-500">Update your personal information and track your progress</p>
+        <p class="text-sm text-gray-500">Update your personal information</p>
     </div>
 
     <!-- COLLAPSIBLE PROFILE CARD -->
     <div class="bg-white rounded-xl shadow mb-8" x-data="{ expanded: false }">
         <!-- Card Header with Toggle -->
-        <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center cursor-pointer" @click="expanded = !expanded">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    {% if user.profile.profile_pic %}
+                    <img src="{{ user.profile.profile_pic.url }}" class="w-10 h-10 rounded-full object-cover">
+                    {% else %}
                     <i class="fa-solid fa-user"></i>
+                    {% endif %}
                 </div>
                 <div>
                     <h2 class="font-medium text-gray-800">{{ user.profile.name|default:user.username }}</h2>
                     <p class="text-xs text-gray-500">{{ user.email }}</p>
                 </div>
             </div>
-            <button @click="expanded = !expanded" 
+            <button type="button"
                     class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition">
                 <i class="fa-solid fa-chevron-right" :class="{ 'rotate-90': expanded }"></i>
             </button>
         </div>
 
-        <!-- Collapsible Content -->
+        <!-- Collapsible Profile Form -->
         <div x-show="expanded" 
              x-collapse
              x-transition:enter="transition ease-out duration-300"
@@ -73,9 +76,8 @@
 
                     <hr>
 
-                    <!-- GRID -->
+                    <!-- FORM GRID -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
                         <!-- NAME -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -121,36 +123,16 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 State
                             </label>
-                            <div class="relative">
-                                <select name="state" id="id_state" class="appearance-none w-full px-3 py-2 border border-gray-300 rounded-lg
-                           bg-white focus:outline-none focus:ring-2 focus:ring-blue-500
-                           focus:border-blue-500 hover:border-gray-400 transition pr-10">
-                                    <option value="">Select State</option>
-                                    <option value="Andhra Pradesh">Andhra Pradesh</option>
-                                    <option value="Bihar">Bihar</option>
-                                    <option value="Delhi">Delhi</option>
-                                    <option value="Gujarat">Gujarat</option>
-                                    <option value="Karnataka">Karnataka</option>
-                                    <option value="Maharashtra">Maharashtra</option>
-                                    <option value="Tamil Nadu">Tamil Nadu</option>
-                                    <option value="Uttar Pradesh">Uttar Pradesh</option>
-                                    <option value="West Bengal">West Bengal</option>
-                                </select>
-
-                                <!-- Custom dropdown arrow -->
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
-                                    <i class="fa-solid fa-chevron-down text-gray-400"></i>
-                                </div>
-                            </div>
+                            {{ form.state }}
                         </div>
                     </div>
 
-                    <!-- ACTIONS -->
+                    <!-- FORM ACTIONS -->
                     <div class="flex justify-end gap-4 pt-4 border-t">
-                        <a href="{% url 'User:profile' %}" 
-                           class="px-5 py-2 rounded-lg border text-gray-600 hover:bg-gray-200 hover:border-zinc-500 inline-block">
+                        <button type="button" @click="expanded = false"
+                                class="px-5 py-2 rounded-lg border text-gray-600 hover:bg-gray-200 hover:border-zinc-500">
                             Cancel
-                        </a>
+                        </button>
                         <button type="submit" class="px-6 py-2 rounded-lg bg-blue-600 text-white
                                    hover:bg-blue-700 transition">
                             Save Changes
@@ -161,52 +143,18 @@
         </div>
     </div>
 
-    <!-- PERFORMANCE CHARTS SECTION -->
-    <div class="bg-white rounded-xl shadow p-6 mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Performance Overview</h2>
-        
-        <!-- Two charts grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Bar chart - Subject Mastery -->
-            <div>
-                <h3 class="text-sm font-medium text-gray-600 mb-2">Subject Mastery</h3>
-                <div style="position: relative; height: 250px;">
-                    <canvas id="subjectChart"></canvas>
-                </div>
-                {% if not subject_stats %}
-                <div class="text-center py-4 text-gray-400 text-sm">
-                    <p>Take tests to see subject-wise performance</p>
-                </div>
-                {% endif %}
-            </div>
-            
-            <!-- Line chart - Score Trend -->
-            <div>
-                <h3 class="text-sm font-medium text-gray-600 mb-2">Score Trend</h3>
-                <div style="position: relative; height: 250px;">
-                    <canvas id="trendChart"></canvas>
-                </div>
-                {% if not recent_attempts %}
-                <div class="text-center py-4 text-gray-400 text-sm">
-                    <p>Take tests to see your progress</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- USER DASHBOARD SECTION WITH REAL DATA -->
+    <!-- ========== DYNAMIC DASHBOARD SECTION ========== -->
     <div class="bg-white rounded-xl shadow p-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Dashboard</h2>
         
-        <!-- Dashboard Stats Grid with Real Data -->
+        <!-- Stats Cards with Real Data -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <!-- Stats Card 1 - Total Exams -->
+            <!-- Total Tests -->
             <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-blue-600 font-medium">Total Exams</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ total_tests|default:0 }}</p>
+                        <p class="text-sm text-blue-600 font-medium">Total Tests</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ total_tests }}</p>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                         <i class="fa-solid fa-file-lines"></i>
@@ -214,12 +162,12 @@
                 </div>
             </div>
 
-            <!-- Stats Card 2 - In Progress -->
+            <!-- In Progress -->
             <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-yellow-600 font-medium">In Progress</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ in_progress_tests|default:0 }}</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ in_progress_tests }}</p>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
                         <i class="fa-regular fa-clock"></i>
@@ -227,12 +175,12 @@
                 </div>
             </div>
 
-            <!-- Stats Card 3 - Avg. Score -->
+            <!-- Average Score -->
             <div class="bg-purple-50 rounded-lg p-4 border border-purple-100">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-purple-600 font-medium">Avg. Score</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ avg_score|default:0 }}%</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ avg_score }}%</p>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
                         <i class="fa-solid fa-chart-line"></i>
@@ -240,15 +188,15 @@
                 </div>
             </div>
 
-            <!-- Stats Card 4 - Accuracy -->
+            <!-- Best Score -->
             <div class="bg-green-50 rounded-lg p-4 border border-green-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-green-600 font-medium">Accuracy</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ accuracy_rate|default:0 }}%</p>
+                        <p class="text-sm text-green-600 font-medium">Best Score</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ best_score }}%</p>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                        <i class="fa-solid fa-bullseye"></i>
+                        <i class="fa-solid fa-trophy"></i>
                     </div>
                 </div>
             </div>
@@ -258,101 +206,82 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center">
             <div class="bg-gray-50 rounded-lg p-3">
                 <p class="text-xs text-gray-500">Questions Answered</p>
-                <p class="text-lg font-semibold text-gray-800">{{ total_questions_answered|default:0 }}</p>
+                <p class="text-lg font-semibold text-gray-800">{{ total_questions_answered }}</p>
             </div>
             <div class="bg-gray-50 rounded-lg p-3">
                 <p class="text-xs text-gray-500">Correct Answers</p>
-                <p class="text-lg font-semibold text-green-600">{{ correct_answers|default:0 }}</p>
+                <p class="text-lg font-semibold text-green-600">{{ correct_answers }}</p>
             </div>
             <div class="bg-gray-50 rounded-lg p-3">
-                <p class="text-xs text-gray-500">Best Score</p>
-                <p class="text-lg font-semibold text-blue-600">{{ best_score|default:0 }}%</p>
+                <p class="text-xs text-gray-500">Accuracy</p>
+                <p class="text-lg font-semibold text-blue-600">{{ accuracy_rate }}%</p>
             </div>
             <div class="bg-gray-50 rounded-lg p-3">
-                <p class="text-xs text-gray-500">Last Activity</p>
+                <p class="text-xs text-gray-500">Testimonial</p>
                 <p class="text-lg font-semibold text-gray-800">
-                    {% if last_activity_date %}
-                        {{ last_activity_date|date:"d M" }}
+                    {% if user_testimonial %}
+                        <span class="text-green-600">Submitted</span>
                     {% else %}
-                        N/A
+                        <span class="text-yellow-600">Pending</span>
                     {% endif %}
                 </p>
             </div>
         </div>
-
-        <!-- Subject-wise Performance (Text Version) -->
-        {% if subject_stats %}
-        <div class="mb-6">
-            <h3 class="text-lg font-medium text-gray-700 mb-3">Subject-wise Performance</h3>
-            <div class="space-y-3">
-                {% for subject in subject_stats %}
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-sm text-gray-600">{{ subject.subject_name }}</span>
-                        <span class="text-sm font-medium">
-                            {{ subject.correct }}/{{ subject.total }} ({{ subject.correct|div:subject.total|mul:100|floatformat:1 }}%)
-                        </span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        {% with percentage=subject.correct|div:subject.total|mul:100 %}
-                        <div class="h-2 rounded-full 
-                            {% if percentage >= 75 %}bg-green-500
-                            {% elif percentage >= 50 %}bg-blue-500
-                            {% elif percentage >= 33 %}bg-yellow-500
-                            {% else %}bg-red-500{% endif %}" 
-                            style="width: {{ percentage }}%">
-                        </div>
-                        {% endwith %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
 
         <!-- Recent Activity with Real Data -->
         <div class="mb-6">
             <h3 class="text-lg font-medium text-gray-700 mb-3">Recent Activity</h3>
             <div class="space-y-3">
                 {% for attempt in recent_attempts %}
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                        <i class="fa-solid fa-pen-to-square text-sm"></i>
+                <a href="{% url 'exams:result_dashboard' attempt.id %}" class="block">
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fa-solid fa-pen-to-square text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-800">{{ attempt.mock_test.title }}</p>
+                            <p class="text-xs text-gray-500">
+                                {{ attempt.submitted_at|date:"M d, Y" }} • 
+                                Score: {{ attempt.correct_answers }}/{{ attempt.total_marks }}
+                            </p>
+                        </div>
+                        {% if attempt.total_marks > 0 %}
+                            {% with percentage=attempt.correct_answers|div:attempt.total_marks|mul:100 %}
+                                <span class="text-sm font-semibold px-2 py-1 rounded
+                                    {% if percentage >= 80 %}bg-green-100 text-green-700
+                                    {% elif percentage >= 60 %}bg-yellow-100 text-yellow-700
+                                    {% else %}bg-red-100 text-red-700{% endif %}">
+                                    {{ percentage|floatformat:1 }}%
+                                </span>
+                            {% endwith %}
+                        {% endif %}
                     </div>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-800">{{ attempt.mock_test.title }}</p>
-                        <p class="text-xs text-gray-500">
-                            Completed • {{ attempt.submitted_at|timesince }} ago
-                            {% if attempt.total_marks > 0 %}
-                                • Score: {{ attempt.correct_answers }}/{{ attempt.total_marks }}
-                            {% endif %}
-                        </p>
-                    </div>
-                    {% if attempt.total_marks > 0 %}
-                        {% with percentage=attempt.correct_answers|div:attempt.total_marks|mul:100 %}
-                            <span class="text-sm font-medium px-2 py-1 rounded
-                                {% if percentage >= 75 %}bg-green-100 text-green-700
-                                {% elif percentage >= 50 %}bg-blue-100 text-blue-700
-                                {% elif percentage >= 33 %}bg-yellow-100 text-yellow-700
-                                {% else %}bg-red-100 text-red-700{% endif %}">
-                                {{ percentage|floatformat:1 }}%
-                            </span>
-                        {% endwith %}
-                    {% endif %}
-                </div>
+                </a>
                 {% empty %}
-                <div class="text-center py-8">
+                <div class="text-center py-8 bg-gray-50 rounded-lg">
                     <div class="text-gray-400 mb-2">
                         <i class="fa-solid fa-chart-line text-4xl"></i>
                     </div>
-                    <p class="text-gray-500">No completed tests yet</p>
+                    <p class="text-gray-500">No tests attempted yet</p>
                     <a href="{% url 'exams:home' %}" class="text-sm text-blue-600 hover:underline mt-2 inline-block">
-                        Start your first test →
+                        Browse Tests →
                     </a>
                 </div>
                 {% endfor %}
             </div>
         </div>
+
+        <!-- Subject Performance Chart (if you want to include it) -->
+        {% if subject_labels %}
+        <div class="mb-6">
+            <h3 class="text-lg font-medium text-gray-700 mb-3">Subject Performance</h3>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="h-64">
+                    <canvas id="subjectChart"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Quick Actions -->
         <div>
@@ -360,15 +289,15 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <a href="{% url 'exams:home' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
                     <i class="fa-solid fa-book-open text-blue-600 mb-1 group-hover:scale-110 transition"></i>
-                    <span class="text-xs text-gray-600">New Exam</span>
+                    <span class="text-xs text-gray-600">New Test</span>
                 </a>
                 <a href="{% url 'exams:dashboard' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
                     <i class="fa-solid fa-chart-simple text-green-600 mb-1 group-hover:scale-110 transition"></i>
-                    <span class="text-xs text-gray-600">Analytics</span>
+                    <span class="text-xs text-gray-600">Full Dashboard</span>
                 </a>
-                <a href="#" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
-                    <i class="fa-solid fa-download text-purple-600 mb-1 group-hover:scale-110 transition"></i>
-                    <span class="text-xs text-gray-600">Reports</span>
+                <a href="{% url 'exams:submit_testimonial' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                    <i class="fa-solid fa-star text-yellow-600 mb-1 group-hover:scale-110 transition"></i>
+                    <span class="text-xs text-gray-600">Testimonial</span>
                 </a>
                 <a href="#" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
                     <i class="fa-solid fa-gear text-gray-600 mb-1 group-hover:scale-110 transition"></i>
@@ -380,156 +309,47 @@
 
 </div>
 
-<!-- Add Alpine.js for collapse functionality -->
+<!-- Alpine.js for collapse -->
 <script src="//unpkg.com/alpinejs" defer></script>
-<!-- Chart.js and Chart Initialization -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
+<!-- Chart.js for subject performance (optional) -->
+{% if subject_labels %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    try {
-        // Get data from Django context
-        const subjectStats = {{ subject_stats_json|safe }};
-        const recentAttempts = {{ recent_attempts_json|safe }};
-        
-        // ---------- BAR CHART (Subject Mastery) ----------
-        const subjectCtx = document.getElementById('subjectChart')?.getContext('2d');
-        
-        if (subjectCtx && subjectStats && subjectStats.length > 0) {
-            const subjectLabels = subjectStats.map(s => s.subject_name);
-            const subjectScores = subjectStats.map(s => s.percentage);
-
-            // Function to get bar colour based on score
-            function getBarColor(value) {
-                if (value < 33) return '#ef4444';      // red for below 33%
-                if (value < 50) return '#f59e0b';      // yellow for 33-49%
-                if (value < 75) return '#8b5cf6';      // violet for 50-75%
-                return '#10b981';                       // green for above 75%
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('subjectChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ subject_labels_json|safe }},
+            datasets: [{
+                label: 'Performance (%)',
+                data: {{ subject_scores_json|safe }},
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
             }
-
-            const barColors = subjectScores.map(score => getBarColor(score));
-            
-            new Chart(subjectCtx, {
-                type: 'bar',
-                data: {
-                    labels: subjectLabels,
-                    datasets: [{
-                        label: 'Average Score (%)',
-                        data: subjectScores,
-                        backgroundColor: barColors,
-                        borderWidth: 1,
-                        borderRadius: 4,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: { 
-                                display: true, 
-                                text: 'Score (%)' 
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => `Score: ${ctx.raw}%`
-                            }
-                        }
-                    }
-                }
-            });
         }
-
-        // ---------- LINE CHART (Score Trend) ----------
-        const trendCtx = document.getElementById('trendChart')?.getContext('2d');
-        
-        if (trendCtx && recentAttempts && recentAttempts.length > 1) {
-            // Sort by date (oldest first for the chart)
-            const sortedAttempts = [...recentAttempts].sort((a, b) => 
-                new Date(a.submitted_at) - new Date(b.submitted_at)
-            );
-            
-            const labels = sortedAttempts.map(a => {
-                if (!a.submitted_at) return 'N/A';
-                const date = new Date(a.submitted_at);
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            });
-            
-            const scores = sortedAttempts.map(a => a.percentage);
-
-            new Chart(trendCtx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Your Score',
-                        data: scores,
-                        borderColor: '#4f46e5',
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        tension: 0.2,
-                        pointBackgroundColor: '#4f46e5',
-                        pointBorderColor: 'white',
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        fill: true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: { 
-                                display: true, 
-                                text: 'Score (%)' 
-                            }
-                        },
-                        x: {
-                            title: { 
-                                display: true, 
-                                text: 'Test Date' 
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => {
-                                    const attempt = sortedAttempts[ctx.dataIndex];
-                                    return [
-                                        `Score: ${ctx.raw}%`,
-                                        `Correct: ${attempt.correct_answers}/${attempt.total_marks}`
-                                    ];
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        } else if (trendCtx) {
-            // Show placeholder if less than 2 attempts
-            const parent = trendCtx.canvas.parentNode;
-            parent.innerHTML = '<div class="text-center py-8 text-gray-400">Take at least 2 tests to see your progress trend</div>';
-        }
-    } catch(error) {
-        console.log('Chart error:', error);
-    }
+    });
 });
 </script>
+{% endif %}
 
-<!-- Display Django messages if any -->
+<!-- Messages Toast -->
 {% if messages %}
 <div class="fixed top-4 right-4 z-50 space-y-2">
     {% for message in messages %}
-    <div class="px-4 py-3 rounded-lg shadow-lg 
+    <div class="px-4 py-3 rounded-lg shadow-lg animate-slide-in
         {% if message.tags == 'success' %}bg-green-500 text-white
         {% elif message.tags == 'error' %}bg-red-500 text-white
         {% else %}bg-blue-500 text-white{% endif %}">
@@ -539,15 +359,22 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
 {% endif %}
 
-<!-- Add this CSS for better chart appearance -->
 <style>
-    canvas {
-        max-width: 100%;
-        height: auto !important;
+.rotate-90 {
+    transform: rotate(90deg);
+}
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
     }
-    .rotate-90 {
-        transform: rotate(90deg);
+    to {
+        transform: translateX(0);
+        opacity: 1;
     }
+}
+.animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+}
 </style>
-
 {% endblock %}
