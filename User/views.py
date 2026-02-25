@@ -1,12 +1,12 @@
 # User/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Case, When, IntegerField, F, Q
 from django.contrib import messages
+from django.db.models import Count, Case, When, IntegerField, F
 import json
-from datetime import datetime
 
 from .forms import ProfileForm
+from .models import Profile
 
 # Import from your exams app
 from exams.models import MockTestAttempt, UserAnswer, Testimonial
@@ -14,7 +14,7 @@ from exams.models import MockTestAttempt, UserAnswer, Testimonial
 @login_required
 def profile_view(request):
     """
-    User profile page with editable profile information and dashboard statistics.
+    User profile page with collapsible profile form and dynamic dashboard data.
     """
     user = request.user
     
@@ -22,11 +22,15 @@ def profile_view(request):
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=user.profile)
         if form.is_valid():
-            form.save()
+            profile = form.save(commit=False)
+            profile.user = user
+            profile.save()
+            
             # Update email if changed
             if form.cleaned_data['email'] != user.email:
                 user.email = form.cleaned_data['email']
                 user.save()
+                
             messages.success(request, 'Your profile has been updated successfully!')
             return redirect('User:profile')
         else:
@@ -34,7 +38,8 @@ def profile_view(request):
     else:
         form = ProfileForm(instance=user.profile)
     
-    # ----- DASHBOARD DATA (from your exams app) -----
+    # ========== DASHBOARD DATA (EXACTLY FROM YOUR DASHBOARD VIEW) ==========
+    
     # Get all completed attempts
     attempts = MockTestAttempt.objects.filter(
         user=user,
@@ -64,7 +69,7 @@ def profile_view(request):
         avg_score = round(total_percentage / total_tests, 1)
         best_score = round(best_score, 1)
 
-    # ----- Subject performance data for bar chart -----
+    # ----- Subject‑wise performance for bar chart -----
     user_answers = UserAnswer.objects.filter(
         attempt__user=user,
         attempt__is_completed=True
@@ -81,85 +86,79 @@ def profile_view(request):
         ))
     ).order_by('subject_name')
 
-    # Convert to list for template (makes it easier to work with)
-    subject_stats = []
+    # Build the lists needed for the chart
+    subject_labels = []
+    subject_scores = []
     for stat in subject_stats_qs:
-        subject_stats.append({
-            'subject_name': stat['subject_name'] or 'Uncategorized',
-            'total': stat['total'],
-            'correct': stat['correct'],
-            'percentage': round((stat['correct'] / stat['total'] * 100), 1) if stat['total'] > 0 else 0
+        subject_labels.append(stat['subject_name'] or 'Uncategorized')
+        percentage = (stat['correct'] / stat['total'] * 100) if stat['total'] > 0 else 0
+        subject_scores.append(round(percentage, 1))
+
+    # ----- Attempts data for line chart -----
+    attempts_chrono = attempts.order_by('submitted_at')
+    attempts_data = []
+    for attempt in attempts_chrono:
+        if attempt.total_marks > 0:
+            score_percentage = (attempt.correct_answers / attempt.total_marks) * 100
+        else:
+            score_percentage = 0
+
+        attempts_data.append({
+            'date': attempt.submitted_at.strftime('%Y-%m-%d'),
+            'test_name': attempt.mock_test.title,
+            'score': round(score_percentage, 1),
         })
 
-    # ----- Recent activity (latest 5 attempts) -----
-    recent_attempts = attempts[:5]
+    # Convert to JSON for JavaScript
+    subject_labels_json = json.dumps(subject_labels)
+    subject_scores_json = json.dumps(subject_scores)
+    attempts_json = json.dumps(attempts_data)
     
-    # Prepare recent attempts data for line chart (convert to list of dicts)
-    recent_attempts_list = []
-    for attempt in recent_attempts:
-        if attempt.total_marks > 0:
-            percentage = (attempt.correct_answers / attempt.total_marks) * 100
-        else:
-            percentage = 0
-            
-        recent_attempts_list.append({
-            'id': attempt.id,
-            'mock_test__title': attempt.mock_test.title,
-            'submitted_at': attempt.submitted_at.isoformat() if attempt.submitted_at else None,
-            'correct_answers': attempt.correct_answers,
-            'total_marks': attempt.total_marks,
-            'percentage': round(percentage, 1)
-        })
-    
-    # ----- Additional useful stats -----
-    in_progress_tests = MockTestAttempt.objects.filter(
-        user=user,
-        is_completed=False
-    ).count()
-    
+    # ----- Additional stats for dashboard cards -----
+    # Total questions answered
     total_questions_answered = UserAnswer.objects.filter(
         attempt__user=user
     ).count()
     
+    # Correct answers count
     correct_answers = UserAnswer.objects.filter(
         attempt__user=user,
         selected_option__is_correct=True
     ).count()
     
+    # Accuracy rate
     accuracy_rate = 0
     if total_questions_answered > 0:
         accuracy_rate = round((correct_answers / total_questions_answered) * 100, 1)
     
-    latest_attempt = attempts.first()
-    last_activity_date = latest_attempt.submitted_at if latest_attempt else None
+    # In progress tests
+    in_progress_tests = MockTestAttempt.objects.filter(
+        user=user,
+        is_completed=False
+    ).count()
     
-    # Convert subject_stats to JSON for JavaScript
-    subject_stats_json = json.dumps(subject_stats)
+    # Recent attempts for activity feed
+    recent_attempts = attempts[:5]
     
     context = {
         'form': form,
-        # Core dashboard stats
+        # Dashboard stats (matching your original dashboard)
+        'attempts': attempts,
         'total_tests': total_tests,
         'avg_score': avg_score,
         'best_score': best_score,
-        'recent_attempts': attempts[:3],  # Keep original for template loop
+        'subject_stats': subject_stats_qs,
         'user_testimonial': user_testimonial,
+        'subject_labels_json': subject_labels_json,
+        'subject_scores_json': subject_scores_json,
+        'attempts_json': attempts_json,
         
-        # Additional stats
-        'attempts_count': total_tests,
-        'completed_exams': total_tests,
-        'in_progress_tests': in_progress_tests,
-        'total_questions_answered': total_questions_answered,
+        # Additional stats for enhanced dashboard
         'accuracy_rate': accuracy_rate,
+        'total_questions_answered': total_questions_answered,
         'correct_answers': correct_answers,
-        'last_activity_date': last_activity_date,
-        
-        # Subject data for both template and charts
-        'subject_stats': subject_stats,  # For template loop
-        'subject_stats_json': subject_stats_json,  # For charts
-        
-        # Recent attempts for line chart
-        'recent_attempts_json': json.dumps(recent_attempts_list),
+        'in_progress_tests': in_progress_tests,
+        'recent_attempts': recent_attempts,
     }
     
     return render(request, 'User/profile.html', context)
