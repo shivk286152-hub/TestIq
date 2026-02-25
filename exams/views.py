@@ -8,6 +8,10 @@ from django.db.models import Count, Avg, F, Q, Case, When, IntegerField
 from django.contrib import messages
 
 
+
+import json
+
+
 from .models import (
     ExamCategory,
     SubCategory,
@@ -896,6 +900,7 @@ def delete_testimonial(request, testimonial_id):
     return render(request, 'exams/confirm_delete_testimonial.html', {
         'testimonial': testimonial
     })
+
     
  # ==============================
 # PRETEST DETAIL PAGE
@@ -971,3 +976,4 @@ def start_test(request, mocktest_id):
     # If not POST, redirect to pretest page
     return redirect('exams:pretest_detail', mocktest_id=mocktest_id)   
     
+
