@@ -204,23 +204,23 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
                 preparation journey</p>
         </div>
 
-        <!-- Category Cards - Horizontal Scroll -->
+        <!-- Category Cards - Horizontal Scroll with smaller cards -->
         <div class="relative">
-            <div class="flex gap-6 overflow-x-auto pb-8 snap-x scrollbar-hide">
+            <div class="flex gap-4 overflow-x-auto pb-8 snap-x scrollbar-hide">
                 {% for cat in categories %}
-                <div class="min-w-[280px] md:min-w-[320px] snap-start group">
+                <div class="min-w-[240px] md:min-w-[280px] snap-start group">
                     <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 
                                 hover:-translate-y-2 overflow-hidden border border-gray-100">
 
-                        <!-- Card Header with Image -->
-                        <div class="relative h-48 overflow-hidden">
+                        <!-- Card Header with Image - smaller height -->
+                        <div class="relative h-36 md:h-40 overflow-hidden">
                             {% if cat.logo %}
                             <img src="{{ cat.logo.url }}"
                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                             {% else %}
                             <div
                                 class="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                                <span class="text-6xl text-white/30">{{ cat.name|first }}</span>
+                                <span class="text-5xl text-white/30">{{ cat.name|first }}</span>
                             </div>
                             {% endif %}
 
@@ -228,41 +228,41 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent">
                             </div>
 
-                            <!-- Badge -->
+                            <!-- Badge - smaller text -->
                             <div
-                                class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold text-indigo-600">
+                                class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-semibold text-indigo-600">
                                 {{ cat.mocktest_set.count }} Tests
                             </div>
                         </div>
 
-                        <!-- Card Content -->
-                        <div class="p-6">
+                        <!-- Card Content - more compact -->
+                        <div class="p-4">
                             <h3
-                                class="text-xl font-bold text-gray-800 mb-2 group-hover:text-indigo-600 transition-colors">
+                                class="text-lg font-bold text-gray-800 mb-1 group-hover:text-indigo-600 transition-colors">
                                 {{ cat.name }}
                             </h3>
-                            <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ cat.description|truncatechars:100 }}
+                            <p class="text-gray-600 text-xs mb-3 line-clamp-2">{{ cat.description|truncatechars:80 }}
                             </p>
 
-                            <!-- Progress (if logged in) -->
+                            <!-- Progress (if logged in) - more compact -->
                             {% if user.is_authenticated %}
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <div class="flex justify-between text-xs text-gray-500 mb-1">
-                                    <span>Your Progress</span>
+                                    <span>Progress</span>
                                     <span>{{ cat.user_progress|default:"0" }}%</span>
                                 </div>
-                                <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                     <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
                                         style="width: {{ cat.user_progress|default:0 }}%"></div>
                                 </div>
                             </div>
                             {% endif %}
 
-                            <a href="{% url 'exams:subcategory_detail' cat.id %}" class="inline-flex items-center justify-center w-full px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 
-                                      text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 
+                            <a href="{% url 'exams:subcategory_detail' cat.id %}" class="inline-flex items-center justify-center w-full px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 
+                                      text-white text-sm rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 
                                       transition-all duration-300 transform group-hover:scale-105">
-                                Explore Category
-                                <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none"
+                                Explore
+                                <svg class="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" fill="none"
                                     stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 5l7 7-7 7"></path>
@@ -309,22 +309,22 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
             <p class="text-gray-600 max-w-2xl mx-auto">Try our most popular tests and see where you stand</p>
         </div>
 
-        <!-- Test Cards Grid -->
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Test Cards Grid - smaller cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {% for test in mock_tests %}
             <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 
                         hover:-translate-y-2 overflow-hidden border border-gray-100">
 
-                <!-- Card Header with Gradient -->
-                <div class="relative h-32 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6">
+                <!-- Card Header with Gradient - smaller -->
+                <div class="relative h-24 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-4">
                     <div
-                        class="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs text-white">
+                        class="absolute top-2 right-2 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs text-white">
                         {{ test.get_difficulty_display|default:"Mixed" }}
                     </div>
 
-                    <!-- Test Icon -->
-                    <div class="w-16 h-16 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Test Icon - smaller -->
+                    <div class="w-12 h-12 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                             </path>
@@ -332,44 +332,44 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
                     </div>
                 </div>
 
-                <!-- Card Content -->
-                <div class="p-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-2 group-hover:text-indigo-600 transition-colors">
+                <!-- Card Content - more compact -->
+                <div class="p-4">
+                    <h3 class="text-lg font-bold text-gray-800 mb-1 group-hover:text-indigo-600 transition-colors">
                         {{ test.title }}
                     </h3>
 
-                    <!-- Test Meta Info -->
-                    <div class="flex flex-wrap gap-3 mb-4">
-                        <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-semibold">
-                            ⏱️ {{ test.duration }} mins
+                    <!-- Test Meta Info - more compact -->
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full text-xs font-semibold">
+                            ⏱️ {{ test.duration }}m
                         </span>
-                        <span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-semibold">
-                            📝 {{ test.questions.count }} Qs
+                        <span class="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-full text-xs font-semibold">
+                            📝 {{ test.questions.count }}
                         </span>
-                        <span class="px-3 py-1 bg-green-50 text-green-600 rounded-full text-xs font-semibold">
-                            📊 {{ test.average_score|default:"0" }}% Avg
+                        <span class="px-2 py-0.5 bg-green-50 text-green-600 rounded-full text-xs font-semibold">
+                            📊 {{ test.average_score|default:"0" }}%
                         </span>
                     </div>
 
-                    <p class="text-gray-600 text-sm mb-6 line-clamp-2">{{ test.description|truncatechars:100 }}</p>
+                    <p class="text-gray-600 text-xs mb-4 line-clamp-2">{{ test.description|truncatechars:80 }}</p>
 
-                    <!-- Action Buttons -->
-                    <div class="flex gap-3">
+                    <!-- Action Buttons - more compact -->
+                    <div class="flex gap-2">
                         {% if user.is_authenticated %}
-                        <a href="{% url 'exams:pretest_detail' test.id %}" class="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl 
+                        <a href="{% url 'exams:pretest_detail' test.id %}" class="flex-1 px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm rounded-xl 
                                   font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 
                                   transform group-hover:scale-105 text-center">
-                            Start Test
+                            Start
                         </a>
-                        <a href="{% url 'exams:pretest_detail' test.id %}" class="px-4 py-3 border-2 border-indigo-600 text-indigo-600 rounded-xl font-semibold 
+                        <a href="{% url 'exams:pretest_detail' test.id %}" class="px-3 py-2 border-2 border-indigo-600 text-indigo-600 text-sm rounded-xl font-semibold 
                                   hover:bg-indigo-50 transition-all duration-300">
-                            Details
+                            Info
                         </a>
                         {% else %}
-                        <a href="{% url 'login' %}" class="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl 
+                        <a href="{% url 'login' %}" class="flex-1 px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm rounded-xl 
                                   font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 
                                   text-center">
-                            Login to Start
+                            Login
                         </a>
                         {% endif %}
                     </div>
@@ -378,10 +378,10 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
             {% endfor %}
         </div>
 
-        <!-- View All Link - Now goes to categories section -->
+        <!-- View All Link -->
         <div class="text-center mt-12">
-            <a href="#categories" class="inline-flex items-center px-8 py-4 bg-gray-900 text-white rounded-xl font-semibold 
-                      hover:bg-gray-800 hover:-translate-y-1 transition-all duration-300 shadow-lg">
+            <a href="#categories" class="inline-flex items-center px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold 
+                      hover:bg-gray-800 hover:-translate-y-1 transition-all duration-300 shadow-lg text-sm">
                 View All Tests
                 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3">
@@ -421,46 +421,46 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
             {% endif %}
         </div>
 
-        <!-- Testimonials Carousel -->
+        <!-- Testimonials Carousel - smaller cards for mobile -->
         <div class="relative">
-            <div class="flex overflow-x-auto pb-8 snap-x scrollbar-hide gap-6" id="testimonialCarousel">
+            <div class="flex overflow-x-auto pb-8 snap-x scrollbar-hide gap-4" id="testimonialCarousel">
                 {% for testimonial in testimonials %}
-                <div class="min-w-[300px] md:min-w-[350px] snap-start">
-                    <div class="bg-white rounded-2xl shadow-xl p-8 h-full flex flex-col hover:shadow-2xl transition-shadow duration-300
+                <div class="min-w-[260px] md:min-w-[300px] snap-start">
+                    <div class="bg-white rounded-2xl shadow-xl p-6 h-full flex flex-col hover:shadow-2xl transition-shadow duration-300
                                 {% if testimonial.is_featured %}ring-4 ring-yellow-400 ring-opacity-50{% endif %}">
                         
-                        <!-- User Info -->
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full 
-                                        flex items-center justify-center text-white font-bold text-xl">
+                        <!-- User Info - more compact -->
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full 
+                                        flex items-center justify-center text-white font-bold text-lg">
                                 {{ testimonial.user_initials }}
                             </div>
                             <div>
-                                <h4 class="font-bold text-gray-800">{{ testimonial.user_name }}</h4>
-                                <p class="text-sm text-gray-500">Verified Student</p>
+                                <h4 class="font-bold text-gray-800 text-sm">{{ testimonial.user_name }}</h4>
+                                <p class="text-xs text-gray-500">Verified Student</p>
                             </div>
                             {% if testimonial.is_featured %}
-                            <span class="ml-auto bg-yellow-100 text-yellow-600 text-xs px-2 py-1 rounded-full">Featured</span>
+                            <span class="ml-auto bg-yellow-100 text-yellow-600 text-xs px-2 py-0.5 rounded-full">Featured</span>
                             {% endif %}
                         </div>
                         
-                        <!-- Stars -->
-                        <div class="flex mb-4">
+                        <!-- Stars - smaller -->
+                        <div class="flex mb-3">
                             {% for i in "12345"|make_list %}
-                            <svg class="w-5 h-5 {% if forloop.counter <= testimonial.stars %}text-yellow-400{% else %}text-gray-300{% endif %}" 
+                            <svg class="w-4 h-4 {% if forloop.counter <= testimonial.stars %}text-yellow-400{% else %}text-gray-300{% endif %}" 
                                  fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                             </svg>
                             {% endfor %}
                         </div>
 
-                        <!-- Testimonial Text -->
-                        <p class="text-gray-700 italic mb-4 flex-grow">"{{ testimonial.text }}"</p>
+                        <!-- Testimonial Text - smaller font -->
+                        <p class="text-gray-700 italic text-sm mb-3 flex-grow">"{{ testimonial.text }}"</p>
                         
                         <!-- Achievement -->
                         {% if testimonial.achievement %}
-                        <div class="mt-auto pt-4 border-t border-gray-100">
-                            <p class="text-sm font-medium text-indigo-600">{{ testimonial.achievement }}</p>
+                        <div class="mt-auto pt-3 border-t border-gray-100">
+                            <p class="text-xs font-medium text-indigo-600">{{ testimonial.achievement }}</p>
                         </div>
                         {% endif %}
                     </div>
@@ -496,30 +496,30 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
 <!-- ===== FEATURES SECTION ===== -->
 <section class="py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
 
-            <!-- Feature 1 -->
+            <!-- Feature 1 - more compact for mobile -->
             <div class="text-center group">
-                <div class="w-20 h-20 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 
+                <div class="w-16 h-16 md:w-20 md:h-20 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-3 
                             group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 
                             group-hover:rotate-6 group-hover:scale-110">
-                    <svg class="w-10 h-10 text-indigo-600 group-hover:text-white" fill="none" stroke="currentColor"
+                    <svg class="w-8 h-8 md:w-10 md:h-10 text-indigo-600 group-hover:text-white" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
                         </path>
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Real Exam Interface</h3>
-                <p class="text-gray-600">Experience the actual exam environment with our realistic interface</p>
+                <h3 class="text-sm md:text-xl font-bold text-gray-800 mb-1 md:mb-2">Real Exam Interface</h3>
+                <p class="text-xs md:text-sm text-gray-600 hidden md:block">Experience the actual exam environment</p>
             </div>
 
             <!-- Feature 2 -->
             <div class="text-center group">
-                <div class="w-20 h-20 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4 
+                <div class="w-16 h-16 md:w-20 md:h-20 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-3 
                             group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 
                             group-hover:rotate-6 group-hover:scale-110">
-                    <svg class="w-10 h-10 text-purple-600 group-hover:text-white" fill="none" stroke="currentColor"
+                    <svg class="w-8 h-8 md:w-10 md:h-10 text-purple-600 group-hover:text-white" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
@@ -527,63 +527,62 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
                             d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Smart Analytics</h3>
-                <p class="text-gray-600">Track your progress with detailed performance insights</p>
+                <h3 class="text-sm md:text-xl font-bold text-gray-800 mb-1 md:mb-2">Smart Analytics</h3>
+                <p class="text-xs md:text-sm text-gray-600 hidden md:block">Track your progress with insights</p>
             </div>
 
             <!-- Feature 3 -->
             <div class="text-center group">
-                <div class="w-20 h-20 bg-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-4 
+                <div class="w-16 h-16 md:w-20 md:h-20 bg-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-3 
                             group-hover:bg-pink-600 group-hover:text-white transition-all duration-300 
                             group-hover:rotate-6 group-hover:scale-110">
-                    <svg class="w-10 h-10 text-pink-600 group-hover:text-white" fill="none" stroke="currentColor"
+                    <svg class="w-8 h-8 md:w-10 md:h-10 text-pink-600 group-hover:text-white" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Timed Practice</h3>
-                <p class="text-gray-600">Master time management with our timed mock tests</p>
+                <h3 class="text-sm md:text-xl font-bold text-gray-800 mb-1 md:mb-2">Timed Practice</h3>
+                <p class="text-xs md:text-sm text-gray-600 hidden md:block">Master time management</p>
             </div>
 
             <!-- Feature 4 -->
             <div class="text-center group">
-                <div class="w-20 h-20 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4 
+                <div class="w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-3 
                             group-hover:bg-green-600 group-hover:text-white transition-all duration-300 
                             group-hover:rotate-6 group-hover:scale-110">
-                    <svg class="w-10 h-10 text-green-600 group-hover:text-white" fill="none" stroke="currentColor"
+                    <svg class="w-8 h-8 md:w-10 md:h-10 text-green-600 group-hover:text-white" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Detailed Solutions</h3>
-                <p class="text-gray-600">Learn from comprehensive explanations for every question</p>
+                <h3 class="text-sm md:text-xl font-bold text-gray-800 mb-1 md:mb-2">Detailed Solutions</h3>
+                <p class="text-xs md:text-sm text-gray-600 hidden md:block">Learn from explanations</p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- ===== CTA SECTION ===== -->
-<section class="py-20 bg-gradient-to-r from-indigo-600 to-purple-600">
+<section class="py-16 md:py-20 bg-gradient-to-r from-indigo-600 to-purple-600">
     <div class="max-w-4xl mx-auto text-center px-4">
-        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Ace Your Exam?</h2>
-        <p class="text-indigo-100 text-lg mb-8">Join thousands of successful students who achieved their dreams with
-            us</p>
+        <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">Ready to Ace Your Exam?</h2>
+        <p class="text-indigo-100 text-sm md:text-lg mb-6 md:mb-8">Join thousands of successful students who achieved their dreams with us</p>
 
         {% if not user.is_authenticated %}
-        <div class="flex flex-wrap gap-4 justify-center">
-            <a href="{% url 'register' %}" class="px-8 py-4 bg-white text-indigo-600 rounded-xl font-bold text-lg hover:bg-indigo-50 
+        <div class="flex flex-wrap gap-3 md:gap-4 justify-center">
+            <a href="{% url 'register' %}" class="px-6 md:px-8 py-3 md:py-4 bg-white text-indigo-600 rounded-xl font-bold text-sm md:text-lg hover:bg-indigo-50 
                   hover:-translate-y-1 transition-all duration-300 shadow-xl">
                 Create Free Account
             </a>
-            <a href="#categories" class="px-8 py-4 bg-indigo-500 text-white rounded-xl font-bold text-lg hover:bg-indigo-400 
+            <a href="#categories" class="px-6 md:px-8 py-3 md:py-4 bg-indigo-500 text-white rounded-xl font-bold text-sm md:text-lg hover:bg-indigo-400 
                   hover:-translate-y-1 transition-all duration-300 border-2 border-white/20">
                 Browse Tests
             </a>
         </div>
         {% else %}
-        <a href="{% url 'exams:dashboard' %}" class="inline-block px-8 py-4 bg-white text-indigo-600 rounded-xl font-bold text-lg 
+        <a href="{% url 'exams:dashboard' %}" class="inline-block px-6 md:px-8 py-3 md:py-4 bg-white text-indigo-600 rounded-xl font-bold text-sm md:text-lg 
               hover:bg-indigo-50 hover:-translate-y-1 transition-all duration-300 shadow-xl">
             Go to Dashboard
         </a>
@@ -594,32 +593,31 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
 <!-- ===== FOOTER ===== -->
 <footer class="bg-gray-900 text-gray-300">
     <!-- Main Footer -->
-    <div class="max-w-7xl mx-auto px-4 py-16">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div class="max-w-7xl mx-auto px-4 py-12 md:py-16">
+        <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
 
             <!-- Brand -->
-            <div>
-                <h3 class="text-2xl font-bold text-white mb-4">{{ site_name }}</h3>
-                <p class="text-sm mb-6">Your trusted platform for mock tests and exam success. Join thousands of
-                    successful students.</p>
-                <div class="flex gap-4">
-                    <a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-indigo-600 
+            <div class="col-span-2 md:col-span-1">
+                <h3 class="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">{{ site_name }}</h3>
+                <p class="text-xs md:text-sm mb-4 md:mb-6">Your trusted platform for mock tests and exam success.</p>
+                <div class="flex gap-3 md:gap-4">
+                    <a href="#" class="w-8 h-8 md:w-10 md:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-indigo-600 
                                   hover:text-white hover:-translate-y-1 transition-all duration-300">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                             <path
                                 d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                         </svg>
                     </a>
-                    <a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-indigo-600 
+                    <a href="#" class="w-8 h-8 md:w-10 md:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-indigo-600 
                                   hover:text-white hover:-translate-y-1 transition-all duration-300">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                             <path
                                 d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.937 4.937 0 004.604 3.417 9.868 9.868 0 01-6.102 2.104c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 0021.573-12.407c0-.213 0-.426-.015-.637.96-.695 1.795-1.56 2.455-2.55z" />
                         </svg>
                     </a>
-                    <a href="#" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-indigo-600 
+                    <a href="#" class="w-8 h-8 md:w-10 md:h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-indigo-600 
                                   hover:text-white hover:-translate-y-1 transition-all duration-300">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                             <path
                                 d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451c.979 0 1.771-.773 1.771-1.729V1.729C24 .774 23.204 0 22.225 0z" />
                         </svg>
@@ -629,30 +627,22 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
 
             <!-- Quick Links -->
             <div>
-                <h4 class="text-lg font-semibold text-white mb-4">Quick Links</h4>
-                <ul class="space-y-2">
-                    <li><a href="#"
-                            class="hover:text-white hover:translate-x-2 inline-block transition-all duration-300">About
-                            Us</a></li>
-                    <li><a href="#"
-                            class="hover:text-white hover:translate-x-2 inline-block transition-all duration-300">Contact</a>
-                    </li>
-                    <li><a href="#"
-                            class="hover:text-white hover:translate-x-2 inline-block transition-all duration-300">FAQs</a>
-                    </li>
-                    <li><a href="#"
-                            class="hover:text-white hover:translate-x-2 inline-block transition-all duration-300">Blog</a>
-                    </li>
+                <h4 class="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Quick Links</h4>
+                <ul class="space-y-1 md:space-y-2 text-xs md:text-sm">
+                    <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-300">About Us</a></li>
+                    <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-300">Contact</a></li>
+                    <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-300">FAQs</a></li>
+                    <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-300">Blog</a></li>
                 </ul>
             </div>
 
             <!-- Categories -->
             <div>
-                <h4 class="text-lg font-semibold text-white mb-4">Categories</h4>
-                <ul class="space-y-2">
+                <h4 class="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Categories</h4>
+                <ul class="space-y-1 md:space-y-2 text-xs md:text-sm">
                     {% for cat in categories|slice:":5" %}
                     <li><a href="{% url 'exams:subcategory_detail' cat.id %}"
-                            class="hover:text-white hover:translate-x-2 inline-block transition-all duration-300">
+                            class="hover:text-white hover:translate-x-1 inline-block transition-all duration-300">
                             {{ cat.name }}
                         </a></li>
                     {% endfor %}
@@ -660,11 +650,11 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
             </div>
 
             <!-- Contact -->
-            <div>
-                <h4 class="text-lg font-semibold text-white mb-4">Contact Us</h4>
-                <ul class="space-y-2">
+            <div class="col-span-2 md:col-span-1">
+                <h4 class="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Contact Us</h4>
+                <ul class="space-y-1 md:space-y-2 text-xs md:text-sm">
                     <li class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
                             </path>
@@ -672,7 +662,7 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
                         <span>support@{{ site_name|lower }}.com</span>
                     </li>
                     <li class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
                             </path>
@@ -685,13 +675,13 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
     </div>
 
     <!-- Bottom Bar -->
-    <div class="border-t border-gray-800 py-6">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-sm">
+    <div class="border-t border-gray-800 py-4 md:py-6">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-xs md:text-sm">
             <p>© {{ site_name }} {% now "Y" %}. All rights reserved.</p>
-            <div class="flex gap-6 mt-4 md:mt-0">
-                <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-                <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-                <a href="#" class="hover:text-white transition-colors">Cookie Policy</a>
+            <div class="flex gap-4 md:gap-6 mt-2 md:mt-0">
+                <a href="#" class="hover:text-white transition-colors">Privacy</a>
+                <a href="#" class="hover:text-white transition-colors">Terms</a>
+                <a href="#" class="hover:text-white transition-colors">Cookies</a>
             </div>
         </div>
     </div>
@@ -745,7 +735,7 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
     function scrollCategories(direction) {
         const container = document.querySelector('#categories .overflow-x-auto');
         if (container) {
-            const scrollAmount = 300;
+            const scrollAmount = 260; // Reduced for smaller cards
             const currentScroll = container.scrollLeft;
             container.scrollTo({
                 left: direction === 'left' ? currentScroll - scrollAmount : currentScroll + scrollAmount,
@@ -758,7 +748,7 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
     function scrollTestimonials(direction) {
         const container = document.getElementById('testimonialCarousel');
         if (container) {
-            const scrollAmount = 350;
+            const scrollAmount = 280; // Reduced for smaller cards
             const currentScroll = container.scrollLeft;
             container.scrollTo({
                 left: direction === 'left' ? currentScroll - scrollAmount : currentScroll + scrollAmount,
@@ -774,7 +764,7 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
 
         if (container && dotsContainer) {
             const totalItems = container.children.length;
-            const currentIndex = Math.round(container.scrollLeft / 350);
+            const currentIndex = Math.round(container.scrollLeft / 280);
 
             dotsContainer.innerHTML = '';
             for (let i = 0; i < totalItems; i++) {
@@ -783,7 +773,7 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
                     }`;
                 dot.onclick = () => {
                     container.scrollTo({
-                        left: i * 350,
+                        left: i * 280,
                         behavior: 'smooth'
                     });
                 };
