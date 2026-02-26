@@ -18,15 +18,15 @@ def latest_mocktests(request):
         ).order_by('-created_at', '-id')[:5]
         
         # Add debug print to console
-        print(f"Context processor - Found {latest_tests.count()} mock tests")
-        for test in latest_tests:
-            print(f"  - {test.id}: {test.title}")
+        # print(f"Context processor - Found {latest_tests.count()} mock tests")
+        # for test in latest_tests:
+        #     print(f"  - {test.id}: {test.title}")
         
         return {
             'latest_mocktests': latest_tests
         }
     except Exception as e:
-        print(f"Error in latest_mocktests context processor: {e}")
+        # print(f"Error in latest_mocktests context processor: {e}")
         return {
             'latest_mocktests': []
         }
