@@ -14,3 +14,4 @@ env/
 *.log
 db.sqlite3
 /staticfiles/
+venv/

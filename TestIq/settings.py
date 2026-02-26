@@ -2,6 +2,7 @@ import os
 import dj_database_url
 from pathlib import Path
 
+
 # ----------------------------
 # BASE DIR
 # ----------------------------
@@ -38,8 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
-    'ckeditor',
-    'taggit',
+    # 'ckeditor',
+    # 'taggit',
     'exams',
     'ExamNotification',
     'User',
