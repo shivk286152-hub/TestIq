@@ -170,7 +170,8 @@
     }
 
     .dropdown-content.show {
-      max-height: 400px !important; /* Fixed height to ensure visibility */
+      max-height: 400px !important;
+      /* Fixed height to ensure visibility */
       transition: max-height 0.5s ease-in;
     }
 
@@ -276,6 +277,16 @@
             <span class="label ml-3">Home</span>
           </a>
         </li>
+        <!-- ABOUT US -->
+        <li>
+          <a href="{% url 'exams:about' %}" class="flex items-center px-4 py-3 hover:bg-gray-600
+       {% if request.resolver_match.url_name == 'about' %}
+           menu-active
+       {% endif %}">
+            <i class="fa fa-book w-6"></i>
+            <span class="label ml-3">About Us</span>
+          </a>
+        </li>
 
         <!-- TEST with dropdown - FIXED -->
         <li class="relative">
@@ -291,33 +302,36 @@
           <div id="testDropdown" class="dropdown-content">
             <ul class="py-2 space-y-1">
               {% if user.is_authenticated %}
-                {% if latest_mocktests %}
-                  {% for test in latest_mocktests %}
-                  <li>
-                    <a href="{% url 'exams:pretest_detail' test.id %}" class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
-                      <i class="fa fa-file-text w-4 mr-2"></i>
-                      <span class="truncate">{{ test.title|truncatechars:25 }}</span>
-                      {% if test.is_new %}
-                      <span class="ml-2 bg-green-500 text-xs px-1.5 py-0.5 rounded-full">New</span>
-                      {% endif %}
-                    </a>
-                  </li>
-                  {% endfor %}
-                {% else %}
-                  <li class="dropdown-item px-4 py-2 text-gray-300 italic">
-                    <i class="fa fa-info-circle w-4 mr-2"></i>
-                    No tests available
-                  </li>
-                {% endif %}
+              {% if latest_mocktests %}
+              {% for test in latest_mocktests %}
+              <li>
+                <a href="{% url 'exams:pretest_detail' test.id %}"
+                  class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
+                  <i class="fa fa-file-text w-4 mr-2"></i>
+                  <span class="truncate hover:bg-zinc-600 ">{{ test.title|truncatechars:25 }}</span>
+                  {% if test.is_new %}
+                  <span class="ml-2 bg-green-500 text-xs px-1.5 py-0.5 rounded-full">New</span>
+                  {% endif %}
+                </a>
+              </li>
+              {% endfor %}
+              {% else %}
+              <li class="dropdown-item px-4 py-2 text-gray-300 italic">
+                <i class="fa fa-info-circle w-4 mr-2"></i>
+                No tests available
+              </li>
+              {% endif %}
               {% else %}
               <li>
-                <a href="{% url 'login' %}?next={{ request.path }}" class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
+                <a href="{% url 'login' %}?next={{ request.path }}"
+                  class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
                   <i class="fa fa-sign-in w-4 mr-2"></i>
                   Sign in to take tests
                 </a>
               </li>
               <li>
-                <a href="{% url 'register' %}" class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
+                <a href="{% url 'register' %}"
+                  class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
                   <i class="fa fa-user-plus w-4 mr-2"></i>
                   Register now
                 </a>
@@ -395,7 +409,8 @@
   <div id="bottomHeader"
     class="fixed bottom-0 left-0 w-full h-16 bg-white/80 backdrop-blur-lg border-t border-white/20 shadow-lg md:hidden flex items-center justify-around px-2 z-50 transition-transform duration-300"
     style="transform: translateY(0);">
-    <a href="{% url 'exams:home' %}" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
+    <a href="{% url 'exams:home' %}"
+      class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
       <i class="fa fa-home text-xl"></i>
       <span class="text-xs mt-1">Home</span>
     </a>
@@ -475,7 +490,7 @@
       testMenuBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         // Toggle dropdown
         if (testDropdown.classList.contains("show")) {
           testDropdown.classList.remove("show");
@@ -489,9 +504,9 @@
 
     // Close dropdown when clicking outside
     document.addEventListener("click", (e) => {
-      if (testDropdown && testMenuBtn && 
-          !testMenuBtn.contains(e.target) && 
-          !testDropdown.contains(e.target)) {
+      if (testDropdown && testMenuBtn &&
+        !testMenuBtn.contains(e.target) &&
+        !testDropdown.contains(e.target)) {
         testDropdown.classList.remove("show");
         if (testChevron) {
           testChevron.style.transform = "rotate(0deg)";
@@ -506,7 +521,7 @@
         if (window.innerWidth <= 768) {
           sidebar.classList.add("open");
           overlay.classList.add("show");
-          
+
           // Open test dropdown in sidebar
           if (testDropdown && !testDropdown.classList.contains("show")) {
             setTimeout(() => {
@@ -620,6 +635,17 @@
     });
   </script>
   {% block extra_js %} {% endblock %}
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)'], ['$', '$']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </body>
 
 </html>

@@ -171,10 +171,13 @@ class Option(models.Model):
     
     class Meta:
         ordering = ['order']
-
-
-# 7. Mock Test Attempt
+# 7. Mock Test Attempt - UPDATED with auto-delete fields
 class MockTestAttempt(models.Model):
+    LANGUAGE_CHOICES = [
+        ('en', 'English'),
+        ('hi', 'हिन्दी (Hindi)'),
+    ]
+    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -187,6 +190,14 @@ class MockTestAttempt(models.Model):
         related_name="attempts"
     )
 
+    # Language preference for this attempt
+    language = models.CharField(
+        max_length=10,
+        choices=LANGUAGE_CHOICES,
+        default='en',
+        help_text="Language selected by user for this attempt"
+    )
+
     score = models.FloatField(default=0)
     total_marks = models.FloatField(default=0)
     correct_answers = models.PositiveIntegerField(default=0)
@@ -196,18 +207,35 @@ class MockTestAttempt(models.Model):
     started_at = models.DateTimeField(auto_now_add=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
     is_completed = models.BooleanField(default=False)
-
+    
+    # NEW FIELDS FOR AUTO-DELETION
+    is_archived = models.BooleanField(
+        default=False, 
+        help_text="Detailed answers archived, only summary kept for rankings"
+    )
+    permanently_deleted = models.BooleanField(
+        default=False,
+        help_text="Attempt permanently deleted from database"
+    )
+    archived_at = models.DateTimeField(null=True, blank=True)
+    
     class Meta:
         ordering = ["-started_at"]
         verbose_name = "Mock Test Attempt"
         verbose_name_plural = "Mock Test Attempts"
+        indexes = [
+            models.Index(fields=['user', 'mock_test', 'is_completed']),
+            models.Index(fields=['started_at']),
+            models.Index(fields=['submitted_at']),  # Add this for faster queries
+            models.Index(fields=['is_archived']),   # Add this for filtering
+        ]
 
     def __str__(self):
-        return f"{self.user.username} - {self.mock_test.title}"
+        return f"{self.user.username} - {self.mock_test.title} - {self.get_language_display()}"
 
     @property
     def percentage(self):
-        if not self.total_marks:
+        if not self.total_marks or self.total_marks == 0:
             return 0
         return round((self.score / self.total_marks) * 100, 2)
     
@@ -234,6 +262,7 @@ class MockTestAttempt(models.Model):
         return max(0, int(remaining))
     
     def calculate_score(self):
+        """Calculate and update the score for this attempt"""
         correct = self.answers.filter(is_correct=True).count()
         wrong = self.answers.filter(is_correct=False, selected_option__isnull=False).count()
         skipped = self.answers.filter(selected_option__isnull=True).count()
@@ -253,9 +282,85 @@ class MockTestAttempt(models.Model):
         self.total_marks = sum(q.marks for q in self.mock_test.questions.all())
         self.save()
         return self.score
+    
+    def get_question_text(self, question):
+        """Get question text in the attempt's language"""
+        if self.language == 'hi' and question.question_hi:
+            return question.question_hi
+        return question.question_en
+    
+    def get_option_text(self, option):
+        """Get option text in the attempt's language"""
+        if self.language == 'hi' and option.text_hi:
+            return option.text_hi
+        return option.text_en
+    
+    # NEW METHODS FOR AUTO-DELETION
+    def should_archive(self):
+        """Check if attempt should be archived (keep only summary, delete details)"""
+        if self.submitted_at and not self.is_archived:
+            days_old = (timezone.now() - self.submitted_at).days
+            return days_old >= 7
+        return False
+    
+    def should_permanently_delete(self):
+        """Check if attempt should be permanently deleted"""
+        if self.submitted_at and not self.permanently_deleted:
+            days_old = (timezone.now() - self.submitted_at).days
+            return days_old >= 30
+        return False
+    
+    def archive_details(self):
+        """Archive this attempt by deleting detailed answers but keeping summary"""
+        if self.is_archived:
+            return
+        
+        # Delete all associated UserAnswer records
+        answer_count = self.answers.count()
+        self.answers.all().delete()
+        
+        self.is_archived = True
+        self.archived_at = timezone.now()
+        self.save()
+        
+        return answer_count
 
+    # NEW FIELDS FOR DATA RETENTION
+    is_paid_user = models.BooleanField(
+        default=False,
+        help_text="Whether this attempt belongs to a paid user"
+    )
+    
+    # For tracking deletion
+    details_deleted_at = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text="When detailed answers were deleted"
+    )
+    
+    # Summary-only flag - keep this for ranking data
+    has_detailed_data = models.BooleanField(
+        default=True,
+        help_text="Whether detailed answers still exist"
+    )
+    
+    # Add index for efficient cleanup queries
+    class Meta:
+        # ... existing Meta options ...
+        indexes = [
+            # ... existing indexes ...
+            models.Index(fields=['is_paid_user', 'submitted_at', 'has_detailed_data']),
+        ]
+    
+    def should_delete_details(self):
+        """Check if detailed answers should be deleted"""
+        if self.has_detailed_data and self.submitted_at:
+            days_old = (timezone.now() - self.submitted_at).days
+            # Delete after 7 days for free users
+            return not self.is_paid_user and days_old >= 7
+        return False    
 
-# 8. User Answer
+# 8. User Answer - with minor improvement for language handling
 class UserAnswer(models.Model):
     attempt = models.ForeignKey(
         MockTestAttempt,
@@ -309,9 +414,25 @@ class UserAnswer(models.Model):
         seconds = self.time_taken % 60
         return f"{minutes}:{seconds:02d}"
     
+    # NEW: Get the question text in the attempt's language
+    @property
+    def question_text(self):
+        return self.attempt.get_question_text(self.question)
     
-# Add this model to your models.py first:
-
+    # NEW: Get the selected option text in the attempt's language
+    @property
+    def selected_option_text(self):
+        if self.selected_option:
+            return self.attempt.get_option_text(self.selected_option)
+        return "Not Answered"
+    
+    # NEW: Get the correct option text in the attempt's language
+    @property
+    def correct_option_text(self):
+        correct_option = self.question.options.filter(is_correct=True).first()
+        if correct_option:
+            return self.attempt.get_option_text(correct_option)
+        return "No correct option found"
 # models.py - Add this Testimonial model
 # models.py - Add this model
 

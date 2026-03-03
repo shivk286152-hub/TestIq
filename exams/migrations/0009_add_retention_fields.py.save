@@ -1,0 +1,29 @@
+cd TestIq# migrations/xxxx_add_retention_fields.py
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ('exams', 'previous_migration'),  # Replace with your actual dependency
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='mocktestattempt',
+            name='is_paid_user',
+            field=models.BooleanField(default=False, help_text='Whether this attempt belongs to a paid user'),
+        ),
+        migrations.AddField(
+            model_name='mocktestattempt',
+            name='details_deleted_at',
+            field=models.DateTimeField(blank=True, null=True, help_text='When detailed answers were deleted'),
+        ),
+        migrations.AddField(
+            model_name='mocktestattempt',
+            name='has_detailed_data',
+            field=models.BooleanField(default=True, help_text='Whether detailed answers still exist'),
+        ),
+        migrations.AddIndex(
+            model_name='mocktestattempt',
+            index=models.Index(fields=['is_paid_user', 'submitted_at', 'has_detailed_data'], name='exams_mockt_is_paid_bc55a6_idx'),
+        ),
+    ]

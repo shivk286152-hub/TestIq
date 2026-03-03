@@ -9,6 +9,7 @@ from django.contrib import messages
 
 
 
+
 import json
 
 
@@ -72,11 +73,29 @@ def home(request):
         return HttpResponse(f"Error: {str(e)}", status=500)
 
 
-
+def about(request):
+    """About page view"""
+    return render(request, 'exams/about.html', {
+        'site_name': 'TestIQ',  # or your site name
+    })
 
 # ==============================
 # CATEGORY
 # ==============================
+# def category_detail(request, slug):
+#     category = get_object_or_404(ExamCategory, slug=slug)
+#     subcategories = SubCategory.objects.filter(category=category)
+    
+#     # If there's at least one subcategory, redirect to the first one
+#     if subcategories.exists():
+#         return redirect('exams:subcategory_detail', subcategory_id=subcategories.first().id)
+    
+#     # If no subcategories, show the category page with empty list
+#     return render(request, "exams/subcategory_list.html", {
+#         "category": category,
+#         "subcategories": subcategories,
+#     })
+
 def category_detail(request, slug):
     category = get_object_or_404(ExamCategory, slug=slug)
     subcategories = SubCategory.objects.filter(category=category)
@@ -85,8 +104,6 @@ def category_detail(request, slug):
         "category": category,
         "subcategories": subcategories,
     })
-
-
 # ==============================
 # SUBCATEGORY
 # ==============================
@@ -128,9 +145,11 @@ def start_test(request, mocktest_id):
 # ==============================
 # ATTEMPT TEST (SERVER TIMER)
 # ==============================
+# ==============================
+# ATTEMPT TEST (SERVER TIMER)
+# ==============================
 @login_required
 def attempt_test(request, mocktest_id):
-
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
 
     attempt, created = MockTestAttempt.objects.get_or_create(
@@ -139,6 +158,14 @@ def attempt_test(request, mocktest_id):
         is_completed=False,
         defaults={"started_at": timezone.now()}
     )
+    
+    # IMPORTANT: Get language from session (set in start_test)
+    language = request.session.get(f'test_{mocktest.id}_language', 'en')
+    
+    # If attempt exists but language not set, use default
+    if created and hasattr(attempt, 'language'):
+        attempt.language = language
+        attempt.save()
 
     # Remaining time
     duration = mocktest.duration * 60
@@ -160,9 +187,8 @@ def attempt_test(request, mocktest_id):
         "questions": questions,
         "subjects": subjects,
         "remaining_seconds": remaining_seconds,
+        "language": language,  # Pass language to template
     })
-
-
 # ==============================
 # SAVE ANSWER (SESSION)
 # ==============================
@@ -296,7 +322,7 @@ def submit_test(request, mocktest_id):
 
     request.session.pop(f"answers_{mocktest.id}", None)
     
-     
+    
     # ADD THIS MISSING RETURN STATEMENT
     return redirect("exams:result_dashboard", attempt_id=attempt.id)
     
@@ -413,6 +439,28 @@ def view_rankings(request, attempt_id):
     current_rank = 1
     prev_score = None
     prev_rank = 1
+
+    """
+    View rankings for a specific mock test attempt
+    This works even after detailed data is deleted because it only uses summary fields
+    """
+    current_attempt = get_object_or_404(
+        MockTestAttempt, 
+        id=attempt_id, 
+        user=request.user,
+        is_completed=True
+    )
+    
+    # This query only uses summary fields, so it's safe
+    all_attempts = MockTestAttempt.objects.filter(
+        mock_test=current_attempt.mock_test,
+        is_completed=True
+    ).select_related('user').annotate(
+        total_questions=F('total_marks'),
+        score_percentage=(
+            F('correct_answers') * 100.0 / F('total_marks')
+        )
+    ).order_by('-score_percentage', 'submitted_at')
     
     for attempt in all_attempts:
         # Handle ties (same score gets same rank)
@@ -554,8 +602,8 @@ def detailed_analysis(request, attempt_id):
             is_completed=True
         )
         
-        # Get user's language preference
-        user_language = request.session.get('django_language', 'en')
+        # FIX: Get language from URL parameter, fallback to attempt's language
+        selected_language = request.GET.get('lang', attempt.language)
         
         # Get all answers with related data
         answers = attempt.answers.select_related(
@@ -575,6 +623,7 @@ def detailed_analysis(request, attempt_id):
                 'skipped_count': 0,
                 'accuracy': 0,
                 'subject_stats': {},
+                'selected_language': selected_language,  # Pass to template
                 'error_message': 'No answers found for this attempt.'
             })
         
@@ -608,11 +657,11 @@ def detailed_analysis(request, attempt_id):
             else:
                 skipped_count += 1
             
-            # Prepare option details - FIXED: Use text_en/text_hi based on language
+            # Prepare option details based on SELECTED LANGUAGE
             options_data = []
             for opt_index, option in enumerate(options, start=1):
-                # Get option text based on user's language preference
-                if user_language == 'hi' and hasattr(option, 'text_hi') and option.text_hi:
+                # Get option text based on selected language
+                if selected_language == 'hi' and hasattr(option, 'text_hi') and option.text_hi:
                     option_text = option.text_hi
                 else:
                     # Default to English or fallback to any available text
@@ -627,9 +676,9 @@ def detailed_analysis(request, attempt_id):
                 }
                 options_data.append(option_dict)
             
-            # Get question text based on language preference
+            # Get question text based on selected language
             question_text = "Question text not available"
-            if user_language == 'hi' and hasattr(question, 'question_hi') and question.question_hi:
+            if selected_language == 'hi' and hasattr(question, 'question_hi') and question.question_hi:
                 question_text = question.question_hi
             else:
                 question_text = question.question_en if hasattr(question, 'question_en') and question.question_en else "Question text not available"
@@ -643,18 +692,18 @@ def detailed_analysis(request, attempt_id):
             # Get explanation
             explanation = getattr(question, 'explanation', 'No explanation available.')
             
-            # Get selected option text based on language
+            # Get selected option text based on selected language
             selected_option_text = 'Not Answered'
             if selected_option:
-                if user_language == 'hi' and hasattr(selected_option, 'text_hi') and selected_option.text_hi:
+                if selected_language == 'hi' and hasattr(selected_option, 'text_hi') and selected_option.text_hi:
                     selected_option_text = selected_option.text_hi
                 else:
                     selected_option_text = selected_option.text_en if hasattr(selected_option, 'text_en') and selected_option.text_en else "Selected option"
             
-            # Get correct option text based on language
+            # Get correct option text based on selected language
             correct_option_text = 'No correct option found'
             if correct_option:
-                if user_language == 'hi' and hasattr(correct_option, 'text_hi') and correct_option.text_hi:
+                if selected_language == 'hi' and hasattr(correct_option, 'text_hi') and correct_option.text_hi:
                     correct_option_text = correct_option.text_hi
                 else:
                     correct_option_text = correct_option.text_en if hasattr(correct_option, 'text_en') and correct_option.text_en else "Correct option"
@@ -685,6 +734,14 @@ def detailed_analysis(request, attempt_id):
         accuracy = 0
         if total_questions > 0:
             accuracy = round((correct_count / total_questions * 100), 1)
+
+           # Check if detailed data exists
+        if not attempt.has_detailed_data:
+            return render(request, 'exams/detailed_analysis_unavailable.html', {
+                'attempt': attempt,
+                'message': 'Detailed answers are no longer available for free users after 7 days. Upgrade to paid to keep your detailed history!'
+            })
+           
         
         # Subject-wise performance
         subject_stats = {}
@@ -721,6 +778,11 @@ def detailed_analysis(request, attempt_id):
             'skipped_count': skipped_count,
             'accuracy': accuracy,
             'subject_stats': subject_stats,
+            'selected_language': selected_language,  # Pass to template
+            'languages': [
+                {'code': 'en', 'name': 'English'},
+                {'code': 'hi', 'name': 'हिन्दी (Hindi)'},
+            ]
         }
         
         return render(request, 'exams/detailed_analysis.html', context)
@@ -738,7 +800,6 @@ def detailed_analysis(request, attempt_id):
             'error_message': f'Unable to load detailed analysis: {str(e)}',
             'attempt_id': attempt_id
         })
-        
 @login_required
 def dashboard(request):
     """
@@ -902,7 +963,7 @@ def delete_testimonial(request, testimonial_id):
     })
 
     
- # ==============================
+# ==============================
 # PRETEST DETAIL PAGE
 # ==============================
 @login_required
@@ -938,6 +999,7 @@ def start_test(request, mocktest_id):
     """
     Verify terms acceptance and language selection before starting
     """
+    # Handle POST request only
     if request.method == 'POST':
         mocktest = get_object_or_404(MockTest, id=mocktest_id)
         
@@ -957,23 +1019,39 @@ def start_test(request, mocktest_id):
         request.session['test_language'] = selected_language
         request.session[f'test_{mocktest.id}_language'] = selected_language
         
+        # Check if user is paid (implement your logic)
+        is_paid = False
+        # Method 1: If you have a profile with is_paid_member field
+        if hasattr(request.user, 'profile') and hasattr(request.user.profile, 'is_paid_member'):
+            is_paid = request.user.profile.is_paid_member
+        # Method 2: If you use groups for premium users
+        elif request.user.groups.filter(name='Premium Users').exists():
+            is_paid = True
+        # Method 3: If you have a subscription model
+        # is_paid = Subscription.objects.filter(user=request.user, is_active=True).exists()
+        
         # Create or get existing attempt
         attempt, created = MockTestAttempt.objects.get_or_create(
             user=request.user,
             mock_test=mocktest,
             is_completed=False,
-            defaults={"started_at": timezone.now()}
+            defaults={
+                "started_at": timezone.now(),
+                "language": selected_language,
+                "is_paid_user": is_paid,  # Set the paid user flag
+                "has_detailed_data": True
+            }
         )
         
-        # If attempt exists but not started, update started_at
-        if not created and not attempt.started_at:
-            attempt.started_at = timezone.now()
+        # If attempt exists but not started, update started_at and language
+        if not created:
+            if not attempt.started_at:
+                attempt.started_at = timezone.now()
+            attempt.language = selected_language  # Update language if needed
             attempt.save()
         
         # Redirect to the actual test
         return redirect("exams:attempt_test", mocktest_id=mocktest.id)
     
     # If not POST, redirect to pretest page
-    return redirect('exams:pretest_detail', mocktest_id=mocktest_id)   
-    
-
+    return redirect('exams:pretest_detail', mocktest_id=mocktest_id)

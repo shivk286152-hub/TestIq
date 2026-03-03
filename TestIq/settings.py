@@ -39,23 +39,60 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
-    # 'ckeditor',
-    # 'taggit',
+   'ckeditor',
+    'ckeditor_uploader',
+    'taggit',
     'exams',
     'ExamNotification',
     'User',
+    # 'django_q',
     'CurrentAffairs',
 ]
 
-# CKEditor Configuration
-# CKEditor configuration
-CKEDITOR_CONFIGS = {
-    'default': {
-        'toolbar': 'full',
-        'height': 500,
-        'width': '100%',
+# Django-Q configuration
+# settings.py - Alternative using Django ORM (no Redis needed)
+Q_CLUSTER = {
+    'name': 'TestIQ',
+    'workers': 4,
+    'recycle': 500,
+    'timeout': 60,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'orm': 'default'  # Use database as broker
+}
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'ERROR',
     },
 }
+# CKEditor Configuration
+# CKEditor configuration
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', '|',
+            'link', 'bulletedList', 'numberedList', '|',
+            'insertTable', 'imageUpload', '|',
+            'undo', 'redo'
+        ],
+        'height': 300,
+        'width': '100%',
+    }
+}
+# CKEDITOR SETTINGS (IMPORTANT)
+CKEDITOR_UPLOAD_PATH = "uploads/"
 # To suppress the CKEditor warning (optional)
 import warnings
 warnings.filterwarnings('ignore', message='django-ckeditor bundles CKEditor 4.22.1')
@@ -131,7 +168,8 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # MEDIA FILES
 # ----------------------------
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ----------------------------
 # LOGIN

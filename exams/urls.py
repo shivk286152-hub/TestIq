@@ -7,6 +7,7 @@ urlpatterns = [
 
     # Home
     path("", views.home, name="home"),
+    path('about/', views.about, name='about'),
 
     # Category → Subcategory → Tests
     path("category/<slug:slug>/", views.category_detail, name="category_detail"),

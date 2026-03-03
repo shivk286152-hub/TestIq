@@ -258,7 +258,7 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
                             </div>
                             {% endif %}
 
-                            <a href="{% url 'exams:subcategory_detail' cat.id %}" class="inline-flex items-center justify-center w-full px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 
+                            <a href="{% url 'exams:category_detail' cat.slug %}" class="inline-flex items-center justify-center w-full px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 
                                       text-white text-sm rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 
                                       transition-all duration-300 transform group-hover:scale-105">
                                 Explore
@@ -629,10 +629,10 @@ class="fixed top-20 right-0 w-96 max-w-full h-[85vh] bg-white/80 backdrop-blur-x
             <div>
                 <h4 class="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Quick Links</h4>
                 <ul class="space-y-1 md:space-y-2 text-xs md:text-sm">
-                    <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-300">About Us</a></li>
+                    <li><a href="{% url 'exams:about' %}" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-300">About Us</a></li>
                     <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-300">Contact</a></li>
                     <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-300">FAQs</a></li>
-                    <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition-all duration-300">Blog</a></li>
+                    <li><a href="#" class="hover:text-white hidden hover:translate-x-1 inline-block transition-all duration-300">Blog</a></li>
                 </ul>
             </div>
 

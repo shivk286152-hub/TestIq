@@ -1,7 +1,12 @@
 {% if question %}
 <div class="mb-6">
     <p class="font-semibold mb-4 text-base md:text-lg">
-        Q{{ question_number }}. {{ question.question_en }}
+        Q{{ question_number }}. 
+        {% if request.session.test_language == 'hi' and question.question_hi %}
+            {{ question.question_hi }}
+        {% else %}
+            {{ question.question_en }}
+        {% endif %}
     </p>
 
     <div class="space-y-3">
@@ -13,16 +18,20 @@
             
             <input type="radio" name="question_{{ question.id }}" value="{{ option.id }}" class="mr-3 scale-110"
             {% if selected_option and option.id == selected_option|add:'0' %} checked {% endif %}>
-            {{ option.text_en }}
+            
+            {% if request.session.test_language == 'hi' and option.text_hi %}
+                {{ option.text_hi }}
+            {% else %}
+                {{ option.text_en }}
+            {% endif %}
         </label>
         {% endfor %}
     </div>
 </div>
 
-<!-- ================= BUTTON SECTION ================= -->
+<!-- Rest of your button section remains exactly the same -->
 <div class="mt-auto flex flex-wrap gap-3">
-
-    <!-- Previous -->
+    <!-- Previous button, Save & Next, Clear, Skip, Submit - unchanged -->
     {% if question_number > 1 %}
     <button type="button" onclick="loadQuestion({{ question_number|add:-1 }})"
         class="px-4 py-2 bg-gray-300 rounded font-semibold">
@@ -30,7 +39,6 @@
     </button>
     {% endif %}
 
-    <!-- Save & Next -->
     {% if question_number < total_questions %}
     <button type="button" onclick="saveAnswer({{ question.id }}, true, {{ question_number|add:1 }})"
         class="px-4 py-2 bg-green-600 text-white rounded font-semibold">
@@ -38,13 +46,11 @@
     </button>
     {% endif %}
 
-    <!-- Clear -->
     <button type="button" onclick="clearAnswer({{ question.id }})"
         class="px-4 py-2 bg-yellow-500 text-white rounded font-semibold">
         Clear
     </button>
 
-    <!-- Skip -->
     {% if question_number < total_questions %}
     <button type="button" onclick="loadQuestion({{ question_number|add:1 }})"
         class="px-4 py-2 bg-blue-500 text-white rounded font-semibold">
@@ -52,17 +58,11 @@
     </button>
     {% endif %}
 
-    <!-- Submit -->
     <button type="button" onclick="submitTest()"
-        class="px-4 py-2 bg-red-600 text-white rounded font-semibold" id="testForm">
+        class="px-4 py-2 bg-red-600 text-white rounded font-semibold">
         Submit Test
     </button>
-
 </div>
-
-{% comment %}
-Move all JS to the main template, NOT inside AJAX template
-{% endcomment %}
 
 {% else %}
 <p>No question found.</p>

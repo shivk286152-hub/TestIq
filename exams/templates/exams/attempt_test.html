@@ -6,262 +6,298 @@
 {% block content %}
 
 <style>
-/* HEXAGON */
-.hex-btn{
-    width:42px;
-    height:42px;
-    min-width:42px;
-    min-height:42px;
+    /* HEXAGON */
+    .hex-btn {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        min-height: 42px;
 
-    clip-path: polygon(
-        25% 6%, 75% 6%,
-        100% 50%,
-        75% 94%, 25% 94%,
-        0% 50%
-    );
+        clip-path: polygon(25% 6%, 75% 6%,
+                100% 50%,
+                75% 94%, 25% 94%,
+                0% 50%);
 
-    background:#e5e7eb;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:12px;
-    font-weight:bold;
-    border:1px solid #999;
-}
+        background: #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        border: 1px solid #999;
+    }
 
-/* COLORS */
-.answered{ background:#22c55e!important; color:white; }
-.skipped{ background:#facc15!important; }
-.cleared{ background:#800000!important; color:white; }
-.active-q{ background:#3b82f6!important; color:white; }
+    /* COLORS */
+    .answered {
+        background: #22c55e !important;
+        color: white;
+    }
+
+    .skipped {
+        background: #facc15 !important;
+    }
+
+    .cleared {
+        background: #800000 !important;
+        color: white;
+    }
+
+    .active-q {
+        background: #3b82f6 !important;
+        color: white;
+    }
 </style>
 
 <div class="bg-gray-100 min-h-screen">
 
-<div class="max-w-7xl mx-auto p-3 md:p-4 grid grid-cols-1 md:grid-cols-12 gap-4">
+    <div class="max-w-7xl mx-auto p-3 md:p-4 grid grid-cols-1 md:grid-cols-12 gap-4">
 
-<!-- LEFT -->
-<div class="md:col-span-9 flex flex-col gap-4">
+        <!-- LEFT -->
+        <div class="md:col-span-9 flex flex-col gap-4">
 
-<!-- HEADER -->
-<div class="bg-white shadow p-4 flex justify-between items-center rounded">
+            <!-- HEADER -->
+            <div class="bg-white shadow p-4 flex justify-between items-center rounded">
 
-<div class="flex items-center gap-3">
-<button onclick="togglePalette()" 
-class="md:hidden text-2xl text-red-600">☰</button>
+                <div class="flex items-center gap-3">
+                    <button onclick="togglePalette()" class="md:hidden text-2xl text-red-600">☰</button>
 
-<h1 class="text-lg md:text-2xl font-bold text-blue-600">
-{{ mocktest.title }}
-</h1>
-</div>
+                    <h1 class="text-lg md:text-2xl font-bold text-blue-600">
+                        {{ mocktest.title }}
+                    </h1>
+                </div>
+                <!-- In the header section, after the title -->
+                <div class="flex items-center gap-2">
+                    {% if language == 'hi' %}
+                    <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">हिन्दी</span>
+                    {% else %}
+                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">English</span>
+                    {% endif %}
+                </div>
 
-<div id="timer" class="font-semibold text-red-600">
-00:30:00
-</div>
+                <div id="timer" class="font-semibold text-red-600">
+                    00:30:00
+                </div>
 
-</div>
+            </div>
 
-<!-- FORM -->
-<form id="testForm" method="POST" action="{% url 'exams:submit_test' mocktest.id %}">
-{% csrf_token %}
-<div id="questionContainer"
-class="bg-white rounded-lg shadow p-5 min-h-[300px]">
-</div>
-</form>
+            <!-- FORM -->
+            <form id="testForm" method="POST" action="{% url 'exams:submit_test' mocktest.id %}">
+                {% csrf_token %}
+                <div id="questionContainer" class="bg-white rounded-lg shadow p-5 min-h-[300px]">
+                </div>
+            </form>
 
-</div>
+        </div>
 
-<!-- PALETTE -->
-<div id="questionPalette"
-class="fixed md:static top-0 left-0 h-full md:h-auto w-72 md:w-auto
+        <!-- PALETTE -->
+        <div id="questionPalette" class="fixed md:static top-0 left-0 h-full md:h-auto w-72 md:w-auto
 bg-white rounded-lg shadow p-4
 transform -translate-x-full md:translate-x-0
 transition-transform duration-300
 z-50 md:z-auto md:col-span-3">
 
-<!-- CLOSE BTN -->
-<button onclick="togglePalette()"
-class="md:hidden mb-3 text-red-600 font-bold">
-✕ Close
-</button>
+            <!-- CLOSE BTN -->
+            <button onclick="togglePalette()" class="md:hidden mb-3 text-red-600 font-bold">
+                ✕ Close
+            </button>
 
-<h2 class="font-bold">Questions</h2>
+            <h2 class="font-bold">Questions</h2>
 
-<!-- LEGEND -->
-<div class="text-sm space-y-1 my-3">
-<div class="flex gap-2 items-center">
-<div class="w-4 h-4 bg-green-500"></div> Answered
-</div>
+            <!-- LEGEND -->
+            <div class="text-sm space-y-1 my-3">
+                <div class="flex gap-2 items-center">
+                    <div class="w-4 h-4 bg-green-500"></div> Answered
+                </div>
 
-<div class="flex gap-2 items-center">
-<div class="w-4 h-4 bg-yellow-400"></div> Skipped
-</div>
+                <div class="flex gap-2 items-center">
+                    <div class="w-4 h-4 bg-yellow-400"></div> Skipped
+                </div>
 
-<div class="flex gap-2 items-center">
-<div class="w-4 h-4 bg-red-800"></div> Cleared
-</div>
+                <div class="flex gap-2 items-center">
+                    <div class="w-4 h-4 bg-red-800"></div> Cleared
+                </div>
 
-<div class="flex gap-2 items-center">
-<div class="w-4 h-4 bg-blue-500"></div> Current
-</div>
-</div>
+                <div class="flex gap-2 items-center">
+                    <div class="w-4 h-4 bg-blue-500"></div> Current
+                </div>
+            </div>
 
-<!-- GRID -->
-<div id="paletteButtons"
-class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-5 lg:grid-cols-6
+            <!-- GRID -->
+            <div id="paletteButtons" class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-5 lg:grid-cols-6
 gap-3 justify-items-center mt-4">
 
-{% for q in questions %}
-<button type="button"
-onclick="loadQuestion({{ forloop.counter }})"
-id="palette-{{ forloop.counter }}"
-class="hex-btn">
-{{ forloop.counter }}
-</button>
-{% endfor %}
+                {% for q in questions %}
+                <button type="button" onclick="loadQuestion({{ forloop.counter }})" id="palette-{{ forloop.counter }}"
+                    class="hex-btn">
+                    {{ forloop.counter }}
+                </button>
+                {% endfor %}
 
-</div>
-</div>
+            </div>
+        </div>
 
-</div>
+    </div>
 </div>
 
 <script>
 
-/* TOGGLE DRAWER */
-function togglePalette(){
-    document.getElementById("questionPalette")
-    .classList.toggle("-translate-x-full");
-}
-
-
-/* ✅ SERVER TIMER */
-let timeLeft = {{ remaining_seconds }};
-
-const timerInterval = setInterval(()=>{
-    
-    if(timeLeft <= 0){
-        clearInterval(timerInterval);
-        alert("Time Up!");
-        document.getElementById("testForm").submit();
-        return;
+    /* TOGGLE DRAWER */
+    function togglePalette() {
+        document.getElementById("questionPalette")
+            .classList.toggle("-translate-x-full");
     }
 
-    let m = Math.floor(timeLeft/60);
-    let s = timeLeft%60;
 
-    document.getElementById("timer").innerHTML =
-        (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+    /* ✅ SERVER TIMER */
+    let timeLeft = {{ remaining_seconds }};
 
-    timeLeft--;
+    const timerInterval = setInterval(() => {
 
-},1000);
-
-
-/* LOAD QUESTION */
-function loadQuestion(num){
-
-    fetch("{% url 'exams:ajax_question' mocktest.id %}?q="+num)
-    .then(r=>r.text())
-    .then(html=>{
-
-        document.getElementById("questionContainer").innerHTML=html;
-
-        document.querySelectorAll(".hex-btn")
-        .forEach(b=>b.classList.remove("active-q"));
-
-        document.getElementById("palette-"+num)
-        .classList.add("active-q");
-
-    });
-}
-
-
-/* SAVE ANSWER */
-function saveAnswer(qid,goNext=false,nextNum=null){
-
-    const selected=document.querySelector(`input[name="question_${qid}"]:checked`);
-    const btn=document.getElementById("palette-"+qid);
-    const fd=new FormData();
-
-    if(selected){
-        fd.append(`question_${qid}`,selected.value);
-
-        btn.classList.remove("skipped","cleared");
-        btn.classList.add("answered");
-    }
-    else{
-        if(!btn.classList.contains("answered")){
-            btn.classList.add("skipped");
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert("Time Up!");
+            document.getElementById("testForm").submit();
+            return;
         }
+
+        let m = Math.floor(timeLeft / 60);
+        let s = timeLeft % 60;
+
+        document.getElementById("timer").innerHTML =
+            (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+
+        timeLeft--;
+
+    }, 1000);
+
+
+    function loadQuestion(num) {
+
+        fetch("{% url 'exams:ajax_question' mocktest.id %}?q=" + num)
+            .then(r => r.text())
+            .then(html => {
+
+                document.getElementById("questionContainer").innerHTML = html;
+
+                document.querySelectorAll(".hex-btn")
+                    .forEach(b => b.classList.remove("active-q"));
+
+                document.getElementById("palette-" + num)
+                    .classList.add("active-q");
+
+            });
     }
 
-    fetch("{% url 'exams:save_answer' %}",{
-        method:"POST",
-        headers:{"X-CSRFToken":"{{ csrf_token }}"},
-        body:fd
-    }).then(()=>{
-        if(goNext && nextNum){
-            loadQuestion(nextNum);
-        }
-    });
-}
 
 
-/* CLEAR */
-function clearAnswer(qid){
+    /* SAVE ANSWER */
+    function saveAnswer(qid, goNext = false, nextNum = null) {
 
-    const btn=document.getElementById("palette-"+qid);
-
-    btn.classList.remove("answered","skipped");
-    btn.classList.add("cleared");
-
-    document.querySelectorAll(`input[name="question_${qid}"]`)
-    .forEach(i=>i.checked=false);
-
-    const fd=new FormData();
-    fd.append(`question_${qid}`,"");
-
-    fetch("{% url 'exams:save_answer' %}",{
-        method:"POST",
-        headers:{"X-CSRFToken":"{{ csrf_token }}"},
-        body:fd
-    });
-}
-
-function submitTest(){
-
-    if(!confirm("Are you sure you want to submit the test?")){
-        return;
-    }
-
-    // Save all checked answers
-    document.querySelectorAll("input[type=radio]:checked")
-    .forEach(input=>{
+        const selected = document.querySelector(`input[name="question_${qid}"]:checked`);
+        const btn = document.getElementById("palette-" + qid);
         const fd = new FormData();
-        fd.append(input.name, input.value);
 
-        fetch("{% url 'exams:save_answer' %}",{
-            method:"POST",
-            headers:{
-                "X-CSRFToken":"{{ csrf_token }}"
-            },
-            body:fd
+        if (selected) {
+            fd.append(`question_${qid}`, selected.value);
+
+            btn.classList.remove("skipped", "cleared");
+            btn.classList.add("answered");
+        }
+        else {
+            if (!btn.classList.contains("answered")) {
+                btn.classList.add("skipped");
+            }
+        }
+
+        fetch("{% url 'exams:save_answer' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            body: fd
+        }).then(() => {
+            if (goNext && nextNum) {
+                loadQuestion(nextNum);
+            }
         });
+    }
+
+
+    /* CLEAR */
+    function clearAnswer(qid) {
+
+        const btn = document.getElementById("palette-" + qid);
+
+        btn.classList.remove("answered", "skipped");
+        btn.classList.add("cleared");
+
+        document.querySelectorAll(`input[name="question_${qid}"]`)
+            .forEach(i => i.checked = false);
+
+        const fd = new FormData();
+        fd.append(`question_${qid}`, "");
+
+        fetch("{% url 'exams:save_answer' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            body: fd
+        });
+    }
+
+    function submitTest() {
+
+        if (!confirm("Are you sure you want to submit the test?")) {
+            return;
+        }
+
+        // Save all checked answers
+        document.querySelectorAll("input[type=radio]:checked")
+            .forEach(input => {
+                const fd = new FormData();
+                fd.append(input.name, input.value);
+
+                fetch("{% url 'exams:save_answer' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: fd
+                });
+            });
+
+        // Final submit
+        setTimeout(() => {
+            document.getElementById("testForm").submit();
+        }, 500);
+    }
+
+
+    /* FIRST LOAD */
+    document.addEventListener("DOMContentLoaded", () => {
+        loadQuestion(1);
     });
 
-    // Final submit
-    setTimeout(()=>{
-        document.getElementById("testForm").submit();
-    },500);
-}
-    
+    // Get language from server
+    const CURRENT_LANGUAGE = "{{ language|default:'en' }}";
 
-/* FIRST LOAD */
-document.addEventListener("DOMContentLoaded",()=>{
-    loadQuestion(1);
-});
+    // Update loadQuestion to pass language if needed
+    function loadQuestion(num) {
+        console.log("Loading question:", num, "Language:", CURRENT_LANGUAGE);
 
+        fetch("{% url 'exams:ajax_question' mocktest.id %}?q=" + num)
+            .then(r => r.text())
+            .then(html => {
+                const container = document.getElementById("questionContainer");
+                container.innerHTML = html;
+
+                // Re-render math for AJAX-loaded content
+                if (window.MathJax) {
+                    MathJax.typesetPromise([container]);
+                }
+
+                // Update palette active state
+                document.querySelectorAll(".hex-btn").forEach(b => b.classList.remove("active-q"));
+                document.getElementById("palette-" + num).classList.add("active-q");
+            });
+    }
 </script>
 
 {% endblock %}

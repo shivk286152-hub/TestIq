@@ -10,6 +10,8 @@ urlpatterns = [
     path('notification/', include('ExamNotification.urls')),
     path('user/', include('User.urls')),
     path('current-affairs/', include('CurrentAffairs.urls')),
+    # your app URLs
+    path('ckeditor/', include('ckeditor_uploader.urls')),
     # ... your other URLs
 ]
 

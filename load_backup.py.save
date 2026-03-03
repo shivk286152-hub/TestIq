@@ -1,0 +1,20 @@
+import json
+from django.core.management import call_command
+from django.apps import apps
+
+# Load the backup file
+with open('full_backup.json', 'r') as f:
+    data = json.load(f)
+
+# Filter out content types and permissions
+filtered_data = [obj for obj in data 
+                 if not obj['model'].startswith('contenttypes.') 
+                 and not obj['model'].startswith('auth.permission')]
+
+# Save filtered data
+with open('filtered_backup.json', 'w') as f:
+    json.dump(filtered_data, f)
+
+print(f"Original: {len(data)} objects")
+print(f"Filtered: {len(filtered_data)} objects")
+

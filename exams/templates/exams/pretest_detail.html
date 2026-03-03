@@ -178,7 +178,7 @@
                         </div>
                     </div>
 
-                    <!-- Language Selection Card -->
+                    <!-- Language Selection Card - FIXED VERSION -->
                     <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6">
                         <h3 class="font-semibold text-blue-800 mb-3 flex items-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,16 +189,13 @@
                         
                         <p class="text-sm text-blue-600 mb-4">Choose the language in which you want to take the test. Questions will be displayed in your selected language.</p>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="languageOptions">
                             {% for lang in languages %}
-                            <label class="relative block cursor-pointer">
-                                <input type="radio" name="language" value="{{ lang.code }}" 
-                                       class="sr-only peer" required>
-                                <div class="p-4 bg-white border-2 border-gray-200 rounded-xl peer-checked:border-indigo-600 peer-checked:bg-indigo-50 transition-all">
-                                    <div class="flex items-center">
-                                        <div class="w-5 h-5 rounded-full border-2 border-gray-300 peer-checked:border-indigo-600 peer-checked:bg-indigo-600 mr-3"></div>
-                                        <span class="font-medium text-gray-700 peer-checked:text-indigo-600">{{ lang.name }}</span>
-                                    </div>
+                            <label class="language-option relative block cursor-pointer" data-value="{{ lang.code }}">
+                                <input type="radio" name="language" value="{{ lang.code }}" class="hidden" required>
+                                <div class="p-4 bg-white border-2 border-gray-200 rounded-xl transition-all flex items-center">
+                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 language-dot"></div>
+                                    <span class="font-medium text-gray-700 language-text">{{ lang.name }}</span>
                                 </div>
                             </label>
                             {% endfor %}
@@ -221,7 +218,7 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-col sm:flex-row gap-4 justify-end">
-                        <a href="{% url 'exams:home'}" 
+                        <a href="{% url 'exams:home' %}" 
                            class="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition text-center">
                             Cancel
                         </a>
@@ -244,13 +241,15 @@
     </div>
 </div>
 
-<!-- JavaScript for enabling/disabling start button -->
+<!-- JavaScript for enabling/disabling start button and language selection -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const termsCheckbox = document.getElementById('terms_accepted');
     const languageRadios = document.querySelectorAll('input[name="language"]');
     const startButton = document.getElementById('startTestBtn');
+    const languageOptions = document.querySelectorAll('.language-option');
     
+    // Function to check form validity
     function checkFormValidity() {
         const termsAccepted = termsCheckbox.checked;
         const languageSelected = Array.from(languageRadios).some(radio => radio.checked);
@@ -258,13 +257,77 @@ document.addEventListener('DOMContentLoaded', function() {
         startButton.disabled = !(termsAccepted && languageSelected);
     }
     
+    // Function to update language selection visual
+    function updateLanguageSelection(selectedOption) {
+        // Remove selection from all options
+        languageOptions.forEach(option => {
+            const div = option.querySelector('div');
+            const dot = option.querySelector('.language-dot');
+            const text = option.querySelector('.language-text');
+            
+            div.classList.remove('border-indigo-600', 'bg-indigo-50');
+            div.classList.add('border-gray-200');
+            dot.classList.remove('border-indigo-600', 'bg-indigo-600');
+            dot.classList.add('border-gray-300');
+            text.classList.remove('text-indigo-600');
+        });
+        
+        // Add selection to clicked option
+        const div = selectedOption.querySelector('div');
+        const dot = selectedOption.querySelector('.language-dot');
+        const text = selectedOption.querySelector('.language-text');
+        
+        div.classList.remove('border-gray-200');
+        div.classList.add('border-indigo-600', 'bg-indigo-50');
+        dot.classList.remove('border-gray-300');
+        dot.classList.add('border-indigo-600', 'bg-indigo-600');
+        text.classList.add('text-indigo-600');
+    }
+    
+    // Add click handlers to language options
+    languageOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+            // Prevent click if clicking on radio directly (though it's hidden)
+            e.preventDefault();
+            
+            // Get the radio input
+            const radio = this.querySelector('input[type="radio"]');
+            
+            // Check the radio
+            radio.checked = true;
+            
+            // Update visual
+            updateLanguageSelection(this);
+            
+            // Trigger change event for form validation
+            const changeEvent = new Event('change', { bubbles: true });
+            radio.dispatchEvent(changeEvent);
+        });
+    });
+    
     termsCheckbox.addEventListener('change', checkFormValidity);
     languageRadios.forEach(radio => {
-        radio.addEventListener('change', checkFormValidity);
+        radio.addEventListener('change', function() {
+            checkFormValidity();
+            
+            // Also update visual when radio changes programmatically
+            const parentOption = this.closest('.language-option');
+            if (parentOption && this.checked) {
+                updateLanguageSelection(parentOption);
+            }
+        });
     });
     
     // Initial check
     checkFormValidity();
 });
 </script>
+
+<style>
+/* Additional styling for language selection */
+.language-option input:checked + div {
+    border-color: #4f46e5;
+    background-color: #eef2ff;
+}
+</style>
 {% endblock %}

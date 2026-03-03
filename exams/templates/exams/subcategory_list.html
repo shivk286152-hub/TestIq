@@ -1,45 +1,785 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Subcategories | {{ site_name }}{% endblock %}
+{% block title %}Explore Subcategories | {{ site_name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Explore Subcategories</h1>
+<!-- Modern Subcategories Page with Unique Design -->
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {% for sub in subcategories %}
-        <div class="group bg-white rounded-xl shadow hover:shadow-lg transition transform hover:-translate-y-0.5 overflow-hidden">
+<!-- Hero Section with Animated Background -->
+<section class="relative bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 overflow-hidden">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 opacity-20">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-float-slow"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-yellow-300 rounded-full mix-blend-overlay filter blur-3xl animate-float-slower"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-400 rounded-full mix-blend-overlay filter blur-3xl animate-pulse-slow"></div>
+    </div>
 
-            <!-- Small Gradient Accent -->
-            <div class="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+    <!-- Grid Pattern Overlay -->
+    <div class="absolute inset-0 opacity-10" style="background-image: url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M54 27.5v5H38v-5h16zm-18 0v5H20v-5h16zm-18 0v5H6v-5h12zM54 9.5v5H38v-5h16zm-18 0v5H20v-5h16zm-18 0v5H6v-5h12zM54 45.5v5H38v-5h16zm-18 0v5H20v-5h16zm-18 0v5H6v-5h12z\" fill=\"%23ffffff\" fill-opacity=\"0.4\" fill-rule=\"evenodd\"/%3E%3C/svg%3E');"></div>
 
-            <div class="p-4 flex flex-col">
+    <div class="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
+        <!-- Animated Badge -->
+        <div class="flex justify-center mb-6 animate-fade-in-down">
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 text-white text-sm font-medium">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                {{ subcategories|length }} Categories Available
+            </span>
+        </div>
 
-                <!-- Icon Circle -->
-                <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold mb-3">
-                    {{ sub.name|slice:":1" }}
-                </div>
+        <!-- Main Title with Gradient Animation -->
+        <h1 class="text-4xl md:text-6xl font-bold text-center mb-4 animate-gradient-text bg-gradient-to-r from-white via-yellow-200 to-pink-200 bg-clip-text text-transparent">
+            Choose Your Path
+        </h1>
+        
+        <!-- Subtitle with Typewriter Effect -->
+        <p class="text-xl text-center text-indigo-100 max-w-3xl mx-auto mb-8 animate-fade-in-up" 
+           id="typewriter-text"></p>
+        <span id="typewriter-strings" class="hidden">
+            Master your skills with our comprehensive test series|Track your progress with detailed analytics|Learn from expert-crafted questions|Achieve your dream score today
+        </span>
 
-                <!-- Title -->
-                <h2 class="text-base font-semibold text-gray-900 mb-1 group-hover:text-indigo-600 transition">
-                    {{ sub.name }}
-                </h2>
-
-                <!-- Description -->
-                <p class="text-gray-600 text-xs flex-grow mb-3">
-                    {{ sub.description|default:"Prepare with full-length mock tests"|truncatechars:70 }}
-                </p>
-
-                <!-- CTA Button -->
-                <a href="{% url 'exams:subcategory_detail' sub.id %}"
-                   class="mt-auto inline-block bg-indigo-600 text-white text-xs font-medium py-1 px-3 rounded hover:bg-indigo-700 transition text-center">
-                    View Tests
-                </a>
-
+        <!-- Search Bar -->
+        <div class="max-w-md mx-auto mt-8 animate-fade-in-up animation-delay-200">
+            <div class="relative">
+                <input type="text" 
+                       id="searchInput"
+                       placeholder="Search subcategories..." 
+                       class="w-full px-6 py-4 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all">
+                <svg class="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
             </div>
         </div>
-        {% endfor %}
     </div>
-</div>
+
+    <!-- Curved Bottom Divider -->
+    <div class="absolute bottom-0 left-0 w-full overflow-hidden">
+        <svg class="relative block w-full h-16 md:h-24" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" 
+                  class="fill-white"></path>
+        </svg>
+    </div>
+</section>
+
+<!-- Main Content Section -->
+<section class="py-12 md:py-16 bg-gradient-to-b from-white to-indigo-50">
+    <div class="max-w-7xl mx-auto px-4">
+        
+        <!-- Filter Tabs - Horizontal Scroll on Mobile -->
+        <div class="flex flex-nowrap md:flex-wrap justify-start md:justify-center gap-3 mb-12 overflow-x-auto pb-4 scrollbar-hide animate-fade-in" style="-webkit-overflow-scrolling: touch;">
+            <button class="filter-btn active px-6 py-3 bg-indigo-600 text-white rounded-full text-sm font-semibold hover:bg-indigo-700 transition-all transform hover:-translate-y-0.5 shadow-lg flex-shrink-0" data-filter="all">
+                All Categories
+            </button>
+            <button class="filter-btn px-6 py-3 bg-white text-gray-700 rounded-full text-sm font-semibold hover:bg-indigo-50 transition-all transform hover:-translate-y-0.5 shadow flex-shrink-0" data-filter="popular">
+                🔥 Most Popular
+            </button>
+            <button class="filter-btn px-6 py-3 bg-white text-gray-700 rounded-full text-sm font-semibold hover:bg-indigo-50 transition-all transform hover:-translate-y-0.5 shadow flex-shrink-0" data-filter="new">
+                ✨ New Arrivals
+            </button>
+            <button class="filter-btn px-6 py-3 bg-white text-gray-700 rounded-full text-sm font-semibold hover:bg-indigo-50 transition-all transform hover:-translate-y-0.5 shadow flex-shrink-0" data-filter="trending">
+                📈 Trending
+            </button>
+        </div>
+
+        <!-- Results Count -->
+        <div class="text-center mb-8 animate-fade-in">
+            <p class="text-gray-600 text-lg">
+                <span id="visible-count">{{ subcategories|length }}</span> 
+                <span class="font-semibold text-indigo-600">subcategories</span> found
+            </p>
+        </div>
+
+        <!-- Subcategories Grid - Desktop Grid, Mobile Horizontal Scroll -->
+        <div class="block md:hidden">
+            <!-- Mobile Horizontal Scroll Container -->
+            <div class="flex overflow-x-auto pb-6 gap-4 scrollbar-hide" style="-webkit-overflow-scrolling: touch;" id="mobileSubcategoryContainer">
+                {% for sub in subcategories %}
+                <div class="subcategory-card-mobile flex-shrink-0 w-72 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden animate-fade-in-up"
+                     data-category="{% cycle 'popular' 'new' 'trending' 'popular' 'new' 'trending' as filter_category %}">
+
+                    <!-- Card Header with Image Area -->
+                    <div class="relative h-32 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 overflow-hidden">
+                        <!-- Animated Pattern -->
+                        <div class="absolute inset-0 opacity-20" style="background-image: url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"3\"/%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"3\"/%3E%3C/g%3E%3C/svg%3E');"></div>
+                        
+                        <!-- Category Icon/Avatar -->
+                        <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
+                            <div class="w-16 h-16 rounded-2xl bg-white shadow-xl flex items-center justify-center transition-all duration-500 overflow-hidden border-4 border-white">
+                                {% if sub.logo %}
+                                    <img src="{{ sub.logo.url }}" alt="{{ sub.name }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <span class="text-2xl font-bold text-indigo-600">
+                                        {{ sub.name|slice:":2"|upper }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Popular Badge -->
+                        {% if forloop.counter|divisibleby:3 %}
+                        <div class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 z-10">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <span>POPULAR</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Card Content -->
+                    <div class="relative pt-12 p-4 text-center">
+                        <!-- Title -->
+                        <h2 class="text-lg font-bold text-gray-900 mb-2 line-clamp-1">
+                            {{ sub.name }}
+                        </h2>
+
+                        <!-- Description -->
+                        <p class="text-gray-600 text-xs mb-3 line-clamp-2">
+                            {{ sub.description|default:"Comprehensive preparation with mock tests, quizzes, and detailed performance analytics."|truncatechars:80 }}
+                        </p>
+
+                        <!-- Stats Row -->
+                        <div class="flex justify-center gap-3 mb-3">
+                            <div class="flex items-center gap-1 text-xs text-gray-500">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <span>{{ sub.mocktest_set.count }} Tests</span>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs text-gray-500">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>{{ sub.avg_duration|default:"45" }} min</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar (if user logged in) -->
+                        {% if user.is_authenticated %}
+                        <div class="mb-3">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-gray-500">Your Progress</span>
+                                <span class="text-indigo-600 font-semibold">{{ sub.user_progress|default:"0" }}%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" 
+                                     style="width: {{ sub.user_progress|default:"0" }}%"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Dynamic Difficulty Tags based on progress -->
+                        <div class="flex flex-wrap justify-center gap-2 mb-4">
+                            {% if user.is_authenticated and sub.user_progress %}
+                                {% with progress=sub.user_progress %}
+                                    {% if progress <= 45 %}
+                                        <span class="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">Beginner</span>
+                                    {% elif progress <= 74 %}
+                                        <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Intermediate</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full">Advanced</span>
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                <!-- Default difficulty tags for non-logged in users -->
+                                <span class="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">Beginner</span>
+                                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Intermediate</span>
+                                <span class="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full">Advanced</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- CTA Button -->
+                        <a href="{% url 'exams:subcategory_detail' sub.id %}" 
+                           class="inline-flex items-center justify-center w-full px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-all duration-300 shadow-lg">
+                            <span>Explore Tests</span>
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Scroll indicator dots for mobile -->
+            <div class="flex justify-center gap-2 mt-2 md:hidden">
+                <div class="w-2 h-2 rounded-full bg-indigo-600 scroll-dot active" data-index="0"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300 scroll-dot" data-index="1"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300 scroll-dot" data-index="2"></div>
+            </div>
+        </div>
+
+        <!-- Desktop Grid (Hidden on Mobile) -->
+        <div class="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8" id="subcategoryGrid">
+            {% for sub in subcategories %}
+            <div class="subcategory-card group relative bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden animate-fade-in-up"
+                 data-category="{% cycle 'popular' 'new' 'trending' 'popular' 'new' 'trending' as filter_category %}">
+
+                <!-- Card Background Gradient Effect -->
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                <!-- Decorative Elements -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400 to-pink-500 rounded-full filter blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                
+                <!-- Card Header with Image Area -->
+                <div class="relative h-40 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 overflow-hidden">
+                    <!-- Animated Pattern -->
+                    <div class="absolute inset-0 opacity-20" style="background-image: url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"3\"/%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"3\"/%3E%3C/g%3E%3C/svg%3E');"></div>
+                    
+                    <!-- Floating Icons -->
+                    <svg class="absolute -top-6 -right-6 w-24 h-24 text-white/20 transform rotate-12 group-hover:rotate-45 transition-transform duration-700" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    
+                    <!-- Category Icon/Avatar -->
+                    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
+                        <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center transform group-hover:rotate-6 transition-all duration-500 overflow-hidden border-4 border-white">
+                            {% if sub.logo %}
+                                <img src="{{ sub.logo.url }}" alt="{{ sub.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <span class="text-3xl font-bold text-indigo-600 group-hover:text-indigo-700 transition-colors">
+                                    {{ sub.name|slice:":2"|upper }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Popular Badge -->
+                    {% if forloop.counter|divisibleby:3 %}
+                    <div class="absolute top-3 left-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 z-10">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                        <span>POPULAR</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Card Content -->
+                <div class="relative pt-12 p-6 text-center group-hover:text-white transition-colors duration-500 z-10">
+                    <!-- Title -->
+                    <h2 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-white transition-colors">
+                        {{ sub.name }}
+                    </h2>
+
+                    <!-- Description -->
+                    <p class="text-gray-600 text-sm mb-4 group-hover:text-indigo-100 transition-colors line-clamp-2">
+                        {{ sub.description|default:"Comprehensive preparation with mock tests, quizzes, and detailed performance analytics to help you ace your exams."|truncatechars:100 }}
+                    </p>
+
+                    <!-- Stats Row -->
+                    <div class="flex justify-center gap-4 mb-4">
+                        <div class="flex items-center gap-1 text-sm text-gray-500 group-hover:text-indigo-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span>{{ sub.mocktest_set.count }} Tests</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm text-gray-500 group-hover:text-indigo-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>{{ sub.avg_duration|default:"45" }} min</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar (if user logged in) -->
+                    {% if user.is_authenticated %}
+                    <div class="mb-4">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-500 group-hover:text-indigo-200">Your Progress</span>
+                            <span class="text-indigo-600 group-hover:text-white font-semibold">{{ sub.user_progress|default:"0" }}%</span>
+                        </div>
+                        <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" 
+                                 style="width: {{ sub.user_progress|default:"0" }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Dynamic Difficulty Tags based on progress -->
+                    <div class="flex flex-wrap justify-center gap-2 mb-5">
+                        {% if user.is_authenticated and sub.user_progress %}
+                            {% with progress=sub.user_progress %}
+                                {% if progress <= 45 %}
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full group-hover:bg-white/20 group-hover:text-white transition-colors">Beginner</span>
+                                {% elif progress <= 74 %}
+                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full group-hover:bg-white/20 group-hover:text-white transition-colors">Intermediate</span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full group-hover:bg-white/20 group-hover:text-white transition-colors">Advanced</span>
+                                {% endif %}
+                            {% endwith %}
+                        {% else %}
+                            <!-- Default tags for non-logged in users -->
+                            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full group-hover:bg-white/20 group-hover:text-white transition-colors">Beginner</span>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full group-hover:bg-white/20 group-hover:text-white transition-colors">Intermediate</span>
+                            <span class="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full group-hover:bg-white/20 group-hover:text-white transition-colors">Advanced</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Time Info (if available) -->
+                    {% if sub.avg_completion_time %}
+                    <div class="text-xs text-gray-500 mb-3 group-hover:text-indigo-200">
+                        ⏱️ Avg. completion: {{ sub.avg_completion_time }} mins
+                    </div>
+                    {% endif %}
+
+                    <!-- CTA Button -->
+                    <a href="{% url 'exams:subcategory_detail' sub.id %}" 
+                       class="inline-flex items-center justify-center w-full px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transform hover:-translate-y-1 transition-all duration-300 shadow-lg group-hover:shadow-xl">
+                        <span>Explore Tests</span>
+                        <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </a>
+
+                    <!-- Featured Badge -->
+                    {% if forloop.first %}
+                    <div class="absolute -top-2 -right-2 w-12 h-12">
+                        <div class="absolute transform rotate-45 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-xs font-bold py-1 px-8 -left-6 top-5 shadow-lg">
+                            FEATURED
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Empty State (Hidden by default) -->
+        <div id="emptyState" class="hidden text-center py-16 animate-fade-in">
+            <div class="inline-block p-8 bg-indigo-50 rounded-full mb-4">
+                <svg class="w-16 h-16 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">No subcategories found</h3>
+            <p class="text-gray-600 mb-6">Try adjusting your search or filter to find what you're looking for.</p>
+            <button onclick="resetFilters()" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition">
+                Reset Filters
+            </button>
+        </div>
+
+        <!-- Load More Button -->
+        {% if subcategories|length > 6 %}
+        <div class="text-center mt-12 hidden md:block">
+            <button id="loadMoreBtn" class="group relative px-8 py-4 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-indigo-50 transition-all duration-300 shadow-lg overflow-hidden">
+                <span class="relative z-10 flex items-center">
+                    Load More Categories
+                    <svg class="w-5 h-5 ml-2 group-hover:translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                    </svg>
+                </span>
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Floating Action Button for Quick Navigation -->
+<button onclick="scrollToTop()" id="scrollTopBtn" class="fixed bottom-8 right-8 w-12 h-12 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 transform hover:-translate-y-1 hidden items-center justify-center z-50">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+    </svg>
+</button>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom Animations */
+    @keyframes float-slow {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-20px) scale(1.05); }
+    }
+    
+    @keyframes float-slower {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(30px) scale(1.1); }
+    }
+    
+    @keyframes gradient-text {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    @keyframes fade-in-down {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fade-in-up {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .animate-float-slow {
+        animation: float-slow 8s ease-in-out infinite;
+    }
+    
+    .animate-float-slower {
+        animation: float-slower 12s ease-in-out infinite;
+    }
+    
+    .animate-gradient-text {
+        background-size: 200% 200%;
+        animation: gradient-text 8s ease infinite;
+    }
+    
+    .animate-fade-in-down {
+        animation: fade-in-down 1s ease-out forwards;
+    }
+    
+    .animate-fade-in-up {
+        animation: fade-in-up 0.6s ease-out forwards;
+        opacity: 0;
+    }
+    
+    .animation-delay-200 {
+        animation-delay: 200ms;
+    }
+    
+    .animation-delay-400 {
+        animation-delay: 400ms;
+    }
+    
+    /* Stagger children animations - Desktop */
+    @media (min-width: 768px) {
+        #subcategoryGrid > *:nth-child(1) { animation-delay: 0ms; }
+        #subcategoryGrid > *:nth-child(2) { animation-delay: 100ms; }
+        #subcategoryGrid > *:nth-child(3) { animation-delay: 200ms; }
+        #subcategoryGrid > *:nth-child(4) { animation-delay: 300ms; }
+        #subcategoryGrid > *:nth-child(5) { animation-delay: 400ms; }
+        #subcategoryGrid > *:nth-child(6) { animation-delay: 500ms; }
+    }
+    
+    /* Stagger children animations - Mobile */
+    @media (max-width: 767px) {
+        .subcategory-card-mobile:nth-child(1) { animation-delay: 0ms; }
+        .subcategory-card-mobile:nth-child(2) { animation-delay: 100ms; }
+        .subcategory-card-mobile:nth-child(3) { animation-delay: 200ms; }
+        .subcategory-card-mobile:nth-child(4) { animation-delay: 300ms; }
+        .subcategory-card-mobile:nth-child(5) { animation-delay: 400ms; }
+        .subcategory-card-mobile:nth-child(6) { animation-delay: 500ms; }
+    }
+    
+    /* Line clamp */
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    /* Filter button active state */
+    .filter-btn.active {
+        @apply bg-indigo-600 text-white shadow-lg;
+    }
+    
+    /* Hide scrollbar but keep functionality */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    
+    /* Mobile horizontal scroll container */
+    @media (max-width: 767px) {
+        #mobileSubcategoryContainer {
+            scroll-snap-type: x mandatory;
+        }
+        
+        .subcategory-card-mobile {
+            scroll-snap-align: start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // ===== TYPEWRITER EFFECT =====
+    document.addEventListener("DOMContentLoaded", function() {
+        const strings = document.getElementById('typewriter-strings').textContent.split('|');
+        const element = document.getElementById('typewriter-text');
+        let stringIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+
+        function typeWriter() {
+            const currentString = strings[stringIndex];
+            
+            if (isDeleting) {
+                element.textContent = currentString.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                element.textContent = currentString.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            if (!isDeleting && charIndex === currentString.length) {
+                isDeleting = true;
+                setTimeout(typeWriter, 2000);
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                stringIndex = (stringIndex + 1) % strings.length;
+                setTimeout(typeWriter, 500);
+            } else {
+                setTimeout(typeWriter, isDeleting ? 50 : 100);
+            }
+        }
+
+        typeWriter();
+
+        // ===== SEARCH FUNCTIONALITY =====
+        const searchInput = document.getElementById('searchInput');
+        const desktopCards = document.querySelectorAll('#subcategoryGrid .subcategory-card');
+        const mobileCards = document.querySelectorAll('.subcategory-card-mobile');
+        const emptyState = document.getElementById('emptyState');
+        const visibleCount = document.getElementById('visible-count');
+
+        function filterCards(searchTerm) {
+            let visibleCards = 0;
+            
+            // Filter desktop cards
+            desktopCards.forEach(card => {
+                const title = card.querySelector('h2').textContent.toLowerCase();
+                const description = card.querySelector('p').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    visibleCards++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Filter mobile cards
+            mobileCards.forEach(card => {
+                const title = card.querySelector('h2').textContent.toLowerCase();
+                const description = card.querySelector('p').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update visible count
+            if (visibleCount) {
+                visibleCount.textContent = visibleCards;
+            }
+
+            // Show/hide empty state
+            if (emptyState) {
+                if (visibleCards === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+            }
+        }
+
+        searchInput.addEventListener('input', function(e) {
+            filterCards(e.target.value.toLowerCase());
+        });
+
+        // ===== FILTER BUTTONS =====
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                filterBtns.forEach(b => {
+                    b.classList.remove('active', 'bg-indigo-600', 'text-white');
+                    b.classList.add('bg-white', 'text-gray-700');
+                });
+                
+                // Add active class to clicked button
+                this.classList.remove('bg-white', 'text-gray-700');
+                this.classList.add('active', 'bg-indigo-600', 'text-white');
+                
+                const filter = this.dataset.filter;
+                
+                // Apply filter to both desktop and mobile cards
+                const allCards = [...desktopCards, ...mobileCards];
+                allCards.forEach((card, index) => {
+                    if (filter === 'all') {
+                        card.style.display = 'block';
+                    } else if (filter === 'popular' && index % 3 === 0) {
+                        card.style.display = 'block';
+                    } else if (filter === 'new' && index % 3 === 1) {
+                        card.style.display = 'block';
+                    } else if (filter === 'trending' && index % 3 === 2) {
+                        card.style.display = 'block';
+                    } else if (filter !== 'all') {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // ===== SCROLL TO TOP BUTTON =====
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
+        
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 500) {
+                scrollTopBtn.classList.remove('hidden');
+                scrollTopBtn.classList.add('flex');
+            } else {
+                scrollTopBtn.classList.add('hidden');
+                scrollTopBtn.classList.remove('flex');
+            }
+        });
+
+        window.scrollToTop = function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        };
+
+        // ===== RESET FILTERS =====
+        window.resetFilters = function() {
+            searchInput.value = '';
+            desktopCards.forEach(card => card.style.display = 'block');
+            mobileCards.forEach(card => card.style.display = 'block');
+            if (visibleCount) {
+                visibleCount.textContent = desktopCards.length;
+            }
+            if (emptyState) {
+                emptyState.classList.add('hidden');
+            }
+            
+            // Reset filter buttons
+            filterBtns.forEach(btn => {
+                btn.classList.remove('active', 'bg-indigo-600', 'text-white');
+                btn.classList.add('bg-white', 'text-gray-700');
+            });
+            document.querySelector('[data-filter="all"]').classList.remove('bg-white', 'text-gray-700');
+            document.querySelector('[data-filter="all"]').classList.add('active', 'bg-indigo-600', 'text-white');
+        };
+
+        // ===== LOAD MORE FUNCTIONALITY (Desktop only) =====
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        if (loadMoreBtn) {
+            let itemsToShow = 6;
+            const totalItems = desktopCards.length;
+            
+            // Hide items beyond initial 6
+            desktopCards.forEach((card, index) => {
+                if (index >= itemsToShow) {
+                    card.style.display = 'none';
+                }
+            });
+            
+            loadMoreBtn.addEventListener('click', function() {
+                itemsToShow += 3;
+                
+                desktopCards.forEach((card, index) => {
+                    if (index < itemsToShow) {
+                        card.style.display = 'block';
+                    }
+                });
+                
+                if (itemsToShow >= totalItems) {
+                    loadMoreBtn.style.display = 'none';
+                }
+            });
+        }
+
+        // ===== MOBILE SCROLL INDICATOR =====
+        const mobileContainer = document.getElementById('mobileSubcategoryContainer');
+        const scrollDots = document.querySelectorAll('.scroll-dot');
+        
+        if (mobileContainer && scrollDots.length > 0) {
+            mobileContainer.addEventListener('scroll', function() {
+                const scrollPosition = this.scrollLeft;
+                const containerWidth = this.offsetWidth;
+                const scrollWidth = this.scrollWidth;
+                const maxScroll = scrollWidth - containerWidth;
+                const scrollPercentage = scrollPosition / maxScroll;
+                
+                // Calculate which dot should be active (based on scroll percentage)
+                const activeDotIndex = Math.min(
+                    Math.floor(scrollPercentage * (scrollDots.length - 0.5)),
+                    scrollDots.length - 1
+                );
+                
+                // Update dots
+                scrollDots.forEach((dot, index) => {
+                    if (index === activeDotIndex) {
+                        dot.classList.remove('bg-gray-300');
+                        dot.classList.add('bg-indigo-600');
+                    } else {
+                        dot.classList.remove('bg-indigo-600');
+                        dot.classList.add('bg-gray-300');
+                    }
+                });
+            });
+        }
+
+        // ===== INTERSECTION OBSERVER FOR ANIMATIONS =====
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                    entry.target.style.opacity = '1';
+                }
+            });
+        }, observerOptions);
+
+        // Observe desktop cards
+        document.querySelectorAll('#subcategoryGrid .subcategory-card').forEach(el => {
+            el.style.opacity = '0';
+            observer.observe(el);
+        });
+        
+        // Observe mobile cards
+        document.querySelectorAll('.subcategory-card-mobile').forEach(el => {
+            el.style.opacity = '0';
+            observer.observe(el);
+        });
+
+        // ===== DYNAMIC DIFFICULTY TAGS BASED ON TIME =====
+        // You can add logic here to calculate difficulty based on time if needed
+        function calculateDifficultyBasedOnTime(avgCompletionTime) {
+            if (avgCompletionTime <= 30) return 'Beginner';
+            if (avgCompletionTime <= 60) return 'Intermediate';
+            return 'Advanced';
+        }
+    });
+</script>
 {% endblock %}
