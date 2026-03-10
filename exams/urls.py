@@ -61,4 +61,6 @@ urlpatterns = [
     path('testimonial/<int:testimonial_id>/edit/', views.edit_testimonial, name='edit_testimonial'),
     path('testimonial/<int:testimonial_id>/delete/', views.delete_testimonial, name='delete_testimonial'),
 
+    path('statistics/<int:attempt_id>/', views.test_statistics, name='test_statistics'),
+
 ]

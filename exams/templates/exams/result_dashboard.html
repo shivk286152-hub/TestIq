@@ -7,7 +7,8 @@
     <nav class="flex mb-8 text-sm text-gray-500">
         <a href="{% url 'exams:dashboard' %}" class="hover:text-indigo-600 transition">Dashboard</a>
         <span class="mx-2">/</span>
-        <a href="{% url 'exams:subcategory_detail' attempt.mock_test.subcategory.id %}" class="hover:text-indigo-600 transition">{{ attempt.mock_test.subcategory.name }}</a>
+        <a href="{% url 'exams:subcategory_detail' attempt.mock_test.subcategory.id %}"
+            class="hover:text-indigo-600 transition">{{ attempt.mock_test.subcategory.name }}</a>
         <span class="mx-2">/</span>
         <span class="text-gray-900 font-medium">Results</span>
     </nav>
@@ -63,7 +64,7 @@
             <p class="text-3xl font-bold text-gray-800">{{ total_questions }}</p>
         </div>
 
-        <!-- Attempted -->
+        <!-- Attempted - FIXED: Now shows correct+wrong only -->
         <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Attempted</span>
@@ -78,7 +79,7 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-gray-800">{{ correct|add:wrong }}</p>
-            <p class="text-xs text-gray-400 mt-1">{{ correct|add:wrong|floatformat:0 }}% of total</p>
+            <p class="text-xs text-gray-400 mt-1">{% widthratio correct|add:wrong total_questions 100 %}% of total</p>
         </div>
 
         <!-- Correct -->
@@ -110,7 +111,23 @@
             <p class="text-xs text-gray-400 mt-1">Incorrect: {% widthratio wrong correct|add:wrong 100 %}%</p>
         </div>
 
-        <!-- Time Taken -->
+        <!-- Skipped - NEW: Shows skipped questions -->
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Skipped</span>
+                <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-yellow-600">{{ skipped|default:"0" }}</p>
+            <p class="text-xs text-gray-400 mt-1">Not attempted</p>
+        </div>
+
+        <!-- Time Taken (if you have this field) -->
+        {% if attempt.time_taken %}
         <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Time Taken</span>
@@ -122,10 +139,10 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-gray-800">{{ attempt.time_taken|default:"--:--" }}</p>
-            <p class="text-xs text-gray-400 mt-1">Avg: {{ attempt.time_taken_per_question|default:"--" }}/ques</p>
+            <p class="text-xs text-gray-400 mt-1">Total time</p>
         </div>
+        {% endif %}
     </div>
-
     <!-- Score Overview Cards -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Score Card -->
@@ -245,7 +262,8 @@
             <h3 class="text-sm font-medium text-gray-700 mb-3">Recommended Focus Areas</h3>
             <div class="flex flex-wrap gap-2">
                 {% for s in subject_stats %}
-                {% if s.marks < 60 %} <span class="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm">{{ s.subject
+                {% if s.marks < 60 %} 
+                <span class="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm">{{ s.subject
                     }}</span>
                     {% endif %}
                     {% endfor %}
@@ -277,7 +295,7 @@
             View Rankings
         </a>
 
-        <a href="#"
+        <a href="{% url 'exams:test_statistics' attempt.id %}"
             class="inline-flex items-center px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white font-medium rounded-xl shadow-lg shadow-pink-200 transition transform hover:-translate-y-0.5">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

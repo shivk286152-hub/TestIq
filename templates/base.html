@@ -287,6 +287,48 @@
             <span class="label ml-3">About Us</span>
           </a>
         </li>
+        <!-- SUBJECTS DROPDOWN - Updated with subject_exams -->
+        <li class="relative">
+          <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-600 cursor-pointer"
+            id="subjectsMenuBtn">
+            <div class="flex items-center">
+              <i class="fa fa-book-open w-6"></i>
+              <span class="label ml-3">Subjects</span>
+            </div>
+            <i class="fa fa-chevron-down text-sm transition-transform duration-300" id="subjectsChevron"></i>
+          </div>
+
+          <!-- Dropdown content -->
+          <div id="subjectsDropdown" class="dropdown-content">
+            <ul class="py-2 space-y-1">
+              {% if subject_exams_subjects %}
+              {% for subject in subject_exams_subjects %}
+              <li>
+                <a href="{% url 'subject_exams:subject_detail' subject.slug %}"
+                  class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
+                  {% if subject.icon %}
+                  <img src="{{ subject.icon.url }}" alt="{{ subject.name }}" class="w-4 h-4 mr-2 object-cover rounded">
+                  {% else %}
+                  <i class="fa fa-graduation-cap w-4 mr-2"></i>
+                  {% endif %}
+                  <span class="truncate">{{ subject.name }}</span>
+                  {% if subject.name_hi %}
+                  <span class="ml-1 text-xs text-gray-400">{{ subject.name_hi|truncatechars:8 }}</span>
+                  {% endif %}
+                  <span class="ml-auto text-xs bg-green-500 px-1.5 py-0.5 rounded">New</span>
+                </a>
+              </li>
+              {% endfor %}
+              {% else %}
+              <li class="dropdown-item px-4 py-2 text-gray-300 italic">
+                <i class="fa fa-info-circle w-4 mr-2"></i>
+                No subjects available
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+        </li>
+
 
         <!-- TEST with dropdown - FIXED -->
         <li class="relative">
@@ -427,7 +469,6 @@
       <span class="text-xs mt-1">Profile</span>
     </a>
   </div>
-
   <script>
     // DOM Elements
     const sidebar = document.getElementById("sidebar");
@@ -444,6 +485,24 @@
     let touchStartX = 0;
     let touchEndX = 0;
 
+    // Check localStorage for sidebar state on page load
+    document.addEventListener('DOMContentLoaded', function () {
+      // Only apply to desktop
+      if (window.innerWidth > 768) {
+        const sidebarState = localStorage.getItem('sidebarCollapsed');
+
+        // If sidebar was collapsed, collapse it
+        if (sidebarState === 'true') {
+          sidebar.classList.add('collapsed');
+          main.classList.add('collapsed');
+        } else {
+          // Ensure it's expanded (remove classes if they exist)
+          sidebar.classList.remove('collapsed');
+          main.classList.remove('collapsed');
+        }
+      }
+    });
+
     // Mobile menu toggle
     if (menuBtn) {
       menuBtn.addEventListener("click", () => {
@@ -452,11 +511,17 @@
       });
     }
 
-    // Desktop collapse
+    // Desktop collapse with localStorage
     if (collapseBtn) {
       collapseBtn.addEventListener("click", () => {
         sidebar.classList.toggle("collapsed");
         main.classList.toggle("collapsed");
+
+        // Save state to localStorage (only for desktop)
+        if (window.innerWidth > 768) {
+          const isCollapsed = sidebar.classList.contains('collapsed');
+          localStorage.setItem('sidebarCollapsed', isCollapsed);
+        }
       });
     }
 
@@ -484,6 +549,38 @@
         }
       });
     }
+
+    // SUBJECTS DROPDOWN
+    const subjectsMenuBtn = document.getElementById("subjectsMenuBtn");
+    const subjectsDropdown = document.getElementById("subjectsDropdown");
+    const subjectsChevron = document.getElementById("subjectsChevron");
+
+    if (subjectsMenuBtn && subjectsDropdown && subjectsChevron) {
+      subjectsMenuBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (subjectsDropdown.classList.contains("show")) {
+          subjectsDropdown.classList.remove("show");
+          subjectsChevron.style.transform = "rotate(0deg)";
+        } else {
+          subjectsDropdown.classList.add("show");
+          subjectsChevron.style.transform = "rotate(180deg)";
+        }
+      });
+    }
+
+    // Close subjects dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+      if (subjectsDropdown && subjectsMenuBtn &&
+        !subjectsMenuBtn.contains(e.target) &&
+        !subjectsDropdown.contains(e.target)) {
+        subjectsDropdown.classList.remove("show");
+        if (subjectsChevron) {
+          subjectsChevron.style.transform = "rotate(0deg)";
+        }
+      }
+    });
 
     // TEST DROPDOWN - FIXED
     if (testMenuBtn && testDropdown && testChevron) {
@@ -623,7 +720,7 @@
       }
     });
 
-    // Reset on resize
+    // Reset on resize with localStorage consideration
     window.addEventListener('resize', () => {
       if (window.innerWidth > 768 && bottomHeader) {
         bottomHeader.style.transform = 'translateY(0)';
@@ -631,9 +728,24 @@
         overlay.classList.remove('show');
         document.body.style.overflow = '';
         main.style.overflow = 'auto';
+
+        // Reapply collapsed state from localStorage on resize to desktop
+        const sidebarState = localStorage.getItem('sidebarCollapsed');
+        if (sidebarState === 'true') {
+          sidebar.classList.add('collapsed');
+          main.classList.add('collapsed');
+        } else {
+          sidebar.classList.remove('collapsed');
+          main.classList.remove('collapsed');
+        }
+      } else if (window.innerWidth <= 768) {
+        // On mobile, remove collapsed classes
+        sidebar.classList.remove('collapsed');
+        main.classList.remove('collapsed');
       }
     });
   </script>
+
   {% block extra_js %} {% endblock %}
 
   <script>

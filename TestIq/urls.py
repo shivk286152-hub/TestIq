@@ -6,13 +6,16 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
+    # path('curriculum/', include('curriculum.urls')), 
     path('', include('exams.urls')),
     path('notification/', include('ExamNotification.urls')),
     path('user/', include('User.urls')),
     path('current-affairs/', include('CurrentAffairs.urls')),
     # your app URLs
     path('ckeditor/', include('ckeditor_uploader.urls')),
+    path('subjects/', include('subject_mocktests.urls')),
     # ... your other URLs
+
 ]
 
 # THIS IS CRITICAL FOR MEDIA FILES IN DEVELOPMENT

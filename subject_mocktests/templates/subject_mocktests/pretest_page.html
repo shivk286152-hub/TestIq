@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Decorative Background -->
+<div class="fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+    <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+</div>
+
+<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header with gradient -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg mb-6 transform -rotate-6 hover:rotate-0 transition-transform duration-500">
+                <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                </svg>
+            </div>
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Ready to Begin?</h1>
+            <p class="text-lg text-gray-600">Review the instructions and start your test</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+            <!-- Card Header with Gradient -->
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-white">{{ subject_mocktest.title }}</h2>
+                    <span class="px-4 py-2 bg-white/20 backdrop-blur-lg rounded-full text-white text-sm font-medium">
+                        {{ subject_mocktest.subject.name }}
+                    </span>
+                </div>
+                {% if subject_mocktest.topic %}
+                <p class="text-indigo-100 mt-2">
+                    <span class="opacity-75">Topic:</span> {{ subject_mocktest.topic.name }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="p-8">
+                <!-- Test Information Card -->
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 mb-8 border border-indigo-100">
+                    <h5 class="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        Test Information
+                    </h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center text-gray-700">
+                            <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 4.804A7.968 7.968 0 015.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Total Questions</div>
+                                <div class="font-semibold">{{ old_mocktest.questions.count }}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-gray-700">
+                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Duration</div>
+                                <div class="font-semibold">{{ old_mocktest.duration }} minutes</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-gray-700">
+                            <div class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Negative Marking</div>
+                                <div class="font-semibold text-pink-600">0.25 per wrong answer</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-gray-700">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Passing Criteria</div>
+                                <div class="font-semibold">{{ old_mocktest.pass_percentage|default:"33" }}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions Card -->
+                <div class="bg-gray-50 rounded-2xl p-6 mb-8 border border-gray-200">
+                    <h5 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        Important Instructions
+                    </h5>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Read each question carefully before answering
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            You can navigate between questions using the sidebar
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Marked questions will be highlighted for review
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Test will auto-submit when time expires
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Results will be shown immediately after submission
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Form -->
+                <form method="post" action="{% url 'subject_mocktests:start_test' subject_mocktest.id %}" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Language Selection -->
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                        <h5 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389c-.188-.196-.373-.396-.554-.6a19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.944c.456.865 1 1.665 1.62 2.395a19.104 19.104 0 001.533-2.125 18.99 18.99 0 01-1.414-4.334H5a1 1 0 110-2h3V3a1 1 0 011-1z" clip-rule="evenodd"/>
+                            </svg>
+                            Select Your Preferred Language
+                        </h5>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {% for lang in languages %}
+                            <label class="relative flex items-center p-4 rounded-xl border-2 {% if forloop.first %}border-indigo-500 bg-indigo-50{% else %}border-gray-200 hover:border-indigo-200{% endif %} cursor-pointer transition-all duration-200 group">
+                                <input type="radio" 
+                                       name="language" 
+                                       value="{{ lang.code }}" 
+                                       class="w-4 h-4 text-indigo-600 bg-white border-gray-300 focus:ring-indigo-500 focus:ring-2"
+                                       {% if forloop.first %}checked{% endif %} 
+                                       required>
+                                <span class="ml-3 block">
+                                    <span class="block text-sm font-medium {% if forloop.first %}text-indigo-900{% else %}text-gray-900{% endif %}">
+                                        {{ lang.name }}
+                                    </span>
+                                    <span class="block text-sm {% if forloop.first %}text-indigo-600{% else %}text-gray-500{% endif %}">
+                                        {{ lang.code|upper }}
+                                    </span>
+                                </span>
+                                {% if forloop.first %}
+                                <span class="absolute top-2 right-2 bg-indigo-500 text-white text-xs px-2 py-1 rounded-full">
+                                    Recommended
+                                </span>
+                                {% endif %}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Terms Agreement -->
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input type="checkbox" 
+                                       name="terms_accepted" 
+                                       id="terms" 
+                                       class="w-5 h-5 text-indigo-600 bg-white border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
+                                       required>
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="terms" class="font-medium text-gray-700">
+                                    I have read and agree to the test instructions
+                                </label>
+                                <p class="text-gray-500 mt-1">
+                                    By checking this box, you confirm that you understand and will follow all test guidelines
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Resume Warning -->
+                    {% if existing_attempt %}
+                    <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-amber-800">You have an incomplete attempt!</h3>
+                                <div class="mt-2 text-sm text-amber-700">
+                                    <p>Started on: {{ existing_attempt.started_at|date:"d M Y, h:i A" }}</p>
+                                    <p class="mt-1 font-semibold">Starting a new test will overwrite your previous attempt.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Start Button -->
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 px-6 rounded-xl hover:from-indigo-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center group">
+                        <svg class="w-6 h-6 mr-2 group-hover:animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                        </svg>
+                        Start Test Now
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Footer Note -->
+        <p class="text-center text-gray-500 text-sm mt-8">
+            ⚡ Good luck! Take your time and answer carefully.
+        </p>
+    </div>
+</div>
+
+<!-- Animation Keyframes -->
+<style>
+    @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+</style>
+{% endblock %}

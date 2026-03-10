@@ -1,0 +1,526 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Advanced Statistics: {{ attempt.mock_test.title }} | TestIQ Performance Analysis{% endblock %}
+
+{% block meta_description %}Detailed performance analysis for {{ attempt.mock_test.title }}. View subject-wise accuracy, difficulty breakdown, ranking position, and personalized insights to improve your score.{% endblock %}
+
+{% block meta_keywords %}mock test statistics, exam analysis, performance tracking, subject wise score, test ranking, percentile calculator{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb with Schema -->
+    <nav class="flex mb-6 text-sm text-gray-500" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2">
+            <li><a href="{% url 'exams:dashboard' %}" class="hover:text-indigo-600">Dashboard</a></li>
+            <li><span class="mx-2">/</span></li>
+            <li><a href="{% url 'exams:result_dashboard' attempt.id %}" class="hover:text-indigo-600">Results</a></li>
+            <li><span class="mx-2">/</span></li>
+            <li class="text-gray-900 font-medium" aria-current="page">Statistics</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">{{ attempt.mock_test.title }} - Performance Statistics</h1>
+        <p class="text-sm text-gray-500 mt-1">Completed on {{ attempt.submitted_at|date:"F j, Y, g:i a" }}</p>
+    </div>
+
+    <!-- Key Stats Row - With proper labels -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-3">
+            <p class="text-xs text-gray-500">Total Score</p>
+            <p class="text-xl font-bold text-gray-900">{{ score }}/{{ max_possible_score }}</p>
+            <p class="text-[10px] text-gray-400 mt-1">{{ correct }} correct, {{ wrong }} wrong</p>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-3">
+            <p class="text-xs text-gray-500">Accuracy</p>
+            <p class="text-xl font-bold text-green-600">{{ percentage }}%</p>
+            <p class="text-[10px] text-gray-400 mt-1">{{ correct }}/{{ total_questions }} questions</p>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-3">
+            <p class="text-xs text-gray-500">Your Rank</p>
+            <p class="text-xl font-bold text-indigo-600">#{{ rank|default:"—" }}</p>
+            <p class="text-[10px] text-gray-400 mt-1">Top {{ percentile|default:"0" }}%</p>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-3">
+            <p class="text-xs text-gray-500">Time Taken</p>
+            <p class="text-xl font-bold text-gray-900">{{ attempt.time_taken|default:"45:30" }}</p>
+            <p class="text-[10px] text-gray-400 mt-1">{{ avg_time_per_question|default:"45" }}s per question</p>
+        </div>
+    </div>
+
+    <!-- Main Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <!-- Subject Circles Grid -->
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <h2 class="text-sm font-medium text-gray-700 mb-3">Subject-wise Performance</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="subjectCircles">
+                {% for subject in subject_data %}
+                <div class="flex flex-col items-center" itemscope itemtype="https://schema.org/PropertyValue">
+                    <meta itemprop="name" content="{{ subject.name }}">
+                    <meta itemprop="value" content="{{ subject.accuracy }}">
+                    <div class="relative w-20 h-20">
+                        <svg class="w-full h-full" viewBox="0 0 100 100">
+                            <!-- Background circle -->
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+                            <!-- Progress circle -->
+                            <circle cx="50" cy="50" r="45" fill="none"
+                                stroke="{% if subject.accuracy >= 70 %}#10b981{% elif subject.accuracy >= 40 %}#f59e0b{% else %}#ef4444{% endif %}"
+                                stroke-width="8" stroke-linecap="round"
+                                stroke-dasharray="283"
+                                stroke-dashoffset="{{ 283|add:subject.accuracy|floatformat:0 }}"
+                                transform="rotate(-90 50 50)"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-sm font-bold text-gray-800">{{ subject.accuracy }}%</span>
+                        </div>
+                    </div>
+                    <p class="text-xs font-medium text-gray-700 mt-1 text-center">{{ subject.name|truncatechars:12 }}</p>
+                    <p class="text-[10px] text-gray-500">{{ subject.correct }}/{{ subject.total }} correct</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Difficulty Breakdown -->
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <h2 class="text-sm font-medium text-gray-700 mb-3">Difficulty Analysis</h2>
+            <div style="height: 180px;">
+                <canvas id="difficultyChart"></canvas>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 text-xs">
+                {% for diff in difficulty_data %}
+                <div class="text-center p-2 rounded-lg {% if diff.name == 'Easy' %}bg-green-50{% elif diff.name == 'Medium' %}bg-yellow-50{% elif diff.name == 'Hard' %}bg-orange-50{% else %}bg-red-50{% endif %}">
+                    <span class="block font-medium 
+                        {% if diff.name == 'Easy' %}text-green-700
+                        {% elif diff.name == 'Medium' %}text-yellow-700
+                        {% elif diff.name == 'Hard' %}text-orange-700
+                        {% else %}text-red-700{% endif %}">
+                        {{ diff.name }}
+                    </span>
+                    <span class="text-gray-700 font-medium">{{ diff.correct }}/{{ diff.total }}</span>
+                    <span class="text-gray-500 text-[10px] block">
+                        {% widthratio diff.correct diff.total 100 %}%
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Ranking System with Bar Graph -->
+    <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+        <h2 class="text-sm font-medium text-gray-700 mb-3">Ranking Analysis</h2>
+        
+        <!-- Your Position Card -->
+        <div class="bg-indigo-50 rounded-lg p-4 mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-indigo-600 rounded-full w-12 h-12 flex items-center justify-center text-white font-bold text-lg">
+                        #{{ rank|default:"—" }}
+                    </div>
+                    <div>
+                        <p class="text-xs text-indigo-600 font-medium">YOUR POSITION</p>
+                        <p class="text-xl font-bold text-indigo-700">{{ percentile|default:"0" }}% Percentile</p>
+                        <p class="text-xs text-gray-600">You scored higher than {{ better_than|default:"0" }}% of test takers</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4 mt-3 sm:mt-0">
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500">Total Attempts</p>
+                        <p class="text-lg font-bold text-gray-800">{{ total_attempts|default:"0" }}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500">Top Score</p>
+                        <p class="text-lg font-bold text-green-600">{{ top_score|default:"0" }}%</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500">Average</p>
+                        <p class="text-lg font-bold text-gray-600">{{ global_avg|default:"0" }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ranking Bar Graph -->
+        <div class="mb-4">
+            <h3 class="text-xs font-medium text-gray-500 uppercase mb-3">Score Distribution ({{ total_attempts|default:"0" }} Students)</h3>
+            <div style="height: 200px;">
+                <canvas id="rankingChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top 10 Leaderboard -->
+        <div>
+            <h3 class="text-xs font-medium text-gray-500 uppercase mb-2">Top 10 Highest Scorers</h3>
+            <div class="space-y-2 max-h-64 overflow-y-auto pr-2">
+                {% for scorer in top_scorers %}
+                <div class="flex items-center justify-between p-2 {% if scorer.is_current %}bg-indigo-50 rounded-lg border border-indigo-100{% endif %}">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm font-bold w-6
+                            {% if scorer.rank == 1 %}text-yellow-500
+                            {% elif scorer.rank == 2 %}text-gray-400
+                            {% elif scorer.rank == 3 %}text-amber-600
+                            {% else %}text-gray-500{% endif %}">
+                            #{{ scorer.rank }}
+                        </span>
+                        <div class="w-7 h-7 rounded-full 
+                            {% if scorer.rank == 1 %}bg-yellow-100
+                            {% elif scorer.rank == 2 %}bg-gray-100
+                            {% elif scorer.rank == 3 %}bg-amber-100
+                            {% else %}bg-gray-100{% endif %} 
+                            flex items-center justify-center text-xs font-medium text-gray-700">
+                            {{ scorer.initials }}
+                        </div>
+                        <span class="text-sm {% if scorer.is_current %}font-bold text-indigo-600{% else %}text-gray-700{% endif %}">
+                            {{ scorer.name }}{% if scorer.is_current %} (You){% endif %}
+                        </span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm font-semibold 
+                            {% if scorer.rank == 1 %}text-yellow-600
+                            {% elif scorer.rank == 2 %}text-gray-600
+                            {% elif scorer.rank == 3 %}text-amber-600
+                            {% else %}text-gray-800{% endif %}">
+                            {{ scorer.score }}%
+                        </span>
+                        <span class="text-xs text-gray-500 w-12 text-right">{{ scorer.correct }}/{{ scorer.total }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-500 text-center py-4">No ranking data available</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Subject Detailed Table -->
+    <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6 overflow-x-auto">
+        <h2 class="text-sm font-medium text-gray-700 mb-3">Subject-wise Detailed Analysis</h2>
+        <table class="w-full text-sm min-w-[600px]">
+            <thead class="text-xs text-gray-500 border-b">
+                <tr>
+                    <th class="text-left py-2">Subject</th>
+                    <th class="text-center">Questions</th>
+                    <th class="text-center">Correct</th>
+                    <th class="text-center">Wrong</th>
+                    <th class="text-center">Skipped</th>
+                    <th class="text-center">Accuracy</th>
+                    <th class="text-center">Performance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subject_data %}
+                <tr class="border-b last:border-0 hover:bg-gray-50">
+                    <td class="py-2 font-medium">{{ subject.name }}</td>
+                    <td class="text-center">{{ subject.total }}</td>
+                    <td class="text-center text-green-600 font-medium">{{ subject.correct }}</td>
+                    <td class="text-center text-red-600">{{ subject.wrong }}</td>
+                    <td class="text-center text-yellow-600">{{ subject.skipped }}</td>
+                    <td class="text-center">
+                        <span class="font-medium 
+                            {% if subject.accuracy >= 70 %}text-green-600
+                            {% elif subject.accuracy >= 40 %}text-yellow-600
+                            {% else %}text-red-600{% endif %}">
+                            {{ subject.accuracy }}%
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="w-16 h-1.5 bg-gray-200 rounded-full mx-auto overflow-hidden">
+                            <div class="h-full 
+                                {% if subject.accuracy >= 70 %}bg-green-500
+                                {% elif subject.accuracy >= 40 %}bg-yellow-500
+                                {% else %}bg-red-500{% endif %}" 
+                                style="width: {{ subject.accuracy }}%">
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Insights Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-gray-50 rounded-lg p-4">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Performance Comparison</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Your Score</span>
+                    <span class="font-bold text-indigo-600">{{ percentage }}%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Your Average</span>
+                    <span class="font-medium">{{ avg_percentage|default:"0" }}%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Global Average</span>
+                    <span class="font-medium">{{ global_avg|default:"0" }}%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Top Score</span>
+                    <span class="font-medium text-green-600">{{ top_score|default:"0" }}%</span>
+                </div>
+                <div class="mt-2 pt-2 border-t border-gray-200">
+                    <span class="text-xs {% if percentage >= global_avg %}text-green-600{% else %}text-red-600{% endif %}">
+                        {% if percentage >= global_avg %}
+                            ↑ {{ percentage|add:"-"|add:global_avg }}% above global average
+                        {% else %}
+                            ↓ {{ global_avg|add:"-"|add:percentage }}% below global average
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-4">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Key Insights</h3>
+            <ul class="space-y-2 text-sm">
+                {% for insight in insights %}
+                <li class="flex items-start">
+                    <span class="text-indigo-500 mr-2">•</span>
+                    <span class="text-gray-600">{{ insight }}</span>
+                </li>
+                {% empty %}
+                <li class="text-gray-500 text-center py-2">Complete more tests to get personalized insights</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-wrap gap-3">
+        <a href="{% url 'exams:detailed_analysis' attempt.id %}" 
+           class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition"
+           aria-label="View detailed question analysis">
+            Detailed Analysis
+        </a>
+        <a href="{% url 'exams:view_rankings' attempt.id %}"
+           class="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition"
+           aria-label="View complete rankings">
+            Full Rankings
+        </a>
+        <a href="{% url 'exams:result_dashboard' attempt.id %}"
+           class="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition"
+           aria-label="Go back to results">
+            Back to Results
+        </a>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chartData = {{ chart_data_json|safe }};
+    
+    // Difficulty Chart
+    new Chart(document.getElementById('difficultyChart'), {
+        type: 'doughnut',
+        data: {
+            labels: chartData.difficulty_labels,
+            datasets: [{
+                data: chartData.difficulty_correct,
+                backgroundColor: [
+                    '#10b981', // Easy - Green
+                    '#f59e0b', // Medium - Yellow
+                    '#f97316', // Hard - Orange
+                    '#ef4444', // Very Hard - Red
+                    '#8b5cf6', // Expert - Purple
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 10,
+                        font: { size: 10 },
+                        color: '#4b5563'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                            return `${context.label}: ${value} correct (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Ranking Distribution Chart (Bar Graph)
+    new Chart(document.getElementById('rankingChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.distribution_ranges || ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'],
+            datasets: [{
+                label: 'Number of Students',
+                data: chartData.distribution_data || [0, 0, 0, 0, 0],
+                backgroundColor: '#818cf8',
+                borderRadius: 4,
+                barPercentage: 0.6,
+                categoryPercentage: 0.8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.raw} students`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f3f4f6' },
+                    ticks: { 
+                        stepSize: 1,
+                        font: { size: 9 },
+                        color: '#6b7280'
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { 
+                        font: { size: 9 },
+                        color: '#6b7280'
+                    }
+                }
+            },
+            // Highlight current user's range
+            plugins: [{
+                afterDraw: function(chart) {
+                    const ctx = chart.ctx;
+                    const xAxis = chart.scales.x;
+                    const yAxis = chart.scales.y;
+                    
+                    // Find which range contains user's score
+                    const userScore = {{ percentage }};
+                    let userRangeIndex = -1;
+                    const ranges = ['0-20', '21-40', '41-60', '61-80', '81-100'];
+                    
+                    for (let i = 0; i < ranges.length; i++) {
+                        const [min, max] = ranges[i].split('-').map(Number);
+                        if (userScore >= min && userScore <= max) {
+                            userRangeIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    if (userRangeIndex >= 0) {
+                        const meta = chart.getDatasetMeta(0);
+                        const bar = meta.data[userRangeIndex];
+                        if (bar) {
+                            ctx.save();
+                            ctx.strokeStyle = '#4f46e5';
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(bar.x - bar.width/2, bar.y, bar.width, yAxis.bottom - bar.y);
+                            ctx.restore();
+                            
+                            // Add "You are here" label
+                            ctx.save();
+                            ctx.font = 'bold 8px sans-serif';
+                            ctx.fillStyle = '#4f46e5';
+                            ctx.fillText('You are here', bar.x - 30, bar.y - 5);
+                            ctx.restore();
+                        }
+                    }
+                }
+            }]
+        }
+    });
+});
+</script>
+
+<style>
+/* Mobile Responsive */
+@media (max-width: 640px) {
+    .grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    #subjectCircles {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .text-xl {
+        font-size: 1.125rem;
+    }
+}
+
+/* Circle Animation */
+@keyframes progress {
+    0% { stroke-dashoffset: 283; }
+}
+
+circle {
+    transition: stroke-dashoffset 0.6s ease;
+}
+
+/* Hover Effects */
+.hover\:bg-gray-50:hover {
+    background-color: #f9fafb;
+}
+
+/* Scrollbar for leaderboard */
+.overflow-y-auto::-webkit-scrollbar {
+    width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+</style>
+
+<!-- Schema Markup for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AnalysisNewsArticle",
+  "headline": "{{ attempt.mock_test.title }} Performance Analysis",
+  "datePublished": "{{ attempt.submitted_at|date:'Y-m-d' }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ request.user.get_full_name|default:request.user.username }}"
+  },
+  "provider": {
+    "@type": "Organization",
+    "name": "TestIQ",
+    "url": "{{ request.build_absolute_uri }}/"
+  },
+  "mainEntity": {
+    "@type": "PropertyValue",
+    "name": "Test Score",
+    "value": "{{ percentage }}",
+    "unitText": "PERCENT"
+  }
+}
+</script>
+{% endblock %}

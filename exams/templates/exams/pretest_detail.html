@@ -5,39 +5,46 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header with Breadcrumb -->
-    <nav class="flex mb-6 text-sm text-gray-500">
-        <a href="{% url 'exams:home' %}" class="hover:text-indigo-600 transition">Home</a>
-        <span class="mx-2">/</span>
-        <a href="#" class="hover:text-indigo-600 transition">{{ mocktest.subcategory.name }}</a>
-        <span class="mx-2">/</span>
-        <span class="text-gray-900 font-medium">Instructions</span>
-    </nav>
-
+    <div class="text-center mb-8">
+        <div
+            class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg mb-6 transform -rotate-6 hover:rotate-0 transition-transform duration-500">
+            <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                    d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+            </svg>
+        </div>
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Ready to Begin?</h1>
+        <p class="text-lg text-gray-600">Review the instructions and start your test</p>
+    </div>
     <!-- Main Card -->
     <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <!-- Header with Test Info -->
         <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-8 text-white">
             <h1 class="text-3xl font-bold mb-2">{{ mocktest.title }}</h1>
-            <p class="text-indigo-100 mb-4">{{ mocktest.description|default:"Test your knowledge with this comprehensive assessment" }}</p>
-            
+            <p class="text-indigo-100 mb-4">{{ mocktest.description|default:"Test your knowledge with this comprehensive
+                assessment" }}</p>
+
             <!-- Quick Info Chips -->
             <div class="flex flex-wrap gap-3 mt-4">
                 <span class="inline-flex items-center px-3 py-1 bg-white/20 rounded-full text-sm">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     Duration: {{ mocktest.duration }} minutes
                 </span>
                 <span class="inline-flex items-center px-3 py-1 bg-white/20 rounded-full text-sm">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
                     </svg>
                     Total Questions: {{ mocktest.questions.count }}
                 </span>
                 <span class="inline-flex items-center px-3 py-1 bg-white/20 rounded-full text-sm">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     Maximum Marks: {{ mocktest.questions.count }}
                 </span>
@@ -51,29 +58,35 @@
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
                     <span class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
                         <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </span>
                     Important Instructions
                 </h2>
-                
+
                 <div class="grid md:grid-cols-2 gap-6">
                     <!-- Left Column - General Instructions -->
                     <div class="bg-gray-50 rounded-xl p-5">
                         <h3 class="font-semibold text-gray-700 mb-3 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
                             </svg>
                             General Guidelines
                         </h3>
                         <ul class="space-y-3 text-gray-600">
                             <li class="flex items-start">
                                 <span class="text-green-500 mr-2">✓</span>
-                                Total duration of test is <span class="font-semibold">{{ mocktest.duration }} minutes</span>
+                                Total duration of test is <span class="font-semibold">{{ mocktest.duration }}
+                                    minutes</span>
                             </li>
                             <li class="flex items-start">
                                 <span class="text-green-500 mr-2">✓</span>
-                                The test contains <span class="font-semibold">{{ mocktest.questions.count }} questions</span>
+                                The test contains <span class="font-semibold">{{ mocktest.questions.count }}
+                                    questions</span>
                             </li>
                             <li class="flex items-start">
                                 <span class="text-green-500 mr-2">✓</span>
@@ -93,12 +106,15 @@
                     <!-- Right Column - Marking Scheme -->
                     <div class="bg-gray-50 rounded-xl p-5">
                         <h3 class="font-semibold text-gray-700 mb-3 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z"></path>
+                            <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z">
+                                </path>
                             </svg>
                             Marking Scheme
                         </h3>
-                        
+
                         <!-- Table for Marking Scheme -->
                         <table class="min-w-full bg-white rounded-lg overflow-hidden">
                             <thead class="bg-gray-100">
@@ -122,7 +138,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        
+
                         <p class="text-xs text-gray-500 mt-3">
                             <span class="font-semibold">Note:</span> Negative marking applies only to wrong answers.
                         </p>
@@ -138,7 +154,9 @@
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
                     <span class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
                         <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                            </path>
                         </svg>
                     </span>
                     Terms & Language Selection
@@ -146,19 +164,22 @@
 
                 <form method="POST" action="{% url 'exams:start_test' mocktest.id %}" id="startTestForm">
                     {% csrf_token %}
-                    
+
                     <!-- Terms and Conditions Card -->
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6">
                         <div class="flex items-start">
                             <div class="flex-1">
                                 <h3 class="font-semibold text-amber-800 mb-2 flex items-center">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                        </path>
                                     </svg>
                                     Terms and Conditions
                                 </h3>
                                 <div class="text-sm text-amber-700 space-y-2">
-                                    <p>• I understand that this is a timed test and will be automatically submitted when time expires.</p>
+                                    <p>• I understand that this is a timed test and will be automatically submitted when
+                                        time expires.</p>
                                     <p>• I agree not to use any unfair means during the test.</p>
                                     <p>• I understand that my answers will be saved automatically as I progress.</p>
                                     <p>• I agree that the decision of the test administrators is final.</p>
@@ -166,12 +187,11 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Accept Terms Checkbox -->
                         <div class="mt-4 flex items-center">
-                            <input type="checkbox" name="terms_accepted" id="terms_accepted" 
-                                   class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                   required>
+                            <input type="checkbox" name="terms_accepted" id="terms_accepted"
+                                class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" required>
                             <label for="terms_accepted" class="ml-3 text-sm font-medium text-gray-700">
                                 I have read and agree to the terms and conditions <span class="text-red-500">*</span>
                             </label>
@@ -179,24 +199,39 @@
                     </div>
 
                     <!-- Language Selection Card - FIXED VERSION -->
-                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6">
-                        <h3 class="font-semibold text-blue-800 mb-3 flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                    <!-- Language Selection -->
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                        <h5 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389c-.188-.196-.373-.396-.554-.6a19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.944c.456.865 1 1.665 1.62 2.395a19.104 19.104 0 001.533-2.125 18.99 18.99 0 01-1.414-4.334H5a1 1 0 110-2h3V3a1 1 0 011-1z"
+                                    clip-rule="evenodd" />
                             </svg>
                             Select Your Preferred Language
-                        </h3>
-                        
-                        <p class="text-sm text-blue-600 mb-4">Choose the language in which you want to take the test. Questions will be displayed in your selected language.</p>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="languageOptions">
+                        </h5>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {% for lang in languages %}
-                            <label class="language-option relative block cursor-pointer" data-value="{{ lang.code }}">
-                                <input type="radio" name="language" value="{{ lang.code }}" class="hidden" required>
-                                <div class="p-4 bg-white border-2 border-gray-200 rounded-xl transition-all flex items-center">
-                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 language-dot"></div>
-                                    <span class="font-medium text-gray-700 language-text">{{ lang.name }}</span>
-                                </div>
+                            <label
+                                class="relative flex items-center p-4 rounded-xl border-2 {% if forloop.first %}border-indigo-500 bg-indigo-50{% else %}border-gray-200 hover:border-indigo-200{% endif %} cursor-pointer transition-all duration-200 group">
+                                <input type="radio" name="language" value="{{ lang.code }}"
+                                    class="w-4 h-4 text-indigo-600 bg-white border-gray-300 focus:ring-indigo-500 focus:ring-2"
+                                    {% if forloop.first %}checked{% endif %} required>
+                                <span class="ml-3 block">
+                                    <span
+                                        class="block text-sm font-medium {% if forloop.first %}text-indigo-900{% else %}text-gray-900{% endif %}">
+                                        {{ lang.name }}
+                                    </span>
+                                    <span
+                                        class="block text-sm {% if forloop.first %}text-indigo-600{% else %}text-gray-500{% endif %}">
+                                        {{ lang.code|upper }}
+                                    </span>
+                                </span>
+                                {% if forloop.first %}
+                                <span
+                                    class="absolute top-2 right-2 bg-indigo-500 text-white text-xs px-2 py-1 rounded-full">
+                                    Recommended
+                                </span>
+                                {% endif %}
                             </label>
                             {% endfor %}
                         </div>
@@ -206,11 +241,15 @@
                     {% if existing_attempt %}
                     <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
                         <div class="flex">
-                            <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                </path>
                             </svg>
                             <p class="text-sm text-yellow-700">
-                                <strong>Note:</strong> You have an existing incomplete attempt. Starting a new test will overwrite your previous progress.
+                                <strong>Note:</strong> You have an existing incomplete attempt. Starting a new test will
+                                overwrite your previous progress.
                             </p>
                         </div>
                     </div>
@@ -218,18 +257,20 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-col sm:flex-row gap-4 justify-end">
-                        <a href="{% url 'exams:home' %}" 
-                           class="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition text-center">
+                        <a href="{% url 'exams:home' %}"
+                            class="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition text-center">
                             Cancel
                         </a>
-                        <button type="submit" 
-                                id="startTestBtn"
-                                class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl hover:from-indigo-700 hover:to-purple-700 transition transform hover:-translate-y-0.5 shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                                disabled>
+                        <button type="submit" id="startTestBtn"
+                            class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl hover:from-indigo-700 hover:to-purple-700 transition transform hover:-translate-y-0.5 shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                            disabled>
                             <span class="flex items-center justify-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z">
+                                    </path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 Start Test
                             </span>
@@ -243,91 +284,91 @@
 
 <!-- JavaScript for enabling/disabling start button and language selection -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const termsCheckbox = document.getElementById('terms_accepted');
-    const languageRadios = document.querySelectorAll('input[name="language"]');
-    const startButton = document.getElementById('startTestBtn');
-    const languageOptions = document.querySelectorAll('.language-option');
-    
-    // Function to check form validity
-    function checkFormValidity() {
-        const termsAccepted = termsCheckbox.checked;
-        const languageSelected = Array.from(languageRadios).some(radio => radio.checked);
-        
-        startButton.disabled = !(termsAccepted && languageSelected);
-    }
-    
-    // Function to update language selection visual
-    function updateLanguageSelection(selectedOption) {
-        // Remove selection from all options
+    document.addEventListener('DOMContentLoaded', function () {
+        const termsCheckbox = document.getElementById('terms_accepted');
+        const languageRadios = document.querySelectorAll('input[name="language"]');
+        const startButton = document.getElementById('startTestBtn');
+        const languageOptions = document.querySelectorAll('.language-option');
+
+        // Function to check form validity
+        function checkFormValidity() {
+            const termsAccepted = termsCheckbox.checked;
+            const languageSelected = Array.from(languageRadios).some(radio => radio.checked);
+
+            startButton.disabled = !(termsAccepted && languageSelected);
+        }
+
+        // Function to update language selection visual
+        function updateLanguageSelection(selectedOption) {
+            // Remove selection from all options
+            languageOptions.forEach(option => {
+                const div = option.querySelector('div');
+                const dot = option.querySelector('.language-dot');
+                const text = option.querySelector('.language-text');
+
+                div.classList.remove('border-indigo-600', 'bg-indigo-50');
+                div.classList.add('border-gray-200');
+                dot.classList.remove('border-indigo-600', 'bg-indigo-600');
+                dot.classList.add('border-gray-300');
+                text.classList.remove('text-indigo-600');
+            });
+
+            // Add selection to clicked option
+            const div = selectedOption.querySelector('div');
+            const dot = selectedOption.querySelector('.language-dot');
+            const text = selectedOption.querySelector('.language-text');
+
+            div.classList.remove('border-gray-200');
+            div.classList.add('border-indigo-600', 'bg-indigo-50');
+            dot.classList.remove('border-gray-300');
+            dot.classList.add('border-indigo-600', 'bg-indigo-600');
+            text.classList.add('text-indigo-600');
+        }
+
+        // Add click handlers to language options
         languageOptions.forEach(option => {
-            const div = option.querySelector('div');
-            const dot = option.querySelector('.language-dot');
-            const text = option.querySelector('.language-text');
-            
-            div.classList.remove('border-indigo-600', 'bg-indigo-50');
-            div.classList.add('border-gray-200');
-            dot.classList.remove('border-indigo-600', 'bg-indigo-600');
-            dot.classList.add('border-gray-300');
-            text.classList.remove('text-indigo-600');
+            option.addEventListener('click', function (e) {
+                // Prevent click if clicking on radio directly (though it's hidden)
+                e.preventDefault();
+
+                // Get the radio input
+                const radio = this.querySelector('input[type="radio"]');
+
+                // Check the radio
+                radio.checked = true;
+
+                // Update visual
+                updateLanguageSelection(this);
+
+                // Trigger change event for form validation
+                const changeEvent = new Event('change', { bubbles: true });
+                radio.dispatchEvent(changeEvent);
+            });
         });
-        
-        // Add selection to clicked option
-        const div = selectedOption.querySelector('div');
-        const dot = selectedOption.querySelector('.language-dot');
-        const text = selectedOption.querySelector('.language-text');
-        
-        div.classList.remove('border-gray-200');
-        div.classList.add('border-indigo-600', 'bg-indigo-50');
-        dot.classList.remove('border-gray-300');
-        dot.classList.add('border-indigo-600', 'bg-indigo-600');
-        text.classList.add('text-indigo-600');
-    }
-    
-    // Add click handlers to language options
-    languageOptions.forEach(option => {
-        option.addEventListener('click', function(e) {
-            // Prevent click if clicking on radio directly (though it's hidden)
-            e.preventDefault();
-            
-            // Get the radio input
-            const radio = this.querySelector('input[type="radio"]');
-            
-            // Check the radio
-            radio.checked = true;
-            
-            // Update visual
-            updateLanguageSelection(this);
-            
-            // Trigger change event for form validation
-            const changeEvent = new Event('change', { bubbles: true });
-            radio.dispatchEvent(changeEvent);
+
+        termsCheckbox.addEventListener('change', checkFormValidity);
+        languageRadios.forEach(radio => {
+            radio.addEventListener('change', function () {
+                checkFormValidity();
+
+                // Also update visual when radio changes programmatically
+                const parentOption = this.closest('.language-option');
+                if (parentOption && this.checked) {
+                    updateLanguageSelection(parentOption);
+                }
+            });
         });
+
+        // Initial check
+        checkFormValidity();
     });
-    
-    termsCheckbox.addEventListener('change', checkFormValidity);
-    languageRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            checkFormValidity();
-            
-            // Also update visual when radio changes programmatically
-            const parentOption = this.closest('.language-option');
-            if (parentOption && this.checked) {
-                updateLanguageSelection(parentOption);
-            }
-        });
-    });
-    
-    // Initial check
-    checkFormValidity();
-});
 </script>
 
 <style>
-/* Additional styling for language selection */
-.language-option input:checked + div {
-    border-color: #4f46e5;
-    background-color: #eef2ff;
-}
+    /* Additional styling for language selection */
+    .language-option input:checked+div {
+        border-color: #4f46e5;
+        background-color: #eef2ff;
+    }
 </style>
 {% endblock %}

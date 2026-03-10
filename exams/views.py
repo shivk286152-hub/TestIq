@@ -259,6 +259,7 @@ def ajax_question(request, mocktest_id):
 # ==============================
 # SUBMIT TEST (AUTO + MANUAL)
 # ==============================
+
 @login_required
 def submit_test(request, mocktest_id):
 
@@ -290,10 +291,10 @@ def submit_test(request, mocktest_id):
     skipped = 0
 
     for question in questions:
-
         selected_id = session_answers.get(str(question.id))
 
-        if not selected_id:
+        # FIX: Check if selected_id exists and is not empty
+        if not selected_id or selected_id == "":
             skipped += 1
             UserAnswer.objects.create(
                 attempt=attempt,
@@ -301,31 +302,35 @@ def submit_test(request, mocktest_id):
             )
             continue
 
+        # Create answer with selected option
         ua = UserAnswer.objects.create(
             attempt=attempt,
             question=question,
             selected_option_id=selected_id
         )
 
-        if ua.selected_option.is_correct:
+        # Check if selected option is correct
+        if ua.selected_option and ua.selected_option.is_correct:
             correct += 1
         else:
             wrong += 1
 
+    # Update attempt with correct counts
     attempt.correct_answers = correct
     attempt.wrong_answers = wrong
     attempt.skipped_answers = skipped
     attempt.total_marks = questions.count()
-    attempt.score = correct - (wrong * 0.25)
+    
+    # Calculate score (assuming +4 for correct, -1 for wrong)
+    attempt.score = (correct * 4) - (wrong * 1)  # Adjust based on your marking scheme
 
     attempt.save()
 
+    # Clear session answers
     request.session.pop(f"answers_{mocktest.id}", None)
     
-    
-    # ADD THIS MISSING RETURN STATEMENT
     return redirect("exams:result_dashboard", attempt_id=attempt.id)
-    
+
 @login_required
 def result_dashboard(request, attempt_id):
     attempt = get_object_or_404(
@@ -341,8 +346,24 @@ def result_dashboard(request, attempt_id):
 
     # Basic calculations
     total_questions = answers.count()
-    correct = answers.filter(selected_option__is_correct=True).count()
-    wrong = total_questions - correct
+    
+    # FIX: Count correctly - only count where selected_option exists and is correct
+    correct = 0
+    wrong = 0
+    skipped = 0
+    
+    for answer in answers:
+        if not answer.selected_option:
+            skipped += 1
+        elif answer.selected_option.is_correct:
+            correct += 1
+        else:
+            wrong += 1
+    
+    # Double-check with database aggregation (alternative method)
+    # correct = answers.filter(selected_option__is_correct=True).count()
+    # wrong = answers.filter(selected_option__is_correct=False).exclude(selected_option__isnull=True).count()
+    # skipped = answers.filter(selected_option__isnull=True).count()
     
     # Calculate percentage
     percentage = 0
@@ -388,7 +409,27 @@ def result_dashboard(request, attempt_id):
     
     # Subject stats (if you have subjects)
     subject_stats = []
-    # You can add subject stats logic here if needed
+    # Group by subject
+    if hasattr(answers.first(), 'question') and hasattr(answers.first().question, 'subject'):
+        from django.db.models import Count, Q
+        
+        subject_data = answers.values('question__subject__name').annotate(
+            total=Count('id'),
+            correct_count=Count('id', filter=Q(selected_option__is_correct=True)),
+            wrong_count=Count('id', filter=Q(selected_option__is_correct=False) & ~Q(selected_option__isnull=True)),
+            skipped_count=Count('id', filter=Q(selected_option__isnull=True))
+        ).order_by('question__subject__name')
+        
+        for data in subject_data:
+            if data['question__subject__name']:  # Only include if subject exists
+                subject_stats.append({
+                    'subject': data['question__subject__name'],
+                    'total': data['total'],
+                    'correct': data['correct_count'],
+                    'wrong': data['wrong_count'],
+                    'skipped': data['skipped_count'],
+                    'marks': round((data['correct_count'] / data['total'] * 100), 1) if data['total'] > 0 else 0
+                })
     
     recent_attempts = MockTestAttempt.objects.filter(
         user=request.user,
@@ -402,11 +443,12 @@ def result_dashboard(request, attempt_id):
         "total_questions": total_questions,
         "correct": correct,
         "wrong": wrong,
+        "skipped": skipped,  # Add skipped to context
         "percentage": percentage,
         "rank": rank,
         "percentile": percentile,
         "subject_stats": subject_stats,
-    })    
+    })
 
 @login_required
 def view_rankings(request, attempt_id):
@@ -1055,3 +1097,213 @@ def start_test(request, mocktest_id):
     
     # If not POST, redirect to pretest page
     return redirect('exams:pretest_detail', mocktest_id=mocktest_id)
+
+
+
+@login_required
+def test_statistics(request, attempt_id):
+    attempt = get_object_or_404(
+        MockTestAttempt,
+        id=attempt_id,
+        user=request.user,
+        is_completed=True
+    )
+    
+    answers = attempt.answers.select_related('question', 'selected_option', 'question__subject').all()
+    
+    # Basic stats
+    total_questions = answers.count()
+    correct = answers.filter(selected_option__is_correct=True).count()
+    wrong = answers.filter(selected_option__is_correct=False).exclude(selected_option__isnull=True).count()
+    skipped = answers.filter(selected_option__isnull=True).count()
+    
+    score = (correct * 4) - (wrong * 1)
+    max_possible_score = total_questions * 4
+    percentage = round((correct / total_questions * 100), 1) if total_questions > 0 else 0
+    
+    # Subject data with circles
+    subject_data = []
+    subject_performance = {}
+    
+    for answer in answers:
+        subject_name = answer.question.subject.name if answer.question.subject else "General"
+        if subject_name not in subject_performance:
+            subject_performance[subject_name] = {
+                'total': 0, 'correct': 0, 'wrong': 0, 'skipped': 0,
+                'total_time': 0
+            }
+        
+        subject_performance[subject_name]['total'] += 1
+        if not answer.selected_option:
+            subject_performance[subject_name]['skipped'] += 1
+        elif answer.selected_option.is_correct:
+            subject_performance[subject_name]['correct'] += 1
+        else:
+            subject_performance[subject_name]['wrong'] += 1
+    
+    for subject, stats in subject_performance.items():
+        accuracy = round((stats['correct'] / stats['total'] * 100), 1) if stats['total'] > 0 else 0
+        subject_data.append({
+            'name': subject,
+            'total': stats['total'],
+            'correct': stats['correct'],
+            'wrong': stats['wrong'],
+            'skipped': stats['skipped'],
+            'accuracy': accuracy,
+            'avg_time': round(stats['total_time'] / stats['total']) if stats['total_time'] > 0 else 45
+        })
+    
+    subject_data.sort(key=lambda x: x['accuracy'], reverse=True)
+    
+    # Enhanced difficulty data (supports multiple levels)
+    difficulty_data = []
+    difficulty_counts = {}
+    
+    for answer in answers:
+        difficulty = getattr(answer.question, 'difficulty', 'Medium')
+        if difficulty not in difficulty_counts:
+            difficulty_counts[difficulty] = {'total': 0, 'correct': 0}
+        
+        difficulty_counts[difficulty]['total'] += 1
+        if answer.selected_option and answer.selected_option.is_correct:
+            difficulty_counts[difficulty]['correct'] += 1
+    
+    for diff_name, stats in difficulty_counts.items():
+        difficulty_data.append({
+            'name': diff_name,
+            'total': stats['total'],
+            'correct': stats['correct']
+        })
+    
+    # Rankings data
+    all_attempts = MockTestAttempt.objects.filter(
+        mock_test=attempt.mock_test,
+        is_completed=True
+    ).select_related('user').order_by('-correct_answers')[:10]
+    
+    top_scorers = []
+    for idx, att in enumerate(all_attempts, 1):
+        score_pct = round((att.correct_answers / att.total_marks * 100), 1) if att.total_marks > 0 else 0
+        top_scorers.append({
+            'rank': idx,
+            'name': att.user.get_full_name() or att.user.username,
+            'initials': (att.user.first_name[0] if att.user.first_name else att.user.username[0]).upper(),
+            'score': score_pct,
+            'correct': att.correct_answers,
+            'total': att.total_marks,
+            'is_current': att.id == attempt.id
+        })
+    
+    # Calculate user's rank
+    rank = None
+    total_attempts = MockTestAttempt.objects.filter(
+        mock_test=attempt.mock_test,
+        is_completed=True
+    ).count()
+    
+    if total_attempts > 0:
+        higher_scores = MockTestAttempt.objects.filter(
+            mock_test=attempt.mock_test,
+            is_completed=True,
+            correct_answers__gt=attempt.correct_answers
+        ).count()
+        rank = higher_scores + 1
+        better_than = round(((total_attempts - rank) / total_attempts * 100), 1)
+    
+    # Averages
+    all_user_attempts = MockTestAttempt.objects.filter(
+        user=request.user,
+        mock_test=attempt.mock_test,
+        is_completed=True
+    )
+    
+    avg_percentage = 0
+    best_percentage = 0
+    global_avg = 0
+    
+    if all_user_attempts.count() > 1:
+        total_percentage = sum((a.correct_answers / a.total_marks * 100) for a in all_user_attempts if a.total_marks > 0)
+        avg_percentage = round(total_percentage / all_user_attempts.count(), 1)
+        best_attempt = all_user_attempts.order_by('-correct_answers').first()
+        if best_attempt and best_attempt.total_marks > 0:
+            best_percentage = round((best_attempt.correct_answers / best_attempt.total_marks * 100), 1)
+    
+    if total_attempts > 0:
+        global_total = sum(a.correct_answers / a.total_marks * 100 for a in MockTestAttempt.objects.filter(
+            mock_test=attempt.mock_test, is_completed=True
+        ) if a.total_marks > 0)
+        global_avg = round(global_total / total_attempts, 1)
+    
+    # Insights
+    insights = []
+    if subject_data:
+        strongest = subject_data[0]
+        insights.append(f"Strongest: {strongest['name']} ({strongest['accuracy']}%)")
+        weakest = subject_data[-1]
+        if weakest['accuracy'] < 60:
+            insights.append(f"Focus on: {weakest['name']} ({weakest['accuracy']}%)")
+    
+    if rank and rank <= 3:
+        insights.append(f"🏆 Top {rank} rank! Excellent performance!")
+    elif rank and rank <= 10:
+        insights.append(f"🎯 Top 10 rank! Keep pushing!")
+    
+    if percentage > global_avg:
+        insights.append(f"Above global average by {round(percentage - global_avg, 1)}%")
+    
+    # Distribution data for chart
+    distribution_ranges = ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%']
+    distribution_data = [0, 0, 0, 0, 0]
+    
+    all_scores = MockTestAttempt.objects.filter(
+        mock_test=attempt.mock_test,
+        is_completed=True
+    ).values_list('correct_answers', 'total_marks')
+    
+    for corr, total in all_scores:
+        if total > 0:
+            pct = (corr / total) * 100
+            if pct <= 20:
+                distribution_data[0] += 1
+            elif pct <= 40:
+                distribution_data[1] += 1
+            elif pct <= 60:
+                distribution_data[2] += 1
+            elif pct <= 80:
+                distribution_data[3] += 1
+            else:
+                distribution_data[4] += 1
+    
+    chart_data = {
+        'subject_names': [s['name'] for s in subject_data],
+        'subject_correct': [s['correct'] for s in subject_data],
+        'difficulty_labels': [d['name'] for d in difficulty_data],
+        'difficulty_correct': [d['correct'] for d in difficulty_data],
+        'distribution_ranges': distribution_ranges,
+        'distribution_data': distribution_data,
+    }
+    
+    context = {
+        'attempt': attempt,
+        'total_questions': total_questions,
+        'correct': correct,
+        'wrong': wrong,
+        'skipped': skipped,
+        'score': score,
+        'max_possible_score': max_possible_score,
+        'percentage': percentage,
+        'subject_data': subject_data,
+        'difficulty_data': difficulty_data,
+        'top_scorers': top_scorers,
+        'rank': rank,
+        'percentile': better_than if 'better_than' in locals() else 75,
+        'total_attempts': total_attempts,
+        'better_than': better_than if 'better_than' in locals() else 75,
+        'avg_percentage': avg_percentage,
+        'best_percentage': best_percentage,
+        'global_avg': global_avg,
+        'insights': insights,
+        'chart_data_json': json.dumps(chart_data),
+    }
+    
+    return render(request, 'exams/test_statistics.html', context)

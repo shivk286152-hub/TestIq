@@ -157,31 +157,57 @@ class SubCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(MockTest)
 class MockTestAdmin(admin.ModelAdmin):
-    list_display = ['title', 'subcategory', 'duration', 'total_marks', 'is_active', 'created_at']
-    list_filter = ['is_active', 'subcategory__category', 'subcategory']
+    list_display = [
+        'title', 
+        'subcategory', 
+        'difficulty', 
+        'duration', 
+        'total_marks', 
+        'negative_marking_display',
+        'is_active', 
+        'created_at'
+    ]
+    list_filter = [
+        'is_active', 
+        'difficulty',
+        'negative_marking_type',
+        'subcategory__category', 
+        'subcategory'
+    ]
     search_fields = ['title']
-    list_editable = ['is_active']
+    list_editable = ['is_active', 'difficulty']
     list_per_page = 20
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('title', 'subcategory', 'is_active')
+            'fields': ('title', 'subcategory', 'topic', 'difficulty', 'is_active')
         }),
         ('Test Settings', {
             'fields': ('duration', 'time_limit', 'total_marks')
         }),
+        ('Negative Marking', {
+            'fields': ('negative_marking_type', 'negative_marking_value'),
+            'description': 'Configure negative marking rules for this test'
+        }),
     )
+    
+    def negative_marking_display(self, obj):
+        if obj.negative_marking_type == 'no_negative':
+            return "No Negative"
+        elif obj.negative_marking_type == 'fixed_per_question':
+            return f"-{obj.negative_marking_value} marks"
+        else:
+            return f"-{obj.negative_marking_value}%"
+    negative_marking_display.short_description = 'Negative Marking'
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('subcategory')
     
-    # Add this to handle any errors
     def save_model(self, request, obj, form, change):
         try:
             super().save_model(request, obj, form, change)
         except Exception as e:
             self.message_user(request, f"Error saving mock test: {str(e)}", level='ERROR')
-
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
     list_display = ['name', 'mock_test', 'start_question_no', 'end_question_no', 'question_count']
