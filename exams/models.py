@@ -3,6 +3,7 @@ from django.utils.text import slugify
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+from django.core.exceptions import ValidationError
 
 # ============================================
 # EXAM CATEGORY MODELS
@@ -66,135 +67,122 @@ class SubCategory(models.Model):
 # ============================================
 # MOCK TEST MODEL - MAIN TEST CONFIGURATION
 # ============================================
-
 class MockTest(models.Model):
-    """
-    Main Mock Test model containing all test-level configurations
-    Including difficulty, duration, and negative marking settings
-    """
-    
-    # Difficulty level choices for the entire test
+
     DIFFICULTY_CHOICES = [
         ('Beginner', 'Beginner'),
         ('Intermediate', 'Intermediate'),
         ('Advanced', 'Advanced'),
     ]
-    
-    # Negative marking type choices
+
     NEGATIVE_MARKING_TYPES = [
         ('no_negative', 'No Negative Marking'),
         ('fixed_per_question', 'Fixed per Wrong Question'),
         ('percentage_of_marks', 'Percentage of Question Marks'),
     ]
-    
-    # Basic Information
+
     title = models.CharField(max_length=255)
+
     subcategory = models.ForeignKey(
-        SubCategory,
+        'SubCategory',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="mock_tests"
     )
-    
-    # Test Configuration
+
     difficulty = models.CharField(
         max_length=20,
         choices=DIFFICULTY_CHOICES,
-        default='Intermediate',
-        help_text="Overall difficulty level of the test"
+        default='Intermediate'
     )
-    
-    # Negative Marking Configuration (applies to all questions by default)
+
     negative_marking_type = models.CharField(
         max_length=25,
         choices=NEGATIVE_MARKING_TYPES,
-        default='no_negative',
-        help_text="Type of negative marking applied"
+        default='no_negative'
     )
-    
+
     negative_marking_value = models.FloatField(
         default=0,
-        help_text="For 'fixed_per_question': negative marks per wrong answer, For 'percentage_of_marks': percentage to deduct"
+        blank=True,
+        help_text="Negative marks or percentage depending on type"
     )
-    
-    # Time Configuration
+
     duration = models.PositiveIntegerField(default=30, help_text="Duration in minutes")
-    time_limit = models.PositiveIntegerField(default=30, help_text="Time limit in minutes")
-    
-    # Marks Configuration
-    total_marks = models.FloatField(default=0, help_text="Total marks for this test")
-    
-    # Status and Tracking
+    time_limit = models.PositiveIntegerField(default=30, help_text="Time limit per attempt in minutes")
+
+    total_marks = models.FloatField(default=0)
+
     is_active = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.title
-    
     class Meta:
         ordering = ['-created_at']
-    
+
+    def __str__(self):
+        return self.title
+
+    # ========== CLEAN & VALIDATION ==========
+    def clean(self):
+        # Negative marking validation
+        if self.negative_marking_type != 'no_negative' and self.negative_marking_value <= 0:
+            raise ValidationError({
+                'negative_marking_value': 'Negative marking value must be greater than 0.'
+            })
+
+    # ========== SAVE ==========
+    def save(self, *args, **kwargs):
+        # Run Django validation
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     # ========== PROPERTIES ==========
-    
     @property
     def has_negative_marking(self):
-        """Check if test has negative marking enabled"""
         return self.negative_marking_type != 'no_negative'
-    
+
     @property
     def negative_marking_display(self):
-        """Get user-friendly negative marking description"""
         if self.negative_marking_type == 'no_negative':
             return "No Negative Marking"
         elif self.negative_marking_type == 'fixed_per_question':
             return f"-{self.negative_marking_value} marks per wrong answer"
-        else:  # percentage_of_marks
+        else:
             return f"-{self.negative_marking_value}% of question marks per wrong answer"
-    
+
     @property
     def question_count(self):
-        """Get total number of questions in this test"""
         return self.questions.count()
-    
+
     # ========== METHODS ==========
-    
     def calculate_negative_marks(self, question_marks):
         """
-        Calculate negative marks for a wrong answer based on test configuration
-        Args:
-            question_marks: Marks assigned to the question
-        Returns:
-            float: Negative marks to deduct
+        Calculate negative marks for a wrong answer
         """
         if self.negative_marking_type == 'fixed_per_question':
             return self.negative_marking_value
         elif self.negative_marking_type == 'percentage_of_marks':
             return (question_marks * self.negative_marking_value) / 100
         return 0
-    
+
     def get_negative_marking_description(self):
-        """Get detailed negative marking description for display"""
+        """Detailed negative marking description"""
         if not self.has_negative_marking:
             return "No negative marking for this test"
-        
         if self.negative_marking_type == 'fixed_per_question':
-            return f"{self.negative_marking_value} marks deducted for each wrong answer"
+            return f"{self.negative_marking_value} marks deducted per wrong answer"
         else:
-            return f"{self.negative_marking_value}% of question marks deducted for each wrong answer"
-    
-    def validate_negative_marking(self):
-        """Validate negative marking settings before saving"""
-        if self.has_negative_marking and self.negative_marking_value <= 0:
-            raise ValueError("Negative marking value must be greater than 0")
-        return True
-    
-    def save(self, *args, **kwargs):
-        """Override save to validate negative marking"""
-        self.validate_negative_marking()
-        super().save(*args, **kwargs)
+            return f"{self.negative_marking_value}% of question marks deducted per wrong answer"
 
+    def update_total_marks(self):
+        """Auto-update total_marks based on questions"""
+        total = sum(q.marks for q in self.questions.all())
+        self.total_marks = total
+        super().save(update_fields=['total_marks']) 
+   
 
 # ============================================
 # SUBJECT MODEL - For organizing questions by subject
