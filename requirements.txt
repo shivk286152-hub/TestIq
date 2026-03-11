@@ -7,3 +7,4 @@ django-taggit==6.1.0
 pillow==12.1.1
 sqlparse==0.5.5
 whitenoise==6.12.0
+psycopg2-binary==2.9.10
