@@ -129,17 +129,19 @@ class SubCategoryAdmin(admin.ModelAdmin):
 @admin.register(MockTest)
 class MockTestAdmin(admin.ModelAdmin):
     list_display = [
-        'title', 'subcategory', 'difficulty', 'duration', 'total_marks',
+        'title', 'subcategory', 'duration', 'total_marks',
         'negative_marking_display', 'is_active', 'created_at'
-    ]
-    list_filter = ['is_active', 'difficulty', 'negative_marking_type', 'subcategory__category', 'subcategory']
+    ]  # Removed 'difficulty'
+    
+    list_filter = ['is_active', 'negative_marking_type', 'subcategory__category', 'subcategory']  # Removed 'difficulty'
+    
     search_fields = ['title']
-    list_editable = ['is_active', 'difficulty']
+    list_editable = ['is_active']  # Removed 'difficulty'
     list_per_page = 20
 
     fieldsets = (
         ('Basic Information', {
-            'fields': ('title', 'subcategory', 'difficulty', 'is_active')
+            'fields': ('title', 'subcategory', 'is_active')  # Removed 'difficulty'
         }),
         ('Test Settings', {
             'fields': ('duration', 'time_limit', 'total_marks')
@@ -161,7 +163,6 @@ class MockTestAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('subcategory')
-
 # ============================================
 # SUBJECT ADMIN
 # ============================================
