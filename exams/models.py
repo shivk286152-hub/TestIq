@@ -172,7 +172,7 @@ class MockTest(models.Model):
         """Auto-update total_marks based on questions"""
         total = sum(q.marks for q in self.questions.all())
         self.total_marks = total
-        super().save(update_
+        super().save(update_fields=['total_marks'])
 
 # ============================================
 # SUBJECT MODEL - For organizing questions by subject
