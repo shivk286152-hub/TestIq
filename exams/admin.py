@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.db.models import Max, Sum
+from django.db.models import Max
 from .models import (
     ExamCategory, SubCategory, MockTest, Subject, 
     Question, Option, MockTestAttempt, UserAnswer, Testimonial
@@ -11,13 +11,13 @@ from .models import (
 # ============================================
 
 class OptionInline(admin.TabularInline):
+    """Inline admin for options within question"""
     model = Option
     extra = 4
     max_num = 4
     min_num = 2
     fields = ['text_en', 'text_hi', 'is_correct', 'order']
     ordering = ['order']
-
 
 # ============================================
 # QUESTION ADMIN
@@ -26,7 +26,7 @@ class OptionInline(admin.TabularInline):
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['id', 'question_preview', 'mock_test', 'subject', 'difficulty', 'topic', 'marks', 'negative_marks', 'order']
-    list_filter = ['mock_test', 'subject', 'difficulty']
+    list_filter = ['mock_test', 'subject', 'difficulty', 'marks']
     search_fields = ['question_en', 'question_hi', 'topic']
     list_editable = ['marks', 'negative_marks', 'order', 'difficulty', 'topic']
     list_per_page = 20
@@ -41,9 +41,12 @@ class QuestionAdmin(admin.ModelAdmin):
         }),
         ('Question Classification', {
             'fields': ('difficulty', 'topic'),
+            'classes': ('wide',),
+            'description': 'Set difficulty level (Easy/Medium/Hard) and topic (e.g., Algebra, Grammar)'
         }),
         ('Explanation', {
             'fields': ('explanation', 'explanation_hi'),
+            'classes': ('wide',)
         }),
         ('Marking Scheme', {
             'fields': ('marks', 'negative_marks')
@@ -56,19 +59,41 @@ class QuestionAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        if not obj:
+        if not obj:  # Only for new objects
             mock_test_id = request.GET.get('mock_test') or request.POST.get('mock_test')
             if mock_test_id:
                 max_order = Question.objects.filter(mock_test_id=mock_test_id).aggregate(Max('order'))['order__max']
                 form.base_fields['order'].initial = (max_order or 0) + 1
+            form.base_fields['difficulty'].initial = 'Medium'
+        form.base_fields['question_en'].required = True
+        form.base_fields['question_hi'].required = False
+        form.base_fields['topic'].required = False
         return form
 
     def save_model(self, request, obj, form, change):
         if not obj.order and obj.mock_test:
             max_order = Question.objects.filter(mock_test=obj.mock_test).aggregate(Max('order'))['order__max']
             obj.order = (max_order or 0) + 1
+        if not obj.difficulty:
+            obj.difficulty = 'Medium'
         super().save_model(request, obj, form, change)
 
+    actions = ['set_difficulty_easy', 'set_difficulty_medium', 'set_difficulty_hard']
+
+    def set_difficulty_easy(self, request, queryset):
+        queryset.update(difficulty='Easy')
+        self.message_user(request, f"{queryset.count()} questions set to Easy difficulty.")
+    set_difficulty_easy.short_description = "Set difficulty to Easy"
+
+    def set_difficulty_medium(self, request, queryset):
+        queryset.update(difficulty='Medium')
+        self.message_user(request, f"{queryset.count()} questions set to Medium difficulty.")
+    set_difficulty_medium.short_description = "Set difficulty to Medium"
+
+    def set_difficulty_hard(self, request, queryset):
+        queryset.update(difficulty='Hard')
+        self.message_user(request, f"{queryset.count()} questions set to Hard difficulty.")
+    set_difficulty_hard.short_description = "Set difficulty to Hard"
 
 # ============================================
 # EXAM CATEGORY ADMIN
@@ -85,7 +110,6 @@ class ExamCategoryAdmin(admin.ModelAdmin):
         return obj.description[:50] + '...' if obj.description else '-'
     description_short.short_description = 'Description'
 
-
 @admin.register(SubCategory)
 class SubCategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'slug', 'description_short']
@@ -98,7 +122,6 @@ class SubCategoryAdmin(admin.ModelAdmin):
         return obj.description[:50] + '...' if obj.description else '-'
     description_short.short_description = 'Description'
 
-
 # ============================================
 # MOCK TEST ADMIN
 # ============================================
@@ -107,9 +130,9 @@ class SubCategoryAdmin(admin.ModelAdmin):
 class MockTestAdmin(admin.ModelAdmin):
     list_display = [
         'title', 'subcategory', 'difficulty', 'duration', 'total_marks',
-        'negative_marking_type', 'is_active', 'created_at'
+        'negative_marking_display', 'is_active', 'created_at'
     ]
-    list_filter = ['is_active', 'difficulty', 'negative_marking_type', 'subcategory__category']
+    list_filter = ['is_active', 'difficulty', 'negative_marking_type', 'subcategory__category', 'subcategory']
     search_fields = ['title']
     list_editable = ['is_active', 'difficulty']
     list_per_page = 20
@@ -123,12 +146,21 @@ class MockTestAdmin(admin.ModelAdmin):
         }),
         ('Negative Marking', {
             'fields': ('negative_marking_type', 'negative_marking_value'),
+            'description': 'Configure negative marking rules for this test'
         }),
     )
 
+    def negative_marking_display(self, obj):
+        if obj.negative_marking_type == 'no_negative':
+            return "No Negative"
+        elif obj.negative_marking_type == 'fixed_per_question':
+            return f"-{obj.negative_marking_value} marks"
+        else:
+            return f"-{obj.negative_marking_value}%"
+    negative_marking_display.short_description = 'Negative Marking'
+
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('subcategory')
-
 
 # ============================================
 # SUBJECT ADMIN
@@ -136,11 +168,14 @@ class MockTestAdmin(admin.ModelAdmin):
 
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
-    list_display = ['name', 'mock_test', 'start_question_no', 'end_question_no']
+    list_display = ['name', 'mock_test', 'start_question_no', 'end_question_no', 'question_count']
     list_filter = ['mock_test']
     search_fields = ['name', 'mock_test__title']
     list_per_page = 20
 
+    def question_count(self, obj):
+        return obj.questions.count()
+    question_count.short_description = 'Questions'
 
 # ============================================
 # OPTION ADMIN
@@ -148,12 +183,18 @@ class SubjectAdmin(admin.ModelAdmin):
 
 @admin.register(Option)
 class OptionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'text_en', 'question', 'is_correct', 'order']
+    list_display = ['id', 'option_preview', 'question', 'is_correct', 'order']
     list_filter = ['is_correct', 'question__mock_test']
     search_fields = ['text_en', 'text_hi', 'question__question_en']
     list_editable = ['is_correct', 'order']
     list_per_page = 30
 
+    def option_preview(self, obj):
+        text = obj.text_en[:40] + '...' if len(obj.text_en) > 40 else obj.text_en
+        if obj.is_correct:
+            return format_html('<b style="color: green;">✓ {}</b>', text)
+        return text
+    option_preview.short_description = 'Option Text'
 
 # ============================================
 # MOCK TEST ATTEMPT ADMIN
@@ -161,7 +202,7 @@ class OptionAdmin(admin.ModelAdmin):
 
 @admin.register(MockTestAttempt)
 class MockTestAttemptAdmin(admin.ModelAdmin):
-    list_display = ['user', 'mock_test', 'score', 'percentage', 'correct_answers',
+    list_display = ['user', 'mock_test', 'score', 'percentage_display', 'correct_answers',
                     'wrong_answers', 'skipped_answers', 'is_completed', 'submitted_at']
     list_filter = ['is_completed', 'mock_test']
     search_fields = ['user__username', 'user__email', 'mock_test__title']
@@ -170,15 +211,16 @@ class MockTestAttemptAdmin(admin.ModelAdmin):
     list_per_page = 20
 
     fieldsets = (
-        ('User & Test', {'fields': ('user', 'mock_test', 'language')}),
+        ('User & Test', {'fields': ('user', 'mock_test')}),
         ('Performance', {'fields': ('score', 'total_marks', 'correct_answers', 'wrong_answers', 'skipped_answers')}),
         ('Timing', {'fields': ('started_at', 'submitted_at', 'is_completed')}),
     )
 
-    @admin.display(description='Percentage')
-    def percentage(self, obj):
-        return f"{obj.percentage}%"
-
+    def percentage_display(self, obj):
+        percentage = obj.percentage
+        color = 'green' if percentage >= 60 else 'orange' if percentage >= 35 else 'red'
+        return format_html('<span style="color: {}; font-weight: bold;">{}%</span>', color, percentage)
+    percentage_display.short_description = 'Percentage'
 
 # ============================================
 # USER ANSWER ADMIN
@@ -186,7 +228,7 @@ class MockTestAttemptAdmin(admin.ModelAdmin):
 
 @admin.register(UserAnswer)
 class UserAnswerAdmin(admin.ModelAdmin):
-    list_display = ['id', 'attempt', 'question', 'selected_option', 'is_correct', 'time_taken']
+    list_display = ['id', 'user_info', 'question_preview', 'answer_status', 'time_taken']
     list_filter = ['is_correct', 'attempt__mock_test']
     search_fields = ['attempt__user__username', 'question__question_en']
     readonly_fields = ['created_at', 'updated_at']
@@ -195,9 +237,25 @@ class UserAnswerAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Attempt Info', {'fields': ('attempt', 'question')}),
         ('Answer Details', {'fields': ('selected_option', 'is_correct', 'time_taken')}),
-        ('Timestamps', {'fields': ('created_at', 'updated_at')}),
+        ('Timestamps', {'fields': ('created_at', 'updated_at'), 'classes': ('collapse',)}),
     )
 
+    def user_info(self, obj):
+        return f"{obj.attempt.user.username} ({obj.attempt.user.email})"
+    user_info.short_description = 'User'
+
+    def question_preview(self, obj):
+        return obj.question.question_en[:50] + '...'
+    question_preview.short_description = 'Question'
+
+    def answer_status(self, obj):
+        if obj.is_correct:
+            return format_html('<span style="color: green;">✓ Correct</span>')
+        elif obj.selected_option:
+            return format_html('<span style="color: red;">✗ Wrong</span>')
+        else:
+            return format_html('<span style="color: gray;">- Skipped</span>')
+    answer_status.short_description = 'Status'
 
 # ============================================
 # TESTIMONIAL ADMIN
@@ -205,10 +263,11 @@ class UserAnswerAdmin(admin.ModelAdmin):
 
 @admin.register(Testimonial)
 class TestimonialAdmin(admin.ModelAdmin):
-    list_display = ['user', 'stars', 'is_active', 'is_featured', 'display_order', 'created_at']
-    list_filter = ['is_active', 'is_featured', 'stars']
+    list_display = ['user_name', 'stars', 'is_active', 'is_featured', 'display_order', 'created_at']
+    list_filter = ['is_active', 'is_featured', 'stars', 'created_at']
     search_fields = ['user__username', 'user__first_name', 'user__last_name', 'text']
     list_editable = ['is_active', 'is_featured', 'display_order']
+    actions = ['approve_testimonials', 'feature_testimonials']
 
     fieldsets = (
         ('User Information', {'fields': ('user',)}),
@@ -216,9 +275,19 @@ class TestimonialAdmin(admin.ModelAdmin):
         ('Admin Control', {'fields': ('is_active', 'is_featured', 'display_order')}),
     )
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user')
+    def user_name(self, obj):
+        return obj.user_name()
+    user_name.short_description = 'User'
 
+    def approve_testimonials(self, request, queryset):
+        queryset.update(is_active=True)
+        self.message_user(request, f"{queryset.count()} testimonials approved.")
+    approve_testimonials.short_description = "Approve selected testimonials"
+
+    def feature_testimonials(self, request, queryset):
+        queryset.update(is_featured=True)
+        self.message_user(request, f"{queryset.count()} testimonials featured.")
+    feature_testimonials.short_description = "Feature selected testimonials"
 
 # ============================================
 # ADMIN SITE HEADER
