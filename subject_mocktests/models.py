@@ -43,18 +43,54 @@ class Topic(models.Model):
         return self.name
 
 class SubjectMockTest(models.Model):
-    """Links to old app's MockTest"""
+    # Existing fields
     title = models.CharField(max_length=200)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='mocktests')
     topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True, blank=True, related_name='mocktests')
     
-    # This links to old app's MockTest - ONLY THIS FIELD CONNECTS TO OLD APP
-    mocktest_id = models.IntegerField(
-        help_text="ID of the MockTest in exams app"
+    # REMOVE THIS LINE - we don't want to link to old app
+    # mocktest_id = models.IntegerField(help_text="ID of the MockTest in exams app")
+    
+    # ADD ALL MOCKTEST FIELDS HERE (copy from exams app MockTest model)
+    difficulty = models.CharField(
+        max_length=20,
+        choices=[
+            ('Beginner', 'Beginner'),
+            ('Intermediate', 'Intermediate'),
+            ('Advanced', 'Advanced')
+        ],
+        default='Intermediate',
     )
     
-    order = models.PositiveIntegerField(default=0)
+    negative_marking_type = models.CharField(
+        max_length=25,
+        choices=[
+            ('no_negative', 'No Negative Marking'),
+            ('fixed_per_question', 'Fixed per Wrong Question'),
+            ('percentage_of_marks', 'Percentage of Question Marks')
+        ],
+        default='no_negative',
+    )
+    
+    negative_marking_value = models.FloatField(
+        default=0,
+        blank=True,
+        help_text="Negative marks or percentage depending on type",
+    )
+    
+    time_limit = models.PositiveIntegerField(
+        default=30,
+        help_text="Time limit per attempt in minutes",
+    )
+    
+    total_marks = models.FloatField(default=0)
+    
+    duration = models.IntegerField(default=30)  # Add this if needed
     is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    order = models.PositiveIntegerField(default=0)
     
     class Meta:
         ordering = ['subject', 'topic__order', 'order']
@@ -63,3 +99,17 @@ class SubjectMockTest(models.Model):
         if self.topic:
             return f"{self.subject.name} - {self.topic.name} - {self.title}"
         return f"{self.subject.name} - {self.title}"
+    
+
+class Question(models.Model):
+    mocktest = models.ForeignKey(SubjectMockTest, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField()
+    option1 = models.CharField(max_length=200)
+    option2 = models.CharField(max_length=200)
+    option3 = models.CharField(max_length=200)
+    option4 = models.CharField(max_length=200)
+    correct_answer = models.CharField(max_length=200)  # or IntegerField for option number
+    marks = models.FloatField(default=1)
+    
+    def __str__(self):
+        return self.question_text[:50]   

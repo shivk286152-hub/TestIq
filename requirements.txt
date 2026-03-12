@@ -4,8 +4,9 @@ Django==6.0.3
 django-ckeditor==6.7.3
 django-js-asset==3.1.2
 django-taggit==6.1.0
+gunicorn==25.1.0
+packaging==26.0
 pillow==12.1.1
+psycopg2-binary==2.9.10
 sqlparse==0.5.5
 whitenoise==6.12.0
-psycopg2-binary==2.9.10
-gunicorn>=20.1.0
