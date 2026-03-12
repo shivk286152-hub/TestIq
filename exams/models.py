@@ -4,7 +4,6 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 from django.core.exceptions import ValidationError
-from django.db.models import Sum
 
 # ============================================
 # EXAM CATEGORY MODELS
@@ -63,7 +62,6 @@ class SubCategory(models.Model):
     
     class Meta:
         verbose_name_plural = "Sub Categories"
-        unique_together = ['category', 'name']  # Prevent duplicate subcategories
 
 
 # ============================================
@@ -86,7 +84,7 @@ class MockTest(models.Model):
     title = models.CharField(max_length=255)
 
     subcategory = models.ForeignKey(
-        SubCategory,
+        'SubCategory',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -133,12 +131,6 @@ class MockTest(models.Model):
         if self.negative_marking_type != 'no_negative' and self.negative_marking_value <= 0:
             raise ValidationError({
                 'negative_marking_value': 'Negative marking value must be greater than 0.'
-            })
-        
-        # Duration validation
-        if self.duration <= 0:
-            raise ValidationError({
-                'duration': 'Duration must be greater than 0 minutes.'
             })
 
     # ========== SAVE ==========
@@ -187,9 +179,9 @@ class MockTest(models.Model):
 
     def update_total_marks(self):
         """Auto-update total_marks based on questions"""
-        total = self.questions.aggregate(total=Sum('marks'))['total'] or 0
+        total = sum(q.marks for q in self.questions.all())
         self.total_marks = total
-        self.save(update_fields=['total_marks']) 
+        super().save(update_fields=['total_marks']) 
    
 
 # ============================================
@@ -215,12 +207,6 @@ class Subject(models.Model):
     
     class Meta:
         ordering = ['start_question_no']
-        unique_together = ['mock_test', 'name']  # Prevent duplicate subjects
-        
-    def clean(self):
-        """Validate question number range"""
-        if self.start_question_no >= self.end_question_no:
-            raise ValidationError('End question number must be greater than start question number')
 
 
 # ============================================
@@ -248,9 +234,7 @@ class Question(models.Model):
     subject = models.ForeignKey(
         Subject,
         related_name="questions",
-        on_delete=models.CASCADE,
-        null=True,  # Allow null for backward compatibility
-        blank=True
+        on_delete=models.CASCADE
     )
 
     # Question Content (Bilingual)
@@ -265,7 +249,9 @@ class Question(models.Model):
     marks = models.FloatField(default=1, help_text="Marks for this question")
     
     # OPTIONAL: Override test's negative marking for this specific question
+    # If null/blank, uses test's negative marking settings
     negative_marks = models.FloatField(
+        default=0.25, 
         null=True, 
         blank=True,
         help_text="Override test's negative marking for this question. Leave blank to use test default."
@@ -291,19 +277,10 @@ class Question(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.question_en[:50] + ("..." if len(self.question_en) > 50 else "")
+        return self.question_en[:50]
     
     class Meta:
         ordering = ['order', 'id']
-        unique_together = ['mock_test', 'order']  # Prevent duplicate order numbers
-    
-    # ========== CLEAN & VALIDATION ==========
-    def clean(self):
-        if self.marks <= 0:
-            raise ValidationError({'marks': 'Marks must be greater than 0.'})
-        
-        if self.negative_marks and self.negative_marks < 0:
-            raise ValidationError({'negative_marks': 'Negative marks cannot be negative (use positive value).'})
     
     # ========== METHODS ==========
     
@@ -312,6 +289,8 @@ class Question(models.Model):
         Get the effective negative marks for this question:
         - If question has custom negative_marks set, use that
         - Otherwise use test's negative marking configuration
+        Returns:
+            float: Negative marks to deduct for wrong answer
         """
         # If question has its own negative marks set, use that
         if self.negative_marks is not None and self.negative_marks > 0:
@@ -369,20 +348,6 @@ class Option(models.Model):
     
     class Meta:
         ordering = ['order']
-        unique_together = ['question', 'order']  # Prevent duplicate order numbers
-    
-    def clean(self):
-        """Ensure at least one correct option exists"""
-        if self.is_correct:
-            # Check if this would be the only correct option (or we're updating existing)
-            existing_correct = self.question.options.filter(is_correct=True)
-            if self.pk:
-                existing_correct = existing_correct.exclude(pk=self.pk)
-            
-            # Warning only, not a hard validation
-            if existing_correct.exists() and existing_correct.count() > 0:
-                # This is fine for multiple correct answers, but log it
-                pass
     
     def get_text(self, language='en'):
         """Get option text in specified language"""
@@ -546,10 +511,9 @@ class MockTestAttempt(models.Model):
         self.score = max(0, total_score)
         
         # Calculate total possible marks
-        total_marks_agg = self.mock_test.questions.aggregate(total=Sum('marks'))['total']
-        self.total_marks = total_marks_agg or 0
+        self.total_marks = sum(q.marks for q in self.mock_test.questions.all())
         
-        self.save(update_fields=['score', 'total_marks', 'correct_answers', 'wrong_answers', 'skipped_answers'])
+        self.save()
         return self.score
     
     # ========== BILINGUAL SUPPORT METHODS ==========
@@ -603,7 +567,7 @@ class MockTestAttempt(models.Model):
         self.has_detailed_data = False
         self.archived_at = timezone.now()
         self.details_deleted_at = timezone.now()
-        self.save(update_fields=['is_archived', 'has_detailed_data', 'archived_at', 'details_deleted_at'])
+        self.save()
         
         return answer_count
 
@@ -731,7 +695,7 @@ class Testimonial(models.Model):
     
     # Relationships
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,  # Fixed: use settings.AUTH_USER_MODEL instead of 'auth.User'
+        'auth.User', 
         on_delete=models.CASCADE,
         related_name='testimonials'
     )
@@ -775,7 +739,7 @@ class Testimonial(models.Model):
         verbose_name_plural = "Testimonials"
     
     def __str__(self):
-        return f"{self.user_name()} - {self.stars} Stars"
+        return f"{self.user.username} - {self.stars} Stars"
     
     def user_name(self):
         """Get user's full name or username for display"""
@@ -789,4 +753,4 @@ class Testimonial(models.Model):
         if ' ' in name:
             parts = name.split()
             return f"{parts[0][0]}{parts[1][0]}".upper()
-        return name[:2].upper() if name else "??"
+        return name[:2].upper()
