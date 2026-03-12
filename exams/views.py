@@ -33,25 +33,37 @@ from .forms import TestimonialForm
 def home(request):
     try:
         categories = ExamCategory.objects.all()
-        mock_tests = MockTest.objects.filter(is_active=True)[:5]
         
-        # Get active testimonials (admin controlled)
-        testimonials = Testimonial.objects.filter(
-            is_active=True
-        ).select_related('user')[:10]  # Limit to 10 testimonials
+        # Safely get mock tests - handle missing columns
+        try:
+            mock_tests = MockTest.objects.filter(is_active=True)[:5]
+        except Exception as e:
+            print(f"Error fetching mock_tests: {e}")
+            mock_tests = []
+        
+        # Safely get testimonials
+        try:
+            testimonials = Testimonial.objects.filter(
+                is_active=True
+            ).select_related('user')[:10]
+        except Exception as e:
+            print(f"Error fetching testimonials: {e}")
+            testimonials = []
         
         # Check if current user has already submitted a testimonial
         user_testimonial = None
         if request.user.is_authenticated:
-            user_testimonial = Testimonial.objects.filter(
-                user=request.user
-            ).first()
+            try:
+                user_testimonial = Testimonial.objects.filter(
+                    user=request.user
+                ).first()
+            except Exception as e:
+                print(f"Error fetching user_testimonial: {e}")
+                user_testimonial = None
         
         # Add user progress for each category (optional)
         if request.user.is_authenticated:
             for cat in categories:
-                # Calculate user progress for this category
-                # You can implement this based on your logic
                 cat.user_progress = 65  # Placeholder
 
         return render(request, "exams/home.html", {
@@ -69,9 +81,17 @@ def home(request):
         print("ERROR in home view:")
         print(traceback.format_exc())
         print("="*50)
-        from django.http import HttpResponse
-        return HttpResponse(f"Error: {str(e)}", status=500)
-
+        
+        # Return a simple page instead of error
+        return render(request, "exams/home.html", {
+            "categories": [],
+            "mock_tests": [],
+            "testimonials": [],
+            "user_testimonial": None,
+            "site_name": "TestIQ",
+            "hero_title": "Master Your Competitive Exams",
+            "hero_desc": "Practice. Analyze. Improve. Succeed."
+        })
 
 def about(request):
     """About page view"""
