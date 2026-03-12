@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'User',
     # 'django_q',
     'CurrentAffairs',
-    'subject_mocktests',
+   
   
    
 ]
