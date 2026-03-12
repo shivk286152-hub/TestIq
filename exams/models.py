@@ -67,13 +67,8 @@ class SubCategory(models.Model):
 # ============================================
 # MOCK TEST MODEL - MAIN TEST CONFIGURATION
 # ============================================
-class MockTest(models.Model):
 
-    DIFFICULTY_CHOICES = [
-        ('Beginner', 'Beginner'),
-        ('Intermediate', 'Intermediate'),
-        ('Advanced', 'Advanced'),
-    ]
+class MockTest(models.Model):
 
     NEGATIVE_MARKING_TYPES = [
         ('no_negative', 'No Negative Marking'),
@@ -91,11 +86,7 @@ class MockTest(models.Model):
         related_name="mock_tests"
     )
 
-    difficulty = models.CharField(
-        max_length=20,
-        choices=DIFFICULTY_CHOICES,
-        default='Intermediate'
-    )
+    # DIFFICULTY FIELD REMOVED COMPLETELY
 
     negative_marking_type = models.CharField(
         max_length=25,
@@ -181,8 +172,7 @@ class MockTest(models.Model):
         """Auto-update total_marks based on questions"""
         total = sum(q.marks for q in self.questions.all())
         self.total_marks = total
-        super().save(update_fields=['total_marks']) 
-   
+        super().save(update_
 
 # ============================================
 # SUBJECT MODEL - For organizing questions by subject
