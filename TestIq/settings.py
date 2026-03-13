@@ -157,14 +157,21 @@ WSGI_APPLICATION = 'TestIq.wsgi.application'
 # ----------------------------
 # DATABASE (Fixed)
 # ----------------------------
-DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3',  # fallback for local dev
-        conn_max_age=600,
-        ssl_require=os.environ.get('DATABASE_URL') is not None  # True only on Render
-    )
-}
-
+if os.environ.get("RENDER") == "TRUE":
+    # Optional: use SQLite on Render temporarily
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        }
+    }
+else:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default="sqlite:///db.sqlite3",
+            conn_max_age=600
+        )
+    }
 # ----------------------------
 # STATIC FILES
 # ----------------------------
