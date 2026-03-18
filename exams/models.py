@@ -10,16 +10,12 @@ from django.core.exceptions import ValidationError
 # ============================================
 
 class ExamCategory(models.Model):
-    """
-    Top-level category for exams (e.g., 'UPSC', 'SSC', 'Banking')
-    """
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     slug = models.SlugField(unique=True, blank=True)
     logo = models.ImageField(upload_to="category_logos/", blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        """Auto-generate slug from name if not provided"""
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
@@ -32,9 +28,6 @@ class ExamCategory(models.Model):
 
 
 class SubCategory(models.Model):
-    """
-    Sub-category under main exam category (e.g., 'Prelims', 'Mains' under UPSC)
-    """
     category = models.ForeignKey(
         ExamCategory,
         on_delete=models.CASCADE,
@@ -46,7 +39,6 @@ class SubCategory(models.Model):
     description = models.TextField(blank=True)
 
     def save(self, *args, **kwargs):
-        """Auto-generate unique slug from name"""
         if not self.slug:
             base_slug = slugify(self.name)
             slug = base_slug
@@ -65,15 +57,22 @@ class SubCategory(models.Model):
 
 
 # ============================================
-# MOCK TEST MODEL - MAIN TEST CONFIGURATION
+# MOCK TEST MODEL
 # ============================================
 
 class MockTest(models.Model):
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard'),
+        ('expert', 'Expert'),
+    ]
 
     NEGATIVE_MARKING_TYPES = [
         ('no_negative', 'No Negative Marking'),
         ('fixed_per_question', 'Fixed per Wrong Question'),
         ('percentage_of_marks', 'Percentage of Question Marks'),
+        ('per_question', 'Per Question Negative Marking'),  # NEW: Per question control
     ]
 
     title = models.CharField(max_length=255)
@@ -86,7 +85,12 @@ class MockTest(models.Model):
         related_name="mock_tests"
     )
 
-    # DIFFICULTY FIELD REMOVED COMPLETELY
+    difficulty = models.CharField(
+        max_length=20,
+        choices=DIFFICULTY_CHOICES,
+        default='medium',
+        help_text="Overall difficulty level of the mock test"
+    )
 
     negative_marking_type = models.CharField(
         max_length=25,
@@ -103,7 +107,8 @@ class MockTest(models.Model):
     duration = models.PositiveIntegerField(default=30, help_text="Duration in minutes")
     time_limit = models.PositiveIntegerField(default=30, help_text="Time limit per attempt in minutes")
 
-    total_marks = models.FloatField(default=0)
+    total_questions = models.PositiveIntegerField(default=0, help_text="Total number of questions")
+    total_marks = models.FloatField(default=0, help_text="Total marks for the test")
 
     is_active = models.BooleanField(default=True)
 
@@ -116,73 +121,55 @@ class MockTest(models.Model):
     def __str__(self):
         return self.title
 
-    # ========== CLEAN & VALIDATION ==========
     def clean(self):
-        # Negative marking validation
         if self.negative_marking_type != 'no_negative' and self.negative_marking_value <= 0:
             raise ValidationError({
                 'negative_marking_value': 'Negative marking value must be greater than 0.'
             })
 
-    # ========== SAVE ==========
     def save(self, *args, **kwargs):
-        # Run Django validation
         self.full_clean()
         super().save(*args, **kwargs)
 
-    # ========== PROPERTIES ==========
     @property
     def has_negative_marking(self):
         return self.negative_marking_type != 'no_negative'
 
     @property
-    def negative_marking_display(self):
-        if self.negative_marking_type == 'no_negative':
-            return "No Negative Marking"
-        elif self.negative_marking_type == 'fixed_per_question':
-            return f"-{self.negative_marking_value} marks per wrong answer"
-        else:
-            return f"-{self.negative_marking_value}% of question marks per wrong answer"
-
-    @property
     def question_count(self):
         return self.questions.count()
+    
+    @property
+    def difficulty_display(self):
+        return self.get_difficulty_display()
 
-    # ========== METHODS ==========
-    def calculate_negative_marks(self, question_marks):
+    def calculate_negative_marks(self, question_marks, question_difficulty=None):
         """
         Calculate negative marks for a wrong answer
+        Now supports per-question negative marking with difficulty-based defaults
         """
         if self.negative_marking_type == 'fixed_per_question':
             return self.negative_marking_value
         elif self.negative_marking_type == 'percentage_of_marks':
             return (question_marks * self.negative_marking_value) / 100
+        elif self.negative_marking_type == 'per_question':
+            # If per-question negative marking is enabled, use question's own negative_marks
+            # This will be handled in Question.get_effective_negative_marks()
+            return None
         return 0
 
-    def get_negative_marking_description(self):
-        """Detailed negative marking description"""
-        if not self.has_negative_marking:
-            return "No negative marking for this test"
-        if self.negative_marking_type == 'fixed_per_question':
-            return f"{self.negative_marking_value} marks deducted per wrong answer"
-        else:
-            return f"{self.negative_marking_value}% of question marks deducted per wrong answer"
+    def update_totals(self):
+        """Auto-update total_questions and total_marks based on questions"""
+        self.total_questions = self.questions.count()
+        self.total_marks = sum(q.marks for q in self.questions.all())
+        super().save(update_fields=['total_questions', 'total_marks'])
 
-    def update_total_marks(self):
-        """Auto-update total_marks based on questions"""
-        total = sum(q.marks for q in self.questions.all())
-        self.total_marks = total
-        super().save(update_fields=['total_marks'])
 
 # ============================================
-# SUBJECT MODEL - For organizing questions by subject
+# SUBJECT MODEL
 # ============================================
 
 class Subject(models.Model):
-    """
-    Subject areas within a mock test (e.g., 'Mathematics', 'English' under a test)
-    Each subject covers a range of question numbers
-    """
     mock_test = models.ForeignKey(
         MockTest,
         on_delete=models.CASCADE,
@@ -200,20 +187,23 @@ class Subject(models.Model):
 
 
 # ============================================
-# QUESTION MODEL - Individual questions with bilingual support
+# QUESTION MODEL
 # ============================================
 
 class Question(models.Model):
-    """
-    Individual question model with bilingual (English/Hindi) support
-    Can override test's negative marking settings if needed
-    """
     
     DIFFICULTY_CHOICES = [
         ('Easy', 'Easy'),
         ('Medium', 'Medium'),
         ('Hard', 'Hard'),
     ]
+    
+    # Default negative marks by difficulty
+    DIFFICULTY_NEGATIVE_MARKS = {
+        'Easy': 0.25,
+        'Medium': 0.33,
+        'Hard': 0.50,
+    }
     
     # Relationships
     mock_test = models.ForeignKey(
@@ -238,13 +228,19 @@ class Question(models.Model):
     # Scoring Configuration
     marks = models.FloatField(default=1, help_text="Marks for this question")
     
-    # OPTIONAL: Override test's negative marking for this specific question
+    # Negative marking per question
     # If null/blank, uses test's negative marking settings
+    # If test has per_question marking, this value will be used
     negative_marks = models.FloatField(
-        default=0.25, 
         null=True, 
         blank=True,
-        help_text="Override test's negative marking for this question. Leave blank to use test default."
+        help_text="Negative marks for this question. If blank, uses difficulty-based default or test default."
+    )
+    
+    # Override test's negative marking for this specific question
+    override_test_negative = models.BooleanField(
+        default=False,
+        help_text="Check to use this question's negative marks instead of test defaults"
     )
     
     # Question Metadata
@@ -262,7 +258,6 @@ class Question(models.Model):
         help_text="e.g., Algebra, Grammar, Modern History"
     )
     
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -272,61 +267,48 @@ class Question(models.Model):
     class Meta:
         ordering = ['order', 'id']
     
-    # ========== METHODS ==========
-    
     def get_effective_negative_marks(self):
         """
-        Get the effective negative marks for this question:
-        - If question has custom negative_marks set, use that
-        - Otherwise use test's negative marking configuration
-        Returns:
-            float: Negative marks to deduct for wrong answer
+        Get the effective negative marks for this question based on priority:
+        1. If override_test_negative is True and negative_marks is set, use that
+        2. If test has per_question marking, use difficulty-based default
+        3. Otherwise use test's negative marking configuration
         """
-        # If question has its own negative marks set, use that
-        if self.negative_marks is not None and self.negative_marks > 0:
+        # Check if question overrides test negative marking
+        if self.override_test_negative and self.negative_marks is not None:
             return self.negative_marks
         
+        # Check if test uses per-question marking
+        if self.mock_test.negative_marking_type == 'per_question':
+            # Use difficulty-based default
+            return self.DIFFICULTY_NEGATIVE_MARKS.get(self.difficulty, 0.25)
+        
         # Otherwise use test's negative marking
-        return self.mock_test.calculate_negative_marks(self.marks)
-    
-    def has_custom_negative_marks(self):
-        """Check if this question overrides test's negative marking"""
-        return self.negative_marks is not None and self.negative_marks > 0
-    
-    def get_negative_marks_display(self):
-        """Get user-friendly negative marks description for this question"""
-        if self.has_custom_negative_marks():
-            return f"{self.negative_marks} marks (custom for this question)"
-        return self.mock_test.get_negative_marking_description()
+        test_negative = self.mock_test.calculate_negative_marks(self.marks, self.difficulty)
+        return test_negative if test_negative is not None else 0
     
     def get_question_text(self, language='en'):
-        """Get question text in specified language"""
         if language == 'hi' and self.question_hi:
             return self.question_hi
         return self.question_en
     
     def get_explanation_text(self, language='en'):
-        """Get explanation text in specified language"""
         if language == 'hi' and self.explanation_hi:
             return self.explanation_hi
         return self.explanation or "No explanation available"
 
 
 # ============================================
-# OPTION MODEL - Answer options for questions
+# OPTION MODEL
 # ============================================
 
 class Option(models.Model):
-    """
-    Answer options for questions with bilingual support
-    """
     question = models.ForeignKey(
         Question,
         on_delete=models.CASCADE,
         related_name="options"
     )
 
-    # Option Text (Bilingual)
     text_en = models.CharField(max_length=255, verbose_name="Option (English)")
     text_hi = models.CharField(max_length=255, blank=True, null=True, verbose_name="Option (Hindi)")
 
@@ -340,28 +322,22 @@ class Option(models.Model):
         ordering = ['order']
     
     def get_text(self, language='en'):
-        """Get option text in specified language"""
         if language == 'hi' and self.text_hi:
             return self.text_hi
         return self.text_en
 
 
 # ============================================
-# MOCK TEST ATTEMPT - User's test attempt with scoring
+# MOCK TEST ATTEMPT
 # ============================================
 
 class MockTestAttempt(models.Model):
-    """
-    Records a user's attempt at a mock test
-    Includes scoring, timing, and data retention features
-    """
     
     LANGUAGE_CHOICES = [
         ('en', 'English'),
         ('hi', 'हिन्दी (Hindi)'),
     ]
     
-    # Relationships
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -374,7 +350,6 @@ class MockTestAttempt(models.Model):
         related_name="attempts"
     )
 
-    # Attempt Configuration
     language = models.CharField(
         max_length=10,
         choices=LANGUAGE_CHOICES,
@@ -383,74 +358,66 @@ class MockTestAttempt(models.Model):
     )
 
     # Scoring Results
-    score = models.FloatField(default=0)
+    raw_score = models.FloatField(default=0, help_text="Score without negative marking")
+    score_with_negative = models.FloatField(default=0, help_text="Score with negative marking applied")
     total_marks = models.FloatField(default=0)
     correct_answers = models.PositiveIntegerField(default=0)
     wrong_answers = models.PositiveIntegerField(default=0)
     skipped_answers = models.PositiveIntegerField(default=0)
+    
+    # Additional stats
+    negative_marks_applied = models.FloatField(default=0, help_text="Total negative marks deducted")
 
     # Timing
     started_at = models.DateTimeField(auto_now_add=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
     is_completed = models.BooleanField(default=False)
     
-    # Data Retention Fields (for auto-deletion of old attempts)
-    is_archived = models.BooleanField(
-        default=False, 
-        help_text="Detailed answers archived, only summary kept for rankings"
-    )
-    permanently_deleted = models.BooleanField(
-        default=False,
-        help_text="Attempt permanently deleted from database"
-    )
+    # Data Retention
+    is_archived = models.BooleanField(default=False)
+    permanently_deleted = models.BooleanField(default=False)
     archived_at = models.DateTimeField(null=True, blank=True)
-    
-    # Premium User Flag (for extended data retention)
-    is_paid_user = models.BooleanField(
-        default=False,
-        help_text="Whether this attempt belongs to a paid user"
-    )
-    
-    # For tracking deletion
-    details_deleted_at = models.DateTimeField(
-        null=True, 
-        blank=True,
-        help_text="When detailed answers were deleted"
-    )
-    
-    # Summary-only flag - keep this for ranking data
-    has_detailed_data = models.BooleanField(
-        default=True,
-        help_text="Whether detailed answers still exist"
-    )
+    is_paid_user = models.BooleanField(default=False)
+    details_deleted_at = models.DateTimeField(null=True, blank=True)
+    has_detailed_data = models.BooleanField(default=True)
     
     class Meta:
         ordering = ["-started_at"]
-        verbose_name = "Mock Test Attempt"
-        verbose_name_plural = "Mock Test Attempts"
         indexes = [
             models.Index(fields=['user', 'mock_test', 'is_completed']),
             models.Index(fields=['started_at']),
             models.Index(fields=['submitted_at']),
-            models.Index(fields=['is_archived']),
-            models.Index(fields=['is_paid_user', 'submitted_at', 'has_detailed_data']),
         ]
 
     def __str__(self):
-        return f"{self.user.username} - {self.mock_test.title} - {self.get_language_display()}"
+        return f"{self.user.username} - {self.mock_test.title}"
 
-    # ========== PROPERTIES ==========
-    
     @property
-    def percentage(self):
-        """Calculate percentage score"""
+    def percentage_with_negative(self):
+        """Calculate percentage score with negative marking"""
         if not self.total_marks or self.total_marks == 0:
             return 0
-        return round((self.score / self.total_marks) * 100, 2)
+        return round((self.score_with_negative / self.total_marks) * 100, 2)
+    
+    @property
+    def percentage_raw(self):
+        """Calculate raw percentage (without negative)"""
+        if not self.total_marks or self.total_marks == 0:
+            return 0
+        return round((self.raw_score / self.total_marks) * 100, 2)
+    
+    @property
+    def accuracy_with_negative(self):
+        """
+        Calculate accuracy considering negative marking
+        Accuracy = (Score with negative / Total possible marks) * 100
+        """
+        if not self.total_marks or self.total_marks == 0:
+            return 0
+        return self.percentage_with_negative
     
     @property
     def time_taken(self):
-        """Calculate time taken to complete the test"""
         if self.submitted_at:
             delta = self.submitted_at - self.started_at
             total_seconds = int(delta.total_seconds())
@@ -462,117 +429,53 @@ class MockTestAttempt(models.Model):
             return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
         return None
     
-    @property
-    def time_remaining(self):
-        """Calculate time remaining for ongoing attempt"""
-        if self.is_completed or self.submitted_at:
-            return 0
-        duration = self.mock_test.duration
-        end_time = self.started_at + timedelta(minutes=duration)
-        remaining = (end_time - timezone.now()).total_seconds()
-        return max(0, int(remaining))
-    
-    # ========== SCORING METHODS ==========
-    
-    def calculate_score(self):
+    def calculate_scores(self):
         """
-        Calculate and update the score for this attempt
-        Uses question-level negative marks (which may override test defaults)
+        Calculate all scores for this attempt
+        Formula: Score = sum(correct * marks) - sum(wrong * negative_marks)
         """
-        # Count answers by type
-        correct = self.answers.filter(is_correct=True).count()
-        wrong = self.answers.filter(is_correct=False, selected_option__isnull=False).count()
-        skipped = self.answers.filter(selected_option__isnull=True).count()
+        correct_count = 0
+        wrong_count = 0
+        skipped_count = 0
+        raw_total = 0
+        score_with_negative = 0
+        total_negative_applied = 0
         
-        self.correct_answers = correct
-        self.wrong_answers = wrong
-        self.skipped_answers = skipped
-        
-        # Calculate total score with proper negative marking
-        total_score = 0
-        for answer in self.answers.filter(selected_option__isnull=False):
-            if answer.is_correct:
-                total_score += answer.question.marks
+        for answer in self.answers.all():
+            question = answer.question
+            
+            if not answer.selected_option:
+                skipped_count += 1
+                continue
+            
+            if answer.selected_option.is_correct:
+                correct_count += 1
+                raw_total += question.marks
+                score_with_negative += question.marks
             else:
-                # Use question's effective negative marks (which may override test default)
-                total_score -= answer.question.get_effective_negative_marks()
+                wrong_count += 1
+                negative = question.get_effective_negative_marks()
+                total_negative_applied += negative
+                score_with_negative -= negative
         
-        # Ensure score doesn't go below 0 (optional - remove if you want negative scores)
-        self.score = max(0, total_score)
-        
-        # Calculate total possible marks
+        self.correct_answers = correct_count
+        self.wrong_answers = wrong_count
+        self.skipped_answers = skipped_count
+        self.raw_score = raw_total
+        self.score_with_negative = max(0, score_with_negative)  # Ensure non-negative
+        self.negative_marks_applied = total_negative_applied
         self.total_marks = sum(q.marks for q in self.mock_test.questions.all())
         
         self.save()
-        return self.score
-    
-    # ========== BILINGUAL SUPPORT METHODS ==========
-    
-    def get_question_text(self, question):
-        """Get question text in the attempt's language"""
-        return question.get_question_text(self.language)
-    
-    def get_option_text(self, option):
-        """Get option text in the attempt's language"""
-        return option.get_text(self.language)
-    
-    def get_explanation_text(self, question):
-        """Get explanation text in the attempt's language"""
-        return question.get_explanation_text(self.language)
-    
-    # ========== DATA RETENTION METHODS ==========
-    
-    def should_archive(self):
-        """Check if attempt should be archived (keep only summary, delete details)"""
-        if self.submitted_at and not self.is_archived:
-            days_old = (timezone.now() - self.submitted_at).days
-            return days_old >= 7  # Archive after 7 days
-        return False
-    
-    def should_permanently_delete(self):
-        """Check if attempt should be permanently deleted"""
-        if self.submitted_at and not self.permanently_deleted:
-            days_old = (timezone.now() - self.submitted_at).days
-            return days_old >= 30  # Delete after 30 days
-        return False
-    
-    def should_delete_details(self):
-        """Check if detailed answers should be deleted (free users only)"""
-        if self.has_detailed_data and self.submitted_at:
-            days_old = (timezone.now() - self.submitted_at).days
-            # Delete after 7 days for free users
-            return not self.is_paid_user and days_old >= 7
-        return False
-    
-    def archive_details(self):
-        """Archive this attempt by deleting detailed answers but keeping summary"""
-        if self.is_archived:
-            return 0
-        
-        # Delete all associated UserAnswer records
-        answer_count = self.answers.count()
-        self.answers.all().delete()
-        
-        self.is_archived = True
-        self.has_detailed_data = False
-        self.archived_at = timezone.now()
-        self.details_deleted_at = timezone.now()
-        self.save()
-        
-        return answer_count
+        return self.score_with_negative
 
 
 # ============================================
-# USER ANSWER MODEL - Individual question responses
+# USER ANSWER MODEL
 # ============================================
 
 class UserAnswer(models.Model):
-    """
-    Records user's answer to a specific question in an attempt
-    Includes time tracking and bilingual text access
-    """
     
-    # Relationships
     attempt = models.ForeignKey(
         MockTestAttempt,
         related_name="answers",
@@ -591,24 +494,14 @@ class UserAnswer(models.Model):
         related_name="user_answers"
     )
     
-    # Answer Status
     is_correct = models.BooleanField(default=False)
-    time_taken = models.IntegerField(
-        null=True, 
-        blank=True,
-        help_text="Time taken in seconds"
-    )
+    time_taken = models.IntegerField(null=True, blank=True)
     
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['created_at']
-        indexes = [
-            models.Index(fields=['attempt', 'question']),
-            models.Index(fields=['is_correct']),
-        ]
         unique_together = ['attempt', 'question']
 
     def __str__(self):
@@ -616,131 +509,83 @@ class UserAnswer(models.Model):
         return f"{self.attempt.user.username} - Q{self.question.id} {status}"
     
     def save(self, *args, **kwargs):
-        """Auto-set is_correct based on selected option"""
         if self.selected_option and not self.is_correct:
             self.is_correct = self.selected_option.is_correct
         super().save(*args, **kwargs)
-    
-    # ========== PROPERTIES ==========
     
     @property
     def marks_obtained(self):
         """Calculate marks obtained for this answer (with negative marking)"""
         if not self.selected_option:
-            return 0  # Skipped question
+            return 0
         if self.is_correct:
             return self.question.marks
         else:
-            # Use question's effective negative marks
             return -self.question.get_effective_negative_marks()
     
     @property
-    def time_spent_formatted(self):
-        """Format time taken as MM:SS"""
-        if not self.time_taken:
-            return "--:--"
-        minutes = self.time_taken // 60
-        seconds = self.time_taken % 60
-        return f"{minutes}:{seconds:02d}"
-    
-    # ========== BILINGUAL TEXT PROPERTIES ==========
-    
-    @property
-    def question_text(self):
-        """Get question text in the attempt's language"""
-        return self.attempt.get_question_text(self.question)
-    
-    @property
-    def selected_option_text(self):
-        """Get selected option text in the attempt's language"""
-        if self.selected_option:
-            return self.attempt.get_option_text(self.selected_option)
-        return "Not Answered"
-    
-    @property
-    def correct_option_text(self):
-        """Get correct option text in the attempt's language"""
-        correct_option = self.question.options.filter(is_correct=True).first()
-        if correct_option:
-            return self.attempt.get_option_text(correct_option)
-        return "No correct option found"
-    
-    @property
-    def explanation_text(self):
-        """Get explanation text in the attempt's language"""
-        if self.question:
-            return self.attempt.get_explanation_text(self.question)
-        return "No explanation available"
+    def negative_marks(self):
+        """Get negative marks for this answer if wrong"""
+        if self.selected_option and not self.is_correct:
+            return self.question.get_effective_negative_marks()
+        return 0
 
 
 # ============================================
-# TESTIMONIAL MODEL - User feedback and reviews
+# TESTIMONIAL MODEL
 # ============================================
 
 class Testimonial(models.Model):
-    """
-    User testimonials and reviews displayed on the website
-    Admin-controlled visibility and featured status
-    """
     
-    # Relationships
     user = models.ForeignKey(
         'auth.User', 
         on_delete=models.CASCADE,
         related_name='testimonials'
     )
     
-    # Content
-    text = models.TextField(
-        max_length=500,
-        help_text="Share your experience with our platform"
-    )
+    text = models.TextField(max_length=500)
     stars = models.IntegerField(
         default=5,
         choices=[(i, f'{i} Star{"s" if i > 1 else ""}') for i in range(1, 6)]
     )
-    achievement = models.CharField(
-        max_length=200, 
-        blank=True,
-        help_text="e.g., 'Selected in UPSC 2023', 'Scored 95% in JEE'"
-    )
+    achievement = models.CharField(max_length=200, blank=True)
     
-    # Admin Control
-    is_featured = models.BooleanField(
-        default=False,
-        help_text="Show this testimonial as featured"
-    )
-    is_active = models.BooleanField(
-        default=False,
-        help_text="Only active testimonials will be displayed"
-    )
-    display_order = models.IntegerField(
-        default=0,
-        help_text="Lower numbers appear first"
-    )
+    is_featured = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+    display_order = models.IntegerField(default=0)
     
-    # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         ordering = ['display_order', '-is_featured', '-created_at']
-        verbose_name = "Testimonial"
-        verbose_name_plural = "Testimonials"
     
     def __str__(self):
         return f"{self.user.username} - {self.stars} Stars"
     
     def user_name(self):
-        """Get user's full name or username for display"""
         if self.user.get_full_name():
             return self.user.get_full_name()
         return self.user.username
+
+
+# Add this to your exams/models.py
+
+class FAQ(models.Model):
+    """Frequently Asked Questions model"""
+    question = models.CharField(max_length=500)
+    answer = models.TextField()
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    category = models.CharField(max_length=100, blank=True, null=True, 
+                                help_text="e.g., General, Account, Test Related")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
-    def user_initials(self):
-        """Get user initials for avatar display"""
-        name = self.user_name()
-        if ' ' in name:
-            parts = name.split()
-            return f"{parts[0][0]}{parts[1][0]}".upper()
-        return name[:2].upper()
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = "FAQ"
+        verbose_name_plural = "FAQs"
+    
+    def __str__(self):
+        return self.question[:50]        

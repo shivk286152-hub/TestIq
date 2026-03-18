@@ -1,0 +1,615 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Subject Wise Mock Tests | TestIQ{% endblock %}
+
+{% block content %}
+<!-- Animated Background -->
+<div class="fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute inset-0 bg-[#0A0F1E]"></div>
+    <!-- Animated grid lines -->
+    <div class="absolute inset-0 opacity-20" 
+         style="background-image: linear-gradient(#1E293B 1px, transparent 1px), linear-gradient(90deg, #1E293B 1px, transparent 1px);
+                background-size: 50px 50px;">
+    </div>
+    <!-- Animated gradient orbs -->
+    <div class="absolute top-0 -left-20 w-[500px] h-[500px] bg-blue-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+    <div class="absolute top-0 -right-20 w-[500px] h-[500px] bg-purple-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+    <div class="absolute -bottom-40 left-20 w-[500px] h-[500px] bg-indigo-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+</div>
+
+<!-- Hero Section with Glassmorphism -->
+<div class="relative overflow-hidden bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#020617] border-b border-gray-800">
+    <!-- Animated particles -->
+    <div class="absolute inset-0 opacity-30">
+        <div class="absolute top-1/4 left-1/4 w-1 h-1 bg-blue-400/50 rounded-full animate-ping"></div>
+        <div class="absolute top-3/4 right-1/4 w-1.5 h-1.5 bg-purple-400/50 rounded-full animate-ping animation-delay-1000"></div>
+        <div class="absolute bottom-1/4 right-1/3 w-1 h-1 bg-indigo-400/50 rounded-full animate-ping animation-delay-2000"></div>
+    </div>
+    
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <!-- Badge -->
+        <div class="flex justify-center mb-4">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-medium text-blue-400">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                </svg>
+                Practice Anywhere, Anytime
+            </span>
+        </div>
+        
+        <!-- Main Heading - Smaller -->
+        <div class="text-center max-w-3xl mx-auto">
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 pb-1">
+                Subject Wise Mock Tests
+            </h1>
+            <p class="mt-3 text-base text-gray-400 max-w-2xl mx-auto">
+                Master your competitive exams with comprehensive practice tests.
+            </p>
+        </div>
+        
+        <!-- Stats with Glass Effect - Smaller -->
+        <div class="mt-6 flex flex-wrap justify-center gap-3">
+            <!-- Subjects Count -->
+            <div class="group relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <div class="relative px-4 py-2 bg-gray-900/90 backdrop-blur-xl rounded-xl border border-gray-800 flex items-center gap-2">
+                    <div class="p-1.5 bg-blue-500/20 rounded-lg">
+                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-lg font-bold text-white">{{ subjects.count }}</span>
+                        <span class="text-xs text-gray-400 ml-1">Subjects</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tests Count -->
+            <div class="group relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <div class="relative px-4 py-2 bg-gray-900/90 backdrop-blur-xl rounded-xl border border-gray-800 flex items-center gap-2">
+                    <div class="p-1.5 bg-purple-500/20 rounded-lg">
+                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-lg font-bold text-white">{{ total_tests|default:"0" }}</span>
+                        <span class="text-xs text-gray-400 ml-1">Tests</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Free Access -->
+            <div class="group relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-amber-600 to-orange-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <div class="relative px-4 py-2 bg-gray-900/90 backdrop-blur-xl rounded-xl border border-gray-800 flex items-center gap-2">
+                    <div class="p-1.5 bg-amber-500/20 rounded-lg">
+                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-xs font-medium text-white">Free Access</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Wave -->
+    <div class="absolute bottom-0 left-0 right-0">
+        <svg class="w-full h-6 text-[#0A0F1E] fill-current" viewBox="0 0 1440 48" preserveAspectRatio="none">
+            <path d="M0 48h1440V0C1200 32 960 48 720 48S240 32 0 0v48z"></path>
+        </svg>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Best Subject Highlight Section - COMPACT -->
+    {% if best_subject %}
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="text-lg font-bold text-white flex items-center gap-1">
+                <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+                Featured Subject
+            </h2>
+            <a href="{% url 'subject_mocktests:subject_detail' best_subject.slug %}" class="text-xs text-blue-400 hover:text-blue-300">
+                View All →
+            </a>
+        </div>
+        
+        <!-- Compact Featured Card -->
+        <div class="group relative">
+            <div class="absolute -inset-0.5 bg-gradient-to-r from-yellow-600 to-orange-500 rounded-xl blur opacity-50 group-hover:opacity-75 transition-opacity"></div>
+            <div class="relative bg-gradient-to-r from-gray-900 to-gray-950 rounded-xl border border-gray-800 p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                            <span class="text-lg font-bold text-yellow-400">{{ best_subject.name|slice:":2"|upper }}</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-white">{{ best_subject.name }}</h3>
+                            <p class="text-xs text-gray-400">{{ best_subject.test_count }} tests available</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'subject_mocktests:subject_detail' best_subject.slug %}" 
+                       class="text-xs bg-gradient-to-r from-yellow-600 to-orange-600 text-white px-3 py-1.5 rounded-lg hover:from-yellow-700 hover:to-orange-700 transition-colors">
+                        Explore
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Section Header with Search - COMPACT -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+        <div>
+            <h2 class="text-xl font-bold text-white">Browse Subjects</h2>
+        </div>
+        
+        <!-- Search with Clear Button -->
+        <div class="relative w-full sm:w-64">
+            <input type="text" 
+                   id="subjectSearch"
+                   placeholder="Search subjects..." 
+                   class="w-full px-3 py-2 pl-8 pr-8 bg-gray-900/90 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+            <svg class="absolute left-2.5 top-2.5 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <button id="clearSearch" class="absolute right-2 top-2.5 text-gray-500 hover:text-gray-300 hidden">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Tabs - HOW TO CONTROL FROM VIEW -->
+    <!-- 
+        HOW TO USE:
+        In your view, pass a categories_context dictionary like this:
+        
+        categories_context = {
+            'show_popular': True,  # Set to False to hide Popular tab
+            'show_new': True,       # Set to False to hide New tab
+            'show_beginner': True,  # Set to False to hide Beginner tab
+            'show_advanced': True,  # Set to False to hide Advanced tab
+            'custom_categories': [  # Add custom categories
+                {'id': 'science', 'name': '🔬 Science', 'filter': 'science'},
+                {'id': 'math', 'name': '📐 Mathematics', 'filter': 'math'},
+            ]
+        }
+    -->
+    <div class="mb-4 overflow-x-auto pb-1 scrollbar-hide" id="categoryTabs">
+        <div class="flex gap-1.5 min-w-max">
+            <button class="filter-btn active px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium transition-all" data-filter="all">
+                All
+            </button>
+            
+            {% if categories_context.show_popular|default:True %}
+            <button class="filter-btn px-3 py-1.5 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-xs font-medium transition-all" data-filter="popular">
+                🔥 Popular
+            </button>
+            {% endif %}
+            
+            {% if categories_context.show_new|default:True %}
+            <button class="filter-btn px-3 py-1.5 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-xs font-medium transition-all" data-filter="new">
+                ✨ New
+            </button>
+            {% endif %}
+            
+            {% if categories_context.show_beginner|default:True %}
+            <button class="filter-btn px-3 py-1.5 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-xs font-medium transition-all" data-filter="beginner">
+                📘 Beginner
+            </button>
+            {% endif %}
+            
+            {% if categories_context.show_advanced|default:True %}
+            <button class="filter-btn px-3 py-1.5 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-xs font-medium transition-all" data-filter="advanced">
+                🎯 Advanced
+            </button>
+            {% endif %}
+            
+            <!-- Custom Categories from View -->
+            {% for category in categories_context.custom_categories|default:'' %}
+            <button class="filter-btn px-3 py-1.5 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-xs font-medium transition-all" data-filter="{{ category.filter }}">
+                {{ category.name }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Subjects Count -->
+    <div class="mb-3">
+        <p class="text-xs text-gray-400"><span id="subjectCount">{{ subjects.count }}</span> subjects found</p>
+    </div>
+
+    <!-- Subjects Grid - COMPACT CARDS -->
+    <div id="subjectsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {% for subject in subjects %}
+        <!-- Subject Card - COMPACT VERSION -->
+        <div class="subject-card group relative" 
+             data-name="{{ subject.name|lower }}"
+             data-description="{{ subject.description|default:''|lower }}"
+             data-popular="{% if subject.test_count > 10 %}true{% else %}false{% endif %}"
+             data-new="{% if subject.is_new %}true{% else %}false{% endif %}"
+             data-beginner="{% if subject.difficulty == 'Easy' %}true{% else %}false{% endif %}"
+             data-advanced="{% if subject.difficulty == 'Hard' or subject.difficulty == 'Expert' %}true{% else %}false{% endif %}"
+             data-custom="{% if subject.category %}{{ subject.category }}{% endif %}">
+            
+            <!-- Card Glow Effect -->
+            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-0 group-hover:opacity-20 transition-all duration-300"></div>
+            
+            <!-- Main Card -->
+            <div class="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl border border-gray-800/50 overflow-hidden hover:border-gray-700 transition-all p-3">
+                <!-- Popular Badge -->
+                {% if subject.test_count > 10 %}
+                <div class="absolute top-2 right-2">
+                    <span class="px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded-full text-[10px] font-medium">🔥</span>
+                </div>
+                {% endif %}
+                
+                <div class="flex items-start gap-3">
+                    <!-- Subject Icon - Smaller -->
+                    <div class="relative flex-shrink-0">
+                        <div class="absolute inset-0 bg-gradient-to-r 
+                            {% if forloop.counter0|divisibleby:6 %}from-blue-600 to-cyan-600
+                            {% elif forloop.counter0|divisibleby:5 %}from-purple-600 to-pink-600
+                            {% elif forloop.counter0|divisibleby:4 %}from-emerald-600 to-teal-600
+                            {% elif forloop.counter0|divisibleby:3 %}from-amber-600 to-orange-600
+                            {% elif forloop.counter0|divisibleby:2 %}from-rose-600 to-red-600
+                            {% else %}from-indigo-600 to-blue-600{% endif %} rounded-lg blur opacity-50">
+                        </div>
+                        <div class="relative w-10 h-10 bg-gradient-to-br 
+                            {% if forloop.counter0|divisibleby:6 %}from-blue-500 to-cyan-500
+                            {% elif forloop.counter0|divisibleby:5 %}from-purple-500 to-pink-500
+                            {% elif forloop.counter0|divisibleby:4 %}from-emerald-500 to-teal-500
+                            {% elif forloop.counter0|divisibleby:3 %}from-amber-500 to-orange-500
+                            {% elif forloop.counter0|divisibleby:2 %}from-rose-500 to-red-500
+                            {% else %}from-indigo-500 to-blue-500{% endif %} rounded-lg flex items-center justify-center shadow-md">
+                            <span class="text-sm font-bold text-white">
+                                {{ subject.name|slice:":2"|upper }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Subject Info - Compact -->
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-sm font-semibold text-white truncate">{{ subject.name }}</h3>
+                        <p class="text-xs text-gray-400 truncate">{{ subject.test_count }} tests • 30-60 min</p>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons - Compact -->
+                <div class="mt-3 flex gap-2">
+                    <a href="{% url 'subject_mocktests:subject_detail' subject.slug %}" 
+                       class="flex-1 text-center text-xs bg-gradient-to-r 
+                              {% if forloop.counter0|divisibleby:6 %}from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700
+                              {% elif forloop.counter0|divisibleby:5 %}from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700
+                              {% elif forloop.counter0|divisibleby:4 %}from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700
+                              {% elif forloop.counter0|divisibleby:3 %}from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700
+                              {% elif forloop.counter0|divisibleby:2 %}from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700
+                              {% else %}from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700{% endif %} 
+                              text-white py-1.5 px-2 rounded-lg transition-colors">
+                        Practice
+                    </a>
+                    
+                    <button onclick="toggleBookmark({{ subject.id }})" 
+                            class="p-1.5 bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 rounded-lg text-gray-400 hover:text-yellow-400 transition-colors">
+                        <svg class="w-4 h-4 bookmark-{{ subject.id }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <!-- Empty State - Compact -->
+        <div class="col-span-full text-center py-10">
+            <div class="relative w-16 h-16 mx-auto mb-3">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl animate-pulse"></div>
+                <div class="absolute inset-1 bg-gray-900 rounded-xl flex items-center justify-center">
+                    <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-sm text-gray-400">No subjects available yet</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Features Section - Compact -->
+    <div class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl border border-gray-800 p-3">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <span class="text-xs text-gray-300">Performance Analytics</span>
+            </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl border border-gray-800 p-3">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <span class="text-xs text-gray-300">Timed Practice</span>
+            </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl border border-gray-800 p-3">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <span class="text-xs text-gray-300">Detailed Solutions</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Buttons -->
+<div class="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
+    <!-- Scroll to Top - FIXED -->
+    <button id="scrollToTopBtn" 
+            class="group relative p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-110">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-50 group-hover:opacity-75 transition-opacity"></div>
+        <svg class="relative w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+        </svg>
+    </button>
+    
+    <!-- Quick Help -->
+    <button onclick="openHelp()" 
+            class="group relative p-3 bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-110 border border-gray-700">
+        <div class="absolute inset-0 bg-gray-700 rounded-lg blur opacity-0 group-hover:opacity-50 transition-opacity"></div>
+        <svg class="relative w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+    </button>
+</div>
+
+<!-- Custom Animations -->
+<style>
+    @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+    
+    /* Hide scrollbar for category tabs */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    
+    /* Filter button active state */
+    .filter-btn.active {
+        background-color: #2563eb;
+        color: white;
+    }
+</style>
+
+<!-- JavaScript for Interactions -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ===== SCROLL TO TOP BUTTON - FIXED =====
+        const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+        
+        if (scrollToTopBtn) {
+            scrollToTopBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        }
+        
+        // Show/hide scroll to top button based on scroll position
+        window.addEventListener('scroll', function() {
+            if (scrollToTopBtn) {
+                if (window.scrollY > 300) {
+                    scrollToTopBtn.style.opacity = '1';
+                    scrollToTopBtn.style.transform = 'scale(1)';
+                } else {
+                    scrollToTopBtn.style.opacity = '0.5';
+                    scrollToTopBtn.style.transform = 'scale(0.9)';
+                }
+            }
+        });
+        
+        // ===== SEARCH FUNCTIONALITY =====
+        const searchInput = document.getElementById('subjectSearch');
+        const clearBtn = document.getElementById('clearSearch');
+        const subjectCards = document.querySelectorAll('.subject-card');
+        const subjectCountSpan = document.getElementById('subjectCount');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                
+                // Show/hide clear button
+                if (searchTerm.length > 0) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                }
+                
+                let visibleCount = 0;
+                
+                subjectCards.forEach(card => {
+                    const name = card.dataset.name || '';
+                    const description = card.dataset.description || '';
+                    
+                    if (name.includes(searchTerm) || description.includes(searchTerm)) {
+                        card.style.display = '';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Update count
+                if (subjectCountSpan) {
+                    subjectCountSpan.textContent = visibleCount;
+                }
+                
+                // Show "no results" message if needed
+                const container = document.getElementById('subjectsContainer');
+                let noResultsMsg = document.getElementById('noSearchResults');
+                
+                if (visibleCount === 0 && subjectCards.length > 0) {
+                    if (!noResultsMsg) {
+                        noResultsMsg = document.createElement('div');
+                        noResultsMsg.id = 'noSearchResults';
+                        noResultsMsg.className = 'col-span-full text-center py-8';
+                        noResultsMsg.innerHTML = `
+                            <div class="text-gray-400">
+                                <svg class="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <p class="text-sm">No subjects found</p>
+                                <button onclick="document.getElementById('clearSearch').click()" class="mt-2 text-xs text-blue-400 hover:text-blue-300">
+                                    Clear search
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(noResultsMsg);
+                    }
+                } else if (noResultsMsg) {
+                    noResultsMsg.remove();
+                }
+            });
+            
+            // Clear search
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function() {
+                    searchInput.value = '';
+                    searchInput.dispatchEvent(new Event('input'));
+                    searchInput.focus();
+                });
+            }
+        }
+        
+        // ===== FILTER TABS =====
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active state
+                filterBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.dataset.filter;
+                
+                subjectCards.forEach(card => {
+                    if (filter === 'all') {
+                        card.style.display = '';
+                    } else if (filter === 'popular') {
+                        card.style.display = card.dataset.popular === 'true' ? '' : 'none';
+                    } else if (filter === 'new') {
+                        card.style.display = card.dataset.new === 'true' ? '' : 'none';
+                    } else if (filter === 'beginner') {
+                        card.style.display = card.dataset.beginner === 'true' ? '' : 'none';
+                    } else if (filter === 'advanced') {
+                        card.style.display = card.dataset.advanced === 'true' ? '' : 'none';
+                    } else {
+                        // Custom filter
+                        card.style.display = card.dataset.custom === filter ? '' : 'none';
+                    }
+                });
+                
+                // Update visible count
+                const visibleCount = Array.from(subjectCards).filter(card => card.style.display !== 'none').length;
+                if (subjectCountSpan) {
+                    subjectCountSpan.textContent = visibleCount;
+                }
+                
+                // Clear search input when filtering
+                if (searchInput) {
+                    searchInput.value = '';
+                    clearBtn.classList.add('hidden');
+                }
+            });
+        });
+    });
+    
+    // Bookmark function
+    function toggleBookmark(subjectId) {
+        const bookmarkIcon = document.querySelector(`.bookmark-${subjectId}`);
+        if (bookmarkIcon.getAttribute('fill') === 'none') {
+            bookmarkIcon.setAttribute('fill', 'currentColor');
+            showToast('Subject bookmarked!');
+        } else {
+            bookmarkIcon.setAttribute('fill', 'none');
+            showToast('Bookmark removed');
+        }
+    }
+    
+    // Toast notification
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-4 left-4 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl border border-gray-800 transform transition-all duration-500 z-50 text-sm';
+        toast.style.animation = 'slideIn 0.3s ease-out';
+        toast.innerHTML = message;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    // Help function
+    function openHelp() {
+        showToast('📞 support@testiq.com');
+    }
+    
+    // Add slide animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(-100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

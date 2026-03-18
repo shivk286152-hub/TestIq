@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if topic %}
+        {{ topic.name }} - Mock Tests
+    {% else %}
+        {{ subject.name }} - Mock Tests
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'subject_mocktests:subject_list' %}">Subjects</a></li>
+            {% if topic %}
+                <li class="breadcrumb-item"><a href="{% url 'subject_mocktests:subject_detail' subject.slug %}">{{ subject.name }}</a></li>
+                <li class="breadcrumb-item active">{{ topic.name }}</li>
+            {% else %}
+                <li class="breadcrumb-item active">{{ subject.name }}</li>
+            {% endif %}
+        </ol>
+    </nav>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>
+                {% if topic %}
+                    {{ topic.name }} - Mock Tests
+                {% else %}
+                    {{ subject.name }} - Mock Tests
+                {% endif %}
+            </h1>
+        </div>
+        <div class="col-md-4">
+            <form method="get" class="d-flex">
+                <select name="sort" class="form-select me-2" onchange="this.form.submit()">
+                    <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                    <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>Name A-Z</option>
+                    <option value="-total_questions" {% if request.GET.sort == '-total_questions' %}selected{% endif %}>Most Questions</option>
+                    <option value="duration" {% if request.GET.sort == 'duration' %}selected{% endif %}>Shortest Duration</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Difficulty</h6>
+                    <div class="list-group list-group-flush">
+                        <a href="?difficulty=" class="list-group-item list-group-item-action {% if not request.GET.difficulty %}active{% endif %}">
+                            All
+                        </a>
+                        {% for diff in difficulties %}
+                        <a href="?difficulty={{ diff }}" class="list-group-item list-group-item-action {% if request.GET.difficulty == diff %}active{% endif %}">
+                            {{ diff }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="row">
+                {% for test in tests %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">{{ test.title }}</h5>
+                                <span class="badge bg-{% if test.difficulty == 'Easy' %}success{% elif test.difficulty == 'Medium' %}warning{% else %}danger{% endif %}">
+                                    {{ test.difficulty }}
+                                </span>
+                            </div>
+                            
+                            <p class="card-text">{{ test.description|truncatechars:80 }}</p>
+                            
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">📝 Questions: {{ test.total_questions }}</small>
+                                    <small class="text-muted d-block">⏱️ Duration: {{ test.duration }} mins</small>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">⭐ Marks: {{ test.total_marks }}</small>
+                                    <small class="text-muted d-block">
+                                        {% if test.has_negative_marking %}
+                                            ⚠️ Negative
+                                        {% else %}
+                                            ✅ No Negative
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <a href="{% url 'subject_mocktests:pretest_detail' test.id %}" class="btn btn-outline-primary btn-sm mt-3 w-100">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No mock tests found matching your criteria.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if tests.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if tests.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ tests.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.difficulty %}&difficulty={{ request.GET.difficulty }}{% endif %}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in tests.paginator.page_range %}
+                        {% if tests.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > tests.number|add:'-3' and num < tests.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.difficulty %}&difficulty={{ request.GET.difficulty }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if tests.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ tests.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.difficulty %}&difficulty={{ request.GET.difficulty }}{% endif %}">
+                            Next
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

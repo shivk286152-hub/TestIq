@@ -1,0 +1,35 @@
+<div class="p-4">
+    <h3 class="text-lg font-bold mb-4">Debug Information</h3>
+    
+    <div class="mb-4 p-3 bg-gray-100 rounded">
+        <p><strong>Question ID:</strong> {{ question.id }}</p>
+        <p><strong>Question Text:</strong> {{ question.question_en }}</p>
+        <p><strong>Options Count:</strong> {{ question.options.count }}</p>
+    </div>
+    
+    {% if question.options.exists %}
+        <div class="space-y-2">
+            {% for option in question.options.all %}
+            <div class="p-3 border rounded {% if selected_option == option.id %}bg-green-100 border-green-500{% endif %}">
+                <input type="radio" 
+                       name="question_{{ question.id }}" 
+                       value="{{ option.id }}"
+                       id="opt_{{ option.id }}"
+                       {% if selected_option == option.id %}checked{% endif %}>
+                <label for="opt_{{ option.id }}" class="ml-2">
+                    {{ option.text_en }} 
+                    {% if option.is_correct %}(Correct){% endif %}
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="p-4 bg-red-100 text-red-700 rounded">
+            No options found for this question!
+        </div>
+    {% endif %}
+    
+    <div class="mt-4 text-xs text-gray-500">
+        <p>Session selected: {{ selected_option }}</p>
+    </div>
+</div>

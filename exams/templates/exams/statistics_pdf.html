@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ attempt.mock_test.title }} - Statistics Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+            @top-center {
+                content: "TestIQ Performance Report";
+                font-family: Arial, sans-serif;
+                font-size: 9pt;
+                color: #666;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-family: Arial, sans-serif;
+                font-size: 8pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .report-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4f46e5;
+        }
+        
+        .report-header h1 {
+            color: #4f46e5;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        
+        .report-header .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .test-info {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .test-info h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #111827;
+            font-size: 18px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .info-item {
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .score-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .score-card {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .score-card.raw {
+            background: #e0f2fe;
+            border: 1px solid #7dd3fc;
+        }
+        
+        .score-card.final {
+            background: #ede9fe;
+            border: 1px solid #c4b5fd;
+        }
+        
+        .score-card.negative {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+        }
+        
+        .score-label {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .score-detail {
+            font-size: 11px;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e5e7eb;
+            color: #111827;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+        
+        th {
+            background: #f3f4f6;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+        
+        td {
+            padding: 8px 10px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-green {
+            color: #059669;
+            font-weight: 600;
+        }
+        
+        .text-red {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        
+        .text-indigo {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        
+        .rank-card {
+            background: #4f46e5;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .rank-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+        
+        .rank-item .label {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+        
+        .rank-item .value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .insights-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .insights-list li {
+            padding: 8px 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+        
+        .footer-note {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10px;
+            color: #9ca3af;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 15px;
+        }
+        
+        .difficulty-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .difficulty-easy {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .difficulty-medium {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+        
+        .difficulty-hard {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <h1>{{ attempt.mock_test.title }}</h1>
+        <div class="subtitle">Performance Analysis Report</div>
+        <div class="subtitle">Completed on {{ attempt.submitted_at|date:"F j, Y, g:i a" }}</div>
+    </div>
+    
+    <div class="test-info">
+        <h2>Test Information</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Total Questions</div>
+                <div class="info-value">{{ total_questions }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Correct</div>
+                <div class="info-value text-green">{{ correct }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Wrong</div>
+                <div class="info-value text-red">{{ wrong }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Skipped</div>
+                <div class="info-value" style="color: #d97706;">{{ skipped }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="score-section">
+        <div class="score-card raw">
+            <div class="score-label">Raw Score</div>
+            <div class="score-value">{{ raw_score|floatformat:1 }}</div>
+            <div class="score-detail">Without negative marking</div>
+        </div>
+        
+        <div class="score-card final">
+            <div class="score-label">Final Score</div>
+            <div class="score-value">{{ score_with_negative|floatformat:1 }}</div>
+            <div class="score-detail">With negative marking</div>
+        </div>
+        
+        <div class="score-card negative">
+            <div class="score-label">Negative Marks</div>
+            <div class="score-value">-{{ negative_applied|floatformat:1 }}</div>
+            <div class="score-detail">{{ wrong }} wrong answers</div>
+        </div>
+    </div>
+    
+    <div class="rank-card">
+        <div class="rank-grid">
+            <div class="rank-item">
+                <div class="label">Your Rank</div>
+                <div class="value">#{{ rank|default:"—" }}</div>
+            </div>
+            <div class="rank-item">
+                <div class="label">Total Attempts</div>
+                <div class="value">{{ total_attempts|default:"0" }}</div>
+            </div>
+            <div class="rank-item">
+                <div class="label">Top Score</div>
+                <div class="value">{{ top_score|default:"0" }}%</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-title">Subject-wise Performance</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th class="text-center">Total</th>
+                <th class="text-center">Correct</th>
+                <th class="text-center">Wrong</th>
+                <th class="text-center">Skipped</th>
+                <th class="text-center">Raw Score</th>
+                <th class="text-center">Negative</th>
+                <th class="text-center">Final Score</th>
+                <th class="text-center">Accuracy</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subject in subject_data %}
+            <tr>
+                <td>{{ subject.name }}</td>
+                <td class="text-center">{{ subject.total }}</td>
+                <td class="text-center text-green">{{ subject.correct }}</td>
+                <td class="text-center text-red">{{ subject.wrong }}</td>
+                <td class="text-center" style="color: #d97706;">{{ subject.skipped }}</td>
+                <td class="text-center">{{ subject.raw_score|floatformat:1 }}</td>
+                <td class="text-center text-red">-{{ subject.negative|floatformat:1 }}</td>
+                <td class="text-center text-indigo">{{ subject.score_with_negative|floatformat:1 }}</td>
+                <td class="text-center">{{ subject.accuracy }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="section-title">Difficulty-wise Performance</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Difficulty</th>
+                <th class="text-center">Questions</th>
+                <th class="text-center">Correct</th>
+                <th class="text-center">Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for diff in difficulty_data %}
+            <tr>
+                <td>
+                    <span class="difficulty-badge difficulty-{{ diff.name|lower }}">
+                        {{ diff.name }}
+                    </span>
+                </td>
+                <td class="text-center">{{ diff.total }}</td>
+                <td class="text-center">{{ diff.correct }}</td>
+                <td class="text-center text-indigo">{{ diff.score|floatformat:1 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="section-title">Key Insights</div>
+    <ul class="insights-list">
+        {% for insight in insights %}
+        <li>• {{ insight }}</li>
+        {% empty %}
+        <li>• Complete more tests to get personalized insights</li>
+        {% endfor %}
+        <li>• Accuracy with negative marking: {{ percentage_with_negative }}%</li>
+        <li>• Raw accuracy: {{ percentage_raw }}%</li>
+    </ul>
+    
+    <div class="footer-note">
+        Report generated by TestIQ on {% now "F j, Y" %}
+    </div>
+</body>
+</html>

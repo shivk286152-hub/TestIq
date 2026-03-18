@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'User',
     # 'django_q',
     'CurrentAffairs',
+    'subject_mocktests',
    
    
   
@@ -142,6 +143,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'exams.context_processors.site_settings',
                 'exams.context_processors.latest_mocktests',
+                'exams.context_processors.subject_mocktests_subjects',
                  # Add this line
                 
             ],

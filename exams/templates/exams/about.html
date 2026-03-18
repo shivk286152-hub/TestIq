@@ -1,120 +1,146 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}About {{ site_name }} | Best Mock Test Platform for SSC, Banking & Railway Exams{% endblock %}
-
-{% block meta_description %}
-Prepare for SSC, Banking, Railway and other competitive exams with {{ site_name }}. 
-Access high-quality mock tests, daily current affairs, and detailed performance analytics.
-{% endblock %}
+{% block title %}About {{ site_name }}{% endblock %}
 
 {% block content %}
 
-<!-- Hero Section -->
-<section class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16">
-    <div class="max-w-5xl mx-auto px-4 text-center">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4">
+<!-- HERO -->
+<section class="bg-[#0f172a] text-white py-20 border-b border-gray-800">
+    <div class="max-w-6xl mx-auto px-4 text-center">
+        <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
             About {{ site_name }}
         </h1>
-        <p class="text-lg md:text-xl opacity-90 max-w-3xl mx-auto">
-            India’s trusted platform for SSC, Banking, Railway and other competitive exam preparation.
-            Practice smarter with real exam-level mock tests and current affairs.
+        <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+            India’s trusted platform for SSC, Banking, Railway and competitive exam preparation.
+            Practice smarter with real exam-level mock tests.
         </p>
     </div>
 </section>
 
-<!-- Main Content -->
-<section class="max-w-5xl mx-auto px-4 py-16">
+<!-- MAIN -->
+<section class="bg-[#020617] py-20">
+<div class="max-w-6xl mx-auto px-4">
 
-    <!-- Our Mission -->
-    <div class="mb-16">
-        <h2 class="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
-        <p class="text-gray-600 leading-relaxed mb-4">
-            At <strong>{{ site_name }}</strong>, our mission is to make high-quality competitive exam preparation 
-            accessible and affordable for every student across India. We focus on real exam patterns, 
-            performance improvement, and smart learning strategies.
-        </p>
-        <p class="text-gray-600 leading-relaxed">
-            Since 2024, we have helped aspirants prepare for exams like SSC CGL, CHSL, Banking, Railway, 
-            and other government job exams with confidence.
+    <!-- MISSION -->
+    <div class="mb-20 text-center">
+        <h2 class="text-3xl font-bold text-white mb-6">Our Mission</h2>
+        <p class="text-gray-400 max-w-3xl mx-auto">
+            At {{ site_name }}, we aim to make high-quality exam preparation accessible and affordable.
+            We focus on real exam patterns, performance improvement, and smart strategies.
         </p>
     </div>
 
-    <!-- What We Offer -->
-    <div class="mb-16">
-        <h2 class="text-3xl font-bold text-gray-900 mb-8">What We Offer</h2>
+    <!-- MODERN CARD GRID (Inspired from your image) -->
+    <div class="grid md:grid-cols-3 gap-8 mb-20">
 
-        <div class="grid md:grid-cols-3 gap-8">
-            <div class="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition">
-                <h3 class="text-xl font-semibold mb-3 text-indigo-600">Mock Tests</h3>
-                <p class="text-gray-600">
-                    Full-length and subject-wise mock tests based on latest SSC, Banking and Railway exam patterns.
-                </p>
+        <!-- Card 1 -->
+        <div class="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 
+                    border border-gray-800 rounded-2xl p-6 
+                    backdrop-blur-xl hover:scale-105 transition duration-300">
+
+            <div class="w-12 h-12 flex items-center justify-center rounded-lg bg-indigo-500/20 mb-4">
+                📊
             </div>
 
-            <div class="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition">
-                <h3 class="text-xl font-semibold mb-3 text-purple-600">Daily Current Affairs</h3>
-                <p class="text-gray-600">
-                    Updated daily current affairs and monthly quizzes to strengthen your general awareness.
-                </p>
+            <h3 class="text-white text-xl font-semibold mb-2">Mock Tests</h3>
+            <p class="text-gray-400 text-sm">
+                Full-length and sectional tests based on real exam patterns.
+            </p>
+
+            <div class="mt-6 h-1 w-12 bg-indigo-500 rounded-full"></div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-gradient-to-br from-purple-500/10 to-pink-500/10 
+                    border border-gray-800 rounded-2xl p-6 
+                    backdrop-blur-xl hover:scale-105 transition duration-300">
+
+            <div class="w-12 h-12 flex items-center justify-center rounded-lg bg-purple-500/20 mb-4">
+                📰
             </div>
 
-            <div class="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition">
-                <h3 class="text-xl font-semibold mb-3 text-green-600">Performance Analytics</h3>
-                <p class="text-gray-600">
-                    Detailed performance insights, accuracy tracking, and topic-wise analysis to boost your score.
-                </p>
+            <h3 class="text-white text-xl font-semibold mb-2">Current Affairs</h3>
+            <p class="text-gray-400 text-sm">
+                Daily updates and quizzes to boost your general awareness.
+            </p>
+
+            <div class="mt-6 h-1 w-12 bg-purple-500 rounded-full"></div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-gradient-to-br from-green-500/10 to-emerald-500/10 
+                    border border-gray-800 rounded-2xl p-6 
+                    backdrop-blur-xl hover:scale-105 transition duration-300">
+
+            <div class="w-12 h-12 flex items-center justify-center rounded-lg bg-green-500/20 mb-4">
+                📈
             </div>
+
+            <h3 class="text-white text-xl font-semibold mb-2">Analytics</h3>
+            <p class="text-gray-400 text-sm">
+                Track accuracy, performance, and improve weak areas.
+            </p>
+
+            <div class="mt-6 h-1 w-12 bg-green-500 rounded-full"></div>
+        </div>
+
+    </div>
+
+    <!-- WHY CHOOSE US -->
+    <div class="mb-20">
+        <h2 class="text-3xl font-bold text-white mb-10 text-center">
+            Why Choose {{ site_name }}?
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            
+            <div class="flex items-start space-x-3 text-gray-400">
+                <span class="text-indigo-400">✔</span>
+                <p>Real exam-level difficulty & updated syllabus</p>
+            </div>
+
+            <div class="flex items-start space-x-3 text-gray-400">
+                <span class="text-indigo-400">✔</span>
+                <p>Affordable pricing for every student</p>
+            </div>
+
+            <div class="flex items-start space-x-3 text-gray-400">
+                <span class="text-indigo-400">✔</span>
+                <p>Detailed solutions with explanations</p>
+            </div>
+
+            <div class="flex items-start space-x-3 text-gray-400">
+                <span class="text-indigo-400">✔</span>
+                <p>24/7 access on mobile & desktop</p>
+            </div>
+
         </div>
     </div>
 
-    <!-- Why Choose Us -->
-    <div class="mb-16">
-        <h2 class="text-3xl font-bold text-gray-900 mb-6">Why Choose {{ site_name }}?</h2>
-        <ul class="grid md:grid-cols-2 gap-4 text-gray-600">
-            <li class="flex items-start">
-                <span class="text-indigo-600 mr-2">✔</span>
-                Real exam-level difficulty and updated syllabus
-            </li>
-            <li class="flex items-start">
-                <span class="text-indigo-600 mr-2">✔</span>
-                Affordable pricing for every student
-            </li>
-            <li class="flex items-start">
-                <span class="text-indigo-600 mr-2">✔</span>
-                Detailed solution explanations
-            </li>
-            <li class="flex items-start">
-                <span class="text-indigo-600 mr-2">✔</span>
-                24/7 access from mobile and desktop
-            </li>
-        </ul>
+    <!-- CTA -->
+    <div class="text-center">
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 
+                    rounded-2xl p-12 shadow-xl relative overflow-hidden">
+
+            <h2 class="text-3xl font-bold text-white mb-4">
+                Start Your Preparation Today
+            </h2>
+
+            <p class="text-gray-200 mb-6">
+                Join thousands of students preparing with {{ site_name }}
+            </p>
+
+            <a href="{% url 'register' %}" 
+               class="inline-block bg-white text-indigo-600 font-semibold px-6 py-3 rounded-lg 
+                      hover:scale-105 transition">
+                Get Started Now
+            </a>
+
+        </div>
     </div>
 
-    <!-- CTA Section -->
-    <div class="bg-indigo-600 text-white rounded-2xl p-10 text-center">
-        <h2 class="text-3xl font-bold mb-4">Start Your Preparation Today</h2>
-        <p class="mb-6 opacity-90">
-            Join thousands of students preparing for competitive exams with {{ site_name }}.
-        </p>
-        <a href="{% url 'register' %}" 
-           class="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
-            Get Started Now
-        </a>
-    </div>
-
+</div>
 </section>
-
-<!-- SEO Structured Data -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "{{ site_name }}",
-  "url": "{{ request.scheme }}://{{ request.get_host }}",
-  "description": "Online mock test platform for SSC, Banking, Railway and competitive exams.",
-  "sameAs": []
-}
-</script>
 
 {% endblock %}

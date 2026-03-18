@@ -62,5 +62,8 @@ urlpatterns = [
     path('testimonial/<int:testimonial_id>/delete/', views.delete_testimonial, name='delete_testimonial'),
 
     path('statistics/<int:attempt_id>/', views.test_statistics, name='test_statistics'),
+    path('statistics/<int:attempt_id>/pdf/', views.download_statistics_pdf, name='download_statistics_pdf'),
+
+    path('faq/', views.faq_page, name='faq_page'),
 
 ]

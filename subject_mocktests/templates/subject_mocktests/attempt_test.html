@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ mocktest.title }} - Test in Progress{% endblock %}
+
+{% block content %}
+<!-- Top Bar with Timer - Fixed at top with proper width -->
+<div class="bg-white border-b shadow-sm fixed top-16 left-0 right-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center space-x-2 md:space-x-4 min-w-0">
+                <h1 class="text-base md:text-lg font-semibold text-gray-800 truncate">
+                    {{ mocktest.title }}
+                </h1>
+                {% if mocktest.topic %}
+                <span class="hidden md:inline-block px-2 py-0.5 md:px-3 md:py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs md:text-sm flex-shrink-0">
+                    {{ mocktest.topic.name }}
+                </span>
+                {% endif %}
+            </div>
+            <div class="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
+                <div class="text-right">
+                    <div class="text-xs md:text-sm text-gray-500">Time Left</div>
+                    <div id="timer" class="text-lg md:text-2xl font-mono font-bold text-indigo-600"
+                        data-remaining="{{ remaining_seconds }}">
+                        {{ remaining_seconds|time:"H:i:s" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area with proper spacing for fixed header -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8">
+    <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Left Sidebar - Question Navigation -->
+        <div class="lg:w-72 flex-shrink-0 order-2 lg:order-1">
+            <div class="bg-white rounded-xl shadow-lg sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto">
+                <!-- Timer Card (Mobile) -->
+                <div class="lg:hidden p-4 border-b">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Time Left:</span>
+                        <span id="mobile-timer" class="text-lg font-mono font-bold text-indigo-600"></span>
+                    </div>
+                </div>
+
+                <!-- Question Grid -->
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-700 mb-3 flex items-center text-sm md:text-base">
+                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        Questions
+                    </h3>
+                    <div class="grid grid-cols-5 gap-2 max-h-[300px] md:max-h-[400px] overflow-y-auto p-1">
+                        {% for i in mocktest.questions.all %}
+                        <button
+                            class="question-nav-item w-9 h-9 md:w-10 md:h-10 rounded-lg text-xs md:text-sm font-medium transition-all
+                                border-2 hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                            data-q="{{ forloop.counter }}" id="nav-q-{{ forloop.counter }}">
+                            {{ forloop.counter }}
+                        </button>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="mt-4 pt-4 border-t grid grid-cols-2 gap-2 text-xs">
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                            <span class="text-gray-600">Answered</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                            <span class="text-gray-600">Skipped</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 bg-indigo-600 rounded-full mr-2"></span>
+                            <span class="text-gray-600">Current</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 bg-gray-200 rounded-full mr-2"></span>
+                            <span class="text-gray-600">Not Visited</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Status (Desktop) -->
+                <div class="hidden lg:block p-4 border-t bg-gray-50 rounded-b-xl">
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Started:</span>
+                            <span class="font-medium">{{ attempt.started_at|time }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Answered:</span>
+                            <span class="font-medium"><span id="answered-count">0</span>/{{ total_questions }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Skipped:</span>
+                            <span class="font-medium"><span id="skipped-count">0</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content - Question Area -->
+        <div class="flex-1 order-1 lg:order-2">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col min-h-[600px] lg:min-h-[700px]">
+                <!-- Question Header -->
+                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex-shrink-0">
+                    <div class="flex items-center justify-between text-white">
+                        <h2 class="text-base md:text-lg font-semibold" id="question-header">
+                            Question <span id="current-q">1</span> of {{ total_questions }}
+                        </h2>
+                        <span class="bg-white/20 px-3 py-1 rounded-full text-xs md:text-sm" id="current-topic"></span>
+                    </div>
+                </div>
+
+                <!-- Question Container - Scrollable -->
+                <div class="p-6 overflow-y-auto flex-1" id="question-container" style="max-height: 600px;">
+                    <!-- Loading State -->
+                    <div class="text-center py-12">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
+                        <p class="mt-4 text-gray-500">Loading question...</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Footer -->
+                <div class="border-t px-6 py-4 bg-gray-50 flex-shrink-0">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <button id="prev-btn"
+                            class="w-full sm:w-auto px-6 py-2 border-2 border-gray-300 text-gray-600 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center text-sm md:text-base">
+                            <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Previous
+                        </button>
+
+                        <button id="skip-btn"
+                            class="w-full sm:w-auto px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
+                            <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Skip
+                        </button>
+
+                        <button id="next-btn"
+                            class="w-full sm:w-auto px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
+                            Next
+                            <svg class="w-4 h-4 md:w-5 md:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar - Test Status (Mobile) -->
+        <div class="lg:hidden order-3">
+            <div class="bg-white rounded-xl shadow-lg p-4">
+                <h3 class="font-semibold text-gray-700 mb-3 text-sm md:text-base">Test Status</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs md:text-sm text-gray-500">Answered</p>
+                        <p class="text-lg md:text-2xl font-bold text-indigo-600"><span id="mobile-answered">0</span>/{{ total_questions }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs md:text-sm text-gray-500">Skipped</p>
+                        <p class="text-lg md:text-2xl font-bold text-yellow-600"><span id="mobile-skipped">0</span></p>
+                    </div>
+                </div>
+                <!-- Submit Button -->
+                <form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="submit-form" class="mt-4">
+                    {% csrf_token %}
+                    <button type="button" onclick="confirmSubmit()"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-sm md:text-base">
+                        Submit Test
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for auto-submit -->
+<form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="auto-submit-form" class="hidden">
+    {% csrf_token %}
+</form>
+
+<style>
+    /* Base styles */
+    .question-nav-item.answered {
+        background-color: #10b981;
+        color: white;
+        border-color: #10b981;
+    }
+    .question-nav-item.answered:hover {
+        background-color: #059669;
+    }
+
+    .question-nav-item.current {
+        background-color: #4f46e5;
+        color: white;
+        border-color: #4f46e5;
+        ring: 2px solid #c7d2fe;
+    }
+
+    .question-nav-item.skipped {
+        background-color: #f59e0b;
+        color: white;
+        border-color: #f59e0b;
+    }
+    .question-nav-item.skipped:hover {
+        background-color: #d97706;
+    }
+
+    .timer-danger {
+        color: #dc2626;
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        font-weight: 700;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    /* Option styles */
+    .option-item {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        min-height: 3rem;
+    }
+    .option-item:hover {
+        border-color: #818cf8;
+        background-color: #eef2ff;
+    }
+    .option-item.selected {
+        border-color: #4f46e5;
+        background-color: #eef2ff;
+    }
+    .option-item input[type="radio"] {
+        margin-right: 0.75rem;
+        accent-color: #4f46e5;
+        flex-shrink: 0;
+    }
+
+    /* Question text styles */
+    .question-text {
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #1f2937;
+        background-color: #f9fafb;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #4f46e5;
+    }
+    @media (min-width: 768px) {
+        .question-text {
+            font-size: 1.125rem;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+        }
+    }
+
+    /* Options container */
+    .options-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    @media (min-width: 768px) {
+        .options-container {
+            gap: 0.75rem;
+        }
+    }
+
+    /* Scrollbar styling */
+    #question-container {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e0 #f1f5f9;
+    }
+    #question-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    #question-container::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+    #question-container::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 3px;
+    }
+    #question-container::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Question navigation buttons */
+    .question-nav-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Desktop specific adjustments */
+    @media (min-width: 1024px) {
+        #question-container {
+            max-height: 600px !important;
+        }
+        .lg\:w-72 {
+            width: 18rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize variables
+    let currentQuestion = 1;
+    let totalQuestions = {{ total_questions }};
+    let mocktestId = {{ mocktest.id }};
+    let language = '{{ language }}';
+    let answeredQuestions = new Set();
+    let skippedQuestions = new Set();
+
+    // Timer functionality
+    function updateTimer() {
+        let timerElement = document.getElementById('timer');
+        let mobileTimer = document.getElementById('mobile-timer');
+
+        if (!timerElement) return;
+
+        let remaining = parseInt(timerElement.dataset.remaining);
+
+        if (remaining <= 0) {
+            document.getElementById('auto-submit-form').submit();
+            return;
+        }
+
+        remaining -= 1;
+        timerElement.dataset.remaining = remaining;
+
+        let hours = Math.floor(remaining / 3600);
+        let minutes = Math.floor((remaining % 3600) / 60);
+        let seconds = remaining % 60;
+
+        let timeString = String(hours).padStart(2, '0') + ':' +
+            String(minutes).padStart(2, '0') + ':' +
+            String(seconds).padStart(2, '0');
+
+        timerElement.textContent = timeString;
+        if (mobileTimer) mobileTimer.textContent = timeString;
+
+        if (remaining < 300) {
+            timerElement.classList.add('timer-danger');
+            if (mobileTimer) mobileTimer.classList.add('timer-danger');
+        }
+    }
+
+    let timerInterval = setInterval(updateTimer, 1000);
+
+    // Load question via AJAX
+    function loadQuestion(qNumber) {
+        currentQuestion = qNumber;
+        document.getElementById('current-q').textContent = qNumber;
+
+        document.querySelectorAll('.question-nav-item').forEach(el => {
+            el.classList.remove('current', 'bg-indigo-600', 'text-white', 'border-indigo-600');
+        });
+
+        let navItem = document.getElementById('nav-q-' + qNumber);
+        if (navItem) {
+            navItem.classList.add('current', 'bg-indigo-600', 'text-white', 'border-indigo-600');
+        }
+
+        document.getElementById('question-container').innerHTML = `
+            <div class="text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
+                <p class="mt-4 text-gray-500">Loading question...</p>
+            </div>
+        `;
+
+        fetch(`/subject-mocktests/ajax/question/${mocktestId}/?q=${qNumber}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(html => {
+                document.getElementById('question-container').innerHTML = html;
+                let savedAnswer = localStorage.getItem(`q_${mocktestId}_${qNumber}`);
+                if (savedAnswer) {
+                    let radio = document.querySelector(`input[name="question_${qNumber}"][value="${savedAnswer}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                        let optionItem = radio.closest('.option-item');
+                        if (optionItem) optionItem.classList.add('selected');
+                    }
+                }
+                document.getElementById('question-container').scrollTop = 0;
+            })
+            .catch(error => {
+                console.error('Error loading question:', error);
+                document.getElementById('question-container').innerHTML = `
+                    <div class="text-center py-12 text-red-500">
+                        <p>Error loading question. Please refresh the page.</p>
+                    </div>
+                `;
+            });
+
+        document.getElementById('prev-btn').disabled = (qNumber === 1);
+        document.getElementById('next-btn').disabled = (qNumber === totalQuestions);
+    }
+
+    // Save answer
+    function saveAnswer(questionId, optionId) {
+        let formData = new FormData();
+        formData.append(`question_${questionId}`, optionId);
+
+        fetch('{% url "subject_mocktests:save_answer" %}', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                let navBtn = document.getElementById(`nav-q-${questionId}`);
+                if (navBtn) {
+                    navBtn.classList.remove('skipped', 'bg-yellow-500');
+                    navBtn.classList.add('answered', 'bg-green-500', 'text-white', 'border-green-500');
+                }
+                answeredQuestions.add(parseInt(questionId));
+                skippedQuestions.delete(parseInt(questionId));
+                updateCounts();
+                localStorage.setItem(`q_${mocktestId}_${questionId}`, optionId);
+            }
+        })
+        .catch(error => console.error('Error saving answer:', error));
+    }
+
+    // Skip question
+    function skipQuestion(questionId) {
+        let formData = new FormData();
+        formData.append(`question_${questionId}`, '');
+
+        fetch('{% url "subject_mocktests:save_answer" %}', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                let navBtn = document.getElementById(`nav-q-${questionId}`);
+                if (navBtn) {
+                    navBtn.classList.remove('answered', 'bg-green-500');
+                    navBtn.classList.add('skipped', 'bg-yellow-500', 'text-white', 'border-yellow-500');
+                }
+                skippedQuestions.add(parseInt(questionId));
+                answeredQuestions.delete(parseInt(questionId));
+                updateCounts();
+                localStorage.removeItem(`q_${mocktestId}_${questionId}`);
+            }
+        })
+        .catch(error => console.error('Error skipping question:', error));
+    }
+
+    function updateCounts() {
+        let answered = answeredQuestions.size;
+        let skipped = skippedQuestions.size;
+        document.getElementById('answered-count').textContent = answered;
+        document.getElementById('skipped-count').textContent = skipped;
+        document.getElementById('mobile-answered').textContent = answered;
+        document.getElementById('mobile-skipped').textContent = skipped;
+    }
+
+    window.confirmSubmit = function() {
+        if (confirm('Are you sure you want to submit the test? You cannot change your answers after submission.')) {
+            if (timerInterval) clearInterval(timerInterval);
+            for (let i = 1; i <= totalQuestions; i++) {
+                localStorage.removeItem(`q_${mocktestId}_${i}`);
+            }
+            document.getElementById('submit-form').submit();
+        }
+    };
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        loadQuestion(1);
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            let saved = localStorage.getItem(`q_${mocktestId}_${i}`);
+            if (saved) {
+                answeredQuestions.add(i);
+                let navBtn = document.getElementById(`nav-q-${i}`);
+                if (navBtn) {
+                    navBtn.classList.add('answered', 'bg-green-500', 'text-white', 'border-green-500');
+                }
+            }
+        }
+        updateCounts();
+
+        document.addEventListener('click', function(e) {
+            let navItem = e.target.closest('.question-nav-item');
+            if (navItem) {
+                e.preventDefault();
+                let qNum = parseInt(navItem.dataset.q);
+                if (!isNaN(qNum)) loadQuestion(qNum);
+            }
+        });
+
+        document.addEventListener('change', function(e) {
+            if (e.target.name && e.target.name.startsWith('question_')) {
+                let questionId = e.target.name.replace('question_', '');
+                document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+                let optionItem = e.target.closest('.option-item');
+                if (optionItem) optionItem.classList.add('selected');
+                saveAnswer(questionId, e.target.value);
+            }
+        });
+
+        document.getElementById('prev-btn').addEventListener('click', function() {
+            if (currentQuestion > 1) loadQuestion(currentQuestion - 1);
+        });
+
+        document.getElementById('next-btn').addEventListener('click', function() {
+            if (currentQuestion < totalQuestions) loadQuestion(currentQuestion + 1);
+        });
+
+        document.getElementById('skip-btn').addEventListener('click', function() {
+            skipQuestion(currentQuestion);
+            if (currentQuestion < totalQuestions) loadQuestion(currentQuestion + 1);
+        });
+    });
+
+    window.addEventListener('beforeunload', function(e) {
+        if (answeredQuestions.size > 0 || skippedQuestions.size > 0) {
+            e.preventDefault();
+            e.returnValue = 'You have unsaved answers. Are you sure you want to leave?';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+
+{% block title %}My Subject Dashboard - TestIQ{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Welcome Header -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-6 md:p-8 mb-8 text-white">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold mb-2">
+                    Subject Mock Tests Dashboard 👋
+                </h1>
+                <p class="text-white/80">Track your performance across all subject-wise mock tests</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <a href="{% url 'subject_mocktests:subject_list' %}"
+                    class="inline-flex items-center px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Browse Subjects
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Tests Taken</span>
+                <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-800">{{ total_tests }}</p>
+            <p class="text-xs text-gray-400 mt-1">Subject tests completed</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Average Score</span>
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-800">{{ avg_score }}%</p>
+            <p class="text-xs text-gray-400 mt-1">Overall performance</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Best Score</span>
+                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-800">{{ best_score }}%</p>
+            <p class="text-xs text-gray-400 mt-1">Your highest score</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-sm">Study Streak</span>
+                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-800">{{ streak }}</p>
+            <p class="text-xs text-gray-400 mt-1">Days in a row</p>
+        </div>
+    </div>
+
+    <!-- Performance Charts Section -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+        <h2 class="font-semibold text-gray-800 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                </path>
+            </svg>
+            Subject Performance Overview
+        </h2>
+
+        <!-- Two charts grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Bar chart - Subject Mastery -->
+            <div>
+                <h3 class="text-sm font-medium text-gray-600 mb-2">Subject Mastery</h3>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="subjectChart"></canvas>
+                </div>
+                {% if not subject_labels_json or subject_labels_json == "[]" %}
+                <div class="text-center py-8 text-gray-400">
+                    <p>No subject data yet. Take tests to see your subject-wise performance!</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Line chart - Score Trend -->
+            <div>
+                <h3 class="text-sm font-medium text-gray-600 mb-2">Score Trend</h3>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+                {% if not attempts %}
+                <div class="text-center py-8 text-gray-400">
+                    <p>No test attempts yet. Take your first test to see your progress!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column - Recent Activity -->
+        <div class="lg:col-span-2">
+            <!-- Recent Tests Section -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                    <h2 class="font-semibold text-gray-800 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Recent Subject Test Attempts
+                    </h2>
+                    <a href="#" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">View All</a>
+                </div>
+
+                {% if attempts %}
+                <div class="divide-y divide-gray-100">
+                    {% for attempt in attempts|slice:":5" %}
+                    <div class="p-6 hover:bg-gray-50 transition">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <h3 class="font-semibold text-gray-800">{{ attempt.mock_test.title }}</h3>
+                                    <span class="ml-3 px-2 py-0.5 text-xs rounded-full 
+                                        {% if attempt.percentage >= 70 %}bg-green-100 text-green-700
+                                        {% elif attempt.percentage >= 40 %}bg-yellow-100 text-yellow-700
+                                        {% else %}bg-red-100 text-red-700{% endif %}">
+                                        {{ attempt.percentage }}% Score
+                                    </span>
+                                </div>
+                                <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                    <span class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                            </path>
+                                        </svg>
+                                        {{ attempt.submitted_at|date:"d M Y, h:i A" }}
+                                    </span>
+                                    <span class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                            </path>
+                                        </svg>
+                                        {{ attempt.mock_test.subject.name }}
+                                    </span>
+                                </div>
+                                <!-- Progress bar -->
+                                <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
+                                    <div class="h-2 rounded-full 
+                                        {% if attempt.percentage >= 70 %}bg-green-500
+                                        {% elif attempt.percentage >= 40 %}bg-yellow-500
+                                        {% else %}bg-red-500{% endif %}" style="width: {{ attempt.percentage }}%">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 md:mt-0 flex space-x-2">
+                                <a href="{% url 'subject_mocktests:result_dashboard' attempt.id %}"
+                                    class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition text-sm font-medium">
+                                    View Results
+                                </a>
+                                <a href="{% url 'subject_mocktests:detailed_analysis' attempt.id %}"
+                                    class="px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition text-sm font-medium">
+                                    Analysis
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-12 text-center">
+                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                        </path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">No subject tests taken yet</h3>
+                    <p class="text-gray-500 mb-4">Start practicing with subject-wise mock tests</p>
+                    <a href="{% url 'subject_mocktests:subject_list' %}"
+                        class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Browse Subjects
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column - Stats & Actions -->
+        <div class="lg:col-span-1">
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                <h2 class="font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Quick Actions
+                </h2>
+                <div class="space-y-3">
+                    <a href="{% url 'subject_mocktests:subject_list' %}"
+                        class="flex items-center p-3 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <span class="font-medium">Browse Subjects</span>
+                    </a>
+                    <a href="{% url 'subject_mocktests:subject_dashboard' %}"
+                        class="flex items-center p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                            </path>
+                        </svg>
+                        <span class="font-medium">Refresh Dashboard</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Subject-wise Performance -->
+            <!-- Subject-wise Performance - Now with actual data -->
+            {% if subject_stats %}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                <h2 class="font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                    </svg>
+                    Subject Mastery
+                </h2>
+                <div class="space-y-4">
+                    {% for subject in subject_stats %}
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-600">{{ subject.name }}</span>
+                            <span class="text-sm font-medium 
+                                {% if subject.percentage >= 70 %}text-green-600
+                                {% elif subject.percentage >= 40 %}text-yellow-600
+                                {% else %}text-red-600{% endif %}">
+                                {{ subject.percentage }}%
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full 
+                                {% if subject.percentage >= 70 %}bg-green-500
+                                {% elif subject.percentage >= 40 %}bg-yellow-500
+                                {% else %}bg-red-500{% endif %}" style="width: {{ subject.percentage }}%">
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-400 mt-1">
+                            <span>{{ subject.correct }}/{{ subject.total }} correct</span>
+                            <span>{{ subject.wrong }} wrong • {{ subject.skipped }} skipped</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="#" class="mt-4 text-sm text-indigo-600 hover:text-indigo-700 font-medium block text-center">
+                    View Detailed Analysis →
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get data from Django context
+        const subjectLabels = {{ subject_labels_json| safe
+    }};
+    const subjectScores = {{ subject_scores_json| safe }};
+    const attempts = {{ attempts_json| safe }};
+
+    // Function to get bar colour based on score
+    function getBarColor(value) {
+        if (value < 33) return '#ef4444';      // red for below 33%
+        if (value < 50) return '#f59e0b';      // yellow/orange for 33-49%
+        if (value < 75) return '#8b5cf6';      // violet for 50-75%
+        return '#10b981';                       // green for above 75%
+    }
+
+    // ---------- BAR CHART (Subject Mastery) ----------
+    const subjectCtx = document.getElementById('subjectChart')?.getContext('2d');
+    if (subjectCtx && subjectLabels && subjectLabels.length > 0) {
+        const barColors = subjectScores.map(score => getBarColor(score));
+
+        new Chart(subjectCtx, {
+            type: 'bar',
+            data: {
+                labels: subjectLabels,
+                datasets: [{
+                    label: 'Average Score (%)',
+                    data: subjectScores,
+                    backgroundColor: barColors,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Score (%)'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `Score: ${ctx.raw}%`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ---------- LINE CHART (Score Trend) ----------
+    const trendCtx = document.getElementById('trendChart')?.getContext('2d');
+    if (trendCtx && attempts && attempts.length > 0) {
+        // Extract data for chart
+        const labels = attempts.map(a => a.date);
+        const scores = attempts.map(a => a.score);
+        const testNames = attempts.map(a => a.test_name);
+
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Your Score',
+                    data: scores,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    tension: 0.2,
+                    pointBackgroundColor: '#4f46e5',
+                    pointBorderColor: 'white',
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Score (%)'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Test Date'
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: (tooltipItems) => {
+                                const index = tooltipItems[0].dataIndex;
+                                return attempts[index].test_name;
+                            },
+                            label: (ctx) => {
+                                const index = ctx.dataIndex;
+                                const attempt = attempts[index];
+                                return [`Date: ${attempt.date}`, `Score: ${attempt.score}%`];
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+
+<!-- Add a little CSS for better chart appearance -->
+<style>
+    canvas {
+        max-width: 100%;
+        height: auto !important;
+    }
+</style>
+
+{% endblock %}

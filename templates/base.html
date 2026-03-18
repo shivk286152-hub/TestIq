@@ -16,11 +16,18 @@
       --header-h: 4rem;
       --sidebar-open: 14rem;
       --sidebar-close: 4.5rem;
+      --bottom-header-h: 4rem;
+      /* Added bottom header height */
     }
 
     /* ===== HEADER ===== */
     .header {
       height: var(--header-h);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
     }
 
     /* ===== SIDEBAR ===== */
@@ -28,14 +35,15 @@
       position: fixed;
       top: var(--header-h);
       left: 0;
-      height: calc(100dvh - var(--header-h));
+      height: calc(100vh - var(--header-h) - var(--bottom-header-h));
+      /* Adjusted for bottom header */
       width: var(--sidebar-open);
       background: #374151;
       color: white;
       display: flex;
       flex-direction: column;
-      transition: .3s;
-      z-index: 60;
+      transition: width 0.3s ease;
+      z-index: 40;
       overflow-y: auto;
     }
 
@@ -52,7 +60,6 @@
     .sidebar-content {
       flex: 1;
       overflow-y: auto;
-      max-height: calc(100vh - var(--header-h) - 80px);
       scrollbar-width: thin;
       scrollbar-color: #4b5563 #1f2937;
     }
@@ -75,27 +82,36 @@
       background: #6b7280;
     }
 
-    /* bottom auth - fixed at bottom */
+    /* bottom auth - fixed at bottom of sidebar */
     .sidebar-bottom {
       border-top: 1px solid #4b5563;
       background: #374151;
-      position: sticky;
-      bottom: 0;
-      width: 100%;
+      padding: 0.75rem 0;
+      flex-shrink: 0;
     }
 
     /* ===== MAIN ===== */
     .main {
       margin-left: var(--sidebar-open);
-      padding-top: calc(var(--header-h) + 1rem);
-      min-height: 100dvh;
-      transition: .3s;
+      margin-top: var(--header-h);
+      margin-bottom: var(--bottom-header-h);
+      /* Added bottom margin */
+      min-height: calc(100vh - var(--header-h) - var(--bottom-header-h));
+      transition: margin-left 0.3s ease;
       overflow-y: auto;
-      height: calc(100vh - var(--header-h));
+      padding: 1rem;
     }
 
     .main.collapsed {
       margin-left: var(--sidebar-close);
+    }
+
+    /* ===== BOTTOM HEADER ===== */
+    #bottomHeader {
+      height: var(--bottom-header-h);
+      transform: translateY(0);
+      z-index: 45;
+      /* Lower than sidebar */
     }
 
     /* ===== MOBILE ===== */
@@ -104,6 +120,9 @@
         transform: translateX(-100%);
         width: 14rem;
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        height: calc(100vh - var(--header-h) - var(--bottom-header-h));
+        /* Adjusted */
+        top: var(--header-h);
       }
 
       .sidebar.open {
@@ -113,6 +132,8 @@
       .main,
       .main.collapsed {
         margin-left: 0;
+        margin-bottom: var(--bottom-header-h);
+        /* Keep bottom margin */
       }
 
       .overlay {
@@ -121,11 +142,31 @@
         top: var(--header-h);
         background: rgba(0, 0, 0, .4);
         display: none;
-        z-index: 50;
+        z-index: 35;
+        height: calc(100vh - var(--header-h));
       }
 
       .overlay.show {
         display: block;
+      }
+
+      /* Adjust bottom header on mobile */
+      #bottomHeader {
+        z-index: 45;
+      }
+    }
+
+    /* Desktop specific */
+    @media(min-width:769px) {
+      .main {
+        margin-bottom: 0;
+        /* No bottom margin on desktop */
+        min-height: calc(100vh - var(--header-h));
+      }
+
+      #bottomHeader {
+        display: none;
+        /* Hide bottom header on desktop */
       }
     }
 
@@ -171,7 +212,6 @@
 
     .dropdown-content.show {
       max-height: 400px !important;
-      /* Fixed height to ensure visibility */
       transition: max-height 0.5s ease-in;
     }
 
@@ -197,7 +237,7 @@
       top: var(--header-h);
       left: 0;
       width: 20px;
-      height: calc(100vh - var(--header-h));
+      height: calc(100vh - var(--header-h) - var(--bottom-header-h));
       z-index: 45;
     }
 
@@ -209,13 +249,24 @@
       align-items: center;
       width: 100%;
     }
+
+    /* Fix for content being hidden under bottom header on mobile */
+    @media(max-width:768px) {
+      body {
+        padding-bottom: var(--bottom-header-h);
+      }
+
+      .main {
+        padding-bottom: 0;
+      }
+    }
   </style>
 </head>
 
 <body class="bg-gray-100">
 
   <!-- ===== HEADER ===== -->
-  <header class="header fixed top-0 left-0 right-0 bg-white shadow z-50">
+  <header class="header bg-white shadow">
     <div class="h-full px-4 flex justify-between items-center">
       <!-- LEFT -->
       <div class="flex items-center gap-3">
@@ -241,7 +292,7 @@
         </button>
 
         <!-- DROPDOWN -->
-        <div id="userDropdown" class="hidden absolute right-0 mt-3 w-44 bg-white rounded shadow-lg border">
+        <div id="userDropdown" class="hidden absolute right-0 mt-3 w-44 bg-white rounded shadow-lg border z-50">
           <a href="{% url 'profile' %}" class="block px-4 py-2 hover:bg-gray-100">
             <i class="fa fa-user mr-2"></i> Profile
           </a>
@@ -287,7 +338,8 @@
             <span class="label ml-3">About Us</span>
           </a>
         </li>
-        <!-- SUBJECTS DROPDOWN - Updated with subject_exams -->
+        
+        <!-- SUBJECTS DROPDOWN - UPDATED to use subject_mocktests subjects -->
         <li class="relative">
           <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-600 cursor-pointer"
             id="subjectsMenuBtn">
@@ -298,37 +350,33 @@
             <i class="fa fa-chevron-down text-sm transition-transform duration-300" id="subjectsChevron"></i>
           </div>
 
-          <!-- Dropdown content -->
+          <!-- Dropdown content - Shows subjects from subject_mocktests app -->
           <div id="subjectsDropdown" class="dropdown-content">
             <ul class="py-2 space-y-1">
-              {% if subject_exams_subjects %}
-              {% for subject in subject_exams_subjects %}
-              <li>
-                <a href="{% url 'subject_exams:subject_detail' subject.slug %}"
-                  class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
-                  {% if subject.icon %}
-                  <img src="{{ subject.icon.url }}" alt="{{ subject.name }}" class="w-4 h-4 mr-2 object-cover rounded">
-                  {% else %}
-                  <i class="fa fa-graduation-cap w-4 mr-2"></i>
-                  {% endif %}
-                  <span class="truncate">{{ subject.name }}</span>
-                  {% if subject.name_hi %}
-                  <span class="ml-1 text-xs text-gray-400">{{ subject.name_hi|truncatechars:8 }}</span>
-                  {% endif %}
-                  <span class="ml-auto text-xs bg-green-500 px-1.5 py-0.5 rounded">New</span>
-                </a>
-              </li>
-              {% endfor %}
+              {% if subject_mocktests_subjects %}
+                {% for subject in subject_mocktests_subjects %}
+                <li>
+                  <a href="{% url 'subject_mocktests:subject_detail' subject.slug %}"
+                    class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
+                    {% if subject.icon %}
+                    <img src="{{ subject.icon.url }}" alt="{{ subject.name }}" class="w-4 h-4 mr-2 object-cover rounded">
+                    {% else %}
+                    <i class="fa fa-graduation-cap w-4 mr-2"></i>
+                    {% endif %}
+                    <span class="truncate">{{ subject.name }}</span>
+                    <span class="ml-auto text-xs bg-indigo-500 px-1.5 py-0.5 rounded-full">{{ subject.total_mocktests }}</span>
+                  </a>
+                </li>
+                {% endfor %}
               {% else %}
-              <li class="dropdown-item px-4 py-2 text-gray-300 italic">
-                <i class="fa fa-info-circle w-4 mr-2"></i>
-                No subjects available
-              </li>
+                <li class="dropdown-item px-4 py-2 text-gray-300 italic">
+                  <i class="fa fa-info-circle w-4 mr-2"></i>
+                  No subjects available
+                </li>
               {% endif %}
             </ul>
           </div>
         </li>
-
 
         <!-- TEST with dropdown - FIXED -->
         <li class="relative">
@@ -350,7 +398,7 @@
                 <a href="{% url 'exams:pretest_detail' test.id %}"
                   class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
                   <i class="fa fa-file-text w-4 mr-2"></i>
-                  <span class="truncate hover:bg-zinc-600 ">{{ test.title|truncatechars:25 }}</span>
+                  <span class="truncate">{{ test.title|truncatechars:25 }}</span>
                   {% if test.is_new %}
                   <span class="ml-2 bg-green-500 text-xs px-1.5 py-0.5 rounded-full">New</span>
                   {% endif %}
@@ -394,6 +442,17 @@
             <span class="label ml-3">Dashboard</span>
           </a>
         </li>
+        
+        <!-- SUBJECT MOCKTESTS DASHBOARD - New link for subject mocktests -->
+        <li>
+          <a href="{% url 'subject_mocktests:subject_dashboard' %}" class="flex items-center px-4 py-3 hover:bg-gray-600
+     {% if request.resolver_match.url_name == 'subject_dashboard' %}
+         menu-active
+     {% endif %}">
+            <i class="fa fa-chart-line w-6"></i>
+            <span class="label ml-3">Subject Tests</span>
+          </a>
+        </li>
         {% endif %}
 
         <!-- CURRENT AFFAIRS -->
@@ -413,7 +472,7 @@
        {% if request.resolver_match.url_name == 'exam_news' %}
            menu-active
        {% endif %}">
-            <i class="fa fa-book w-6"></i>
+            <i class="fa fa-newspaper w-6"></i>
             <span class="label ml-3">Exam News</span>
           </a>
         </li>
@@ -443,14 +502,15 @@
   <div id="overlay" class="overlay"></div>
 
   <!-- ===== MAIN ===== -->
-  <main id="main" class="main px-4">
-    {% block content %}{% endblock %}
+  <main id="main" class="main">
+    <div class="content-wrapper">
+      {% block content %}{% endblock %}
+    </div>
   </main>
 
   <!-- ===== BOTTOM HEADER ===== -->
   <div id="bottomHeader"
-    class="fixed bottom-0 left-0 w-full h-16 bg-white/80 backdrop-blur-lg border-t border-white/20 shadow-lg md:hidden flex items-center justify-around px-2 z-50 transition-transform duration-300"
-    style="transform: translateY(0);">
+    class="fixed bottom-0 left-0 w-full h-16 bg-white/80 backdrop-blur-lg border-t border-white/20 shadow-lg md:hidden flex items-center justify-around px-2 z-45 transition-transform duration-300">
     <a href="{% url 'exams:home' %}"
       class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
       <i class="fa fa-home text-xl"></i>
@@ -460,15 +520,16 @@
       <i class="fa fa-pen text-xl"></i>
       <span class="text-xs mt-1">Test</span>
     </a>
-    <a href="#" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
-      <i class="fa fa-newspaper text-xl"></i>
-      <span class="text-xs mt-1">Examclass</span>
+    <a href="{% url 'subject_mocktests:subject_list' %}" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
+      <i class="fa fa-book-open text-xl"></i>
+      <span class="text-xs mt-1">Subjects</span>
     </a>
     <a href="{% url 'profile' %}" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
       <i class="fa fa-user text-xl"></i>
       <span class="text-xs mt-1">Profile</span>
     </a>
   </div>
+  
   <script>
     // DOM Elements
     const sidebar = document.getElementById("sidebar");
@@ -480,6 +541,7 @@
     const testDropdown = document.getElementById("testDropdown");
     const testChevron = document.getElementById("testChevron");
     const mobileTestBtn = document.getElementById("mobileTestBtn");
+    const bottomHeader = document.getElementById('bottomHeader');
 
     // Touch variables for swipe
     let touchStartX = 0;
@@ -508,6 +570,12 @@
       menuBtn.addEventListener("click", () => {
         sidebar.classList.toggle("open");
         overlay.classList.toggle("show");
+        // Prevent body scroll when sidebar is open
+        if (sidebar.classList.contains('open')) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
       });
     }
 
@@ -530,6 +598,7 @@
       overlay.addEventListener("click", () => {
         sidebar.classList.remove("open");
         overlay.classList.remove("show");
+        document.body.style.overflow = '';
       });
     }
 
@@ -618,6 +687,7 @@
         if (window.innerWidth <= 768) {
           sidebar.classList.add("open");
           overlay.classList.add("show");
+          document.body.style.overflow = 'hidden';
 
           // Open test dropdown in sidebar
           if (testDropdown && !testDropdown.classList.contains("show")) {
@@ -652,30 +722,15 @@
       if (swipeDistance > swipeThreshold && touchStartX < 30 && !sidebar.classList.contains('open')) {
         sidebar.classList.add('open');
         overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
       }
 
       // Swipe left to close
       if (swipeDistance < -swipeThreshold && sidebar.classList.contains('open')) {
         sidebar.classList.remove('open');
         overlay.classList.remove('show');
+        document.body.style.overflow = '';
       }
-    }
-
-    // Prevent main content scroll when sidebar is scrolling
-    if (sidebar) {
-      sidebar.addEventListener('mouseenter', () => {
-        if (window.innerWidth > 768) {
-          document.body.style.overflow = 'hidden';
-          main.style.overflow = 'hidden';
-        }
-      });
-
-      sidebar.addEventListener('mouseleave', () => {
-        if (window.innerWidth > 768) {
-          document.body.style.overflow = '';
-          main.style.overflow = 'auto';
-        }
-      });
     }
 
     // Close sidebar when clicking on main content on mobile
@@ -684,6 +739,7 @@
         if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
           sidebar.classList.remove('open');
           overlay.classList.remove('show');
+          document.body.style.overflow = '';
         }
       });
     }
@@ -705,7 +761,6 @@
     }
 
     // Bottom header hide/show on scroll
-    const bottomHeader = document.getElementById('bottomHeader');
     let lastScroll = 0;
 
     window.addEventListener('scroll', () => {
@@ -722,12 +777,15 @@
 
     // Reset on resize with localStorage consideration
     window.addEventListener('resize', () => {
-      if (window.innerWidth > 768 && bottomHeader) {
-        bottomHeader.style.transform = 'translateY(0)';
+      if (window.innerWidth > 768) {
+        // Hide bottom header on desktop
+        if (bottomHeader) {
+          bottomHeader.style.transform = 'translateY(0)';
+        }
+        // Close mobile sidebar
         sidebar.classList.remove('open');
         overlay.classList.remove('show');
         document.body.style.overflow = '';
-        main.style.overflow = 'auto';
 
         // Reapply collapsed state from localStorage on resize to desktop
         const sidebarState = localStorage.getItem('sidebarCollapsed');
