@@ -7,7 +7,8 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Avg, F, Q, Case, When, IntegerField
 from django.contrib import messages
 from django.template.loader import render_to_string
-from weasyprint import HTML, CSS
+# from weasyprint import HTML, CSS
+
 import tempfile
 
 
@@ -1346,11 +1347,19 @@ def test_statistics(request, attempt_id):
     return render(request, 'exams/test_statistics.html', context)
 
 
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from django.contrib.auth.decorators import login_required
+from weasyprint import HTML
+from .models import MockTestAttempt
+
 @login_required
 def download_statistics_pdf(request, attempt_id):
     """
-    Generate a PDF of test statistics without header/footer/buttons
+    Generate a styled PDF for a completed test attempt using statistics_pdf.html.
     """
+    # 1️⃣ Get the test attempt
     attempt = get_object_or_404(
         MockTestAttempt,
         id=attempt_id,
@@ -1358,52 +1367,41 @@ def download_statistics_pdf(request, attempt_id):
         is_completed=True
     )
     
+    # 2️⃣ Prepare answers and stats (same logic as before)
     answers = attempt.answers.select_related('question', 'selected_option', 'question__subject').all()
     
-    # Basic stats
     total_questions = answers.count()
     correct = attempt.correct_answers
     wrong = attempt.wrong_answers
     skipped = attempt.skipped_answers
-    
-    # Scores
     raw_score = attempt.raw_score
     score_with_negative = attempt.score_with_negative
     negative_applied = attempt.negative_marks_applied
     
-    # Subject data with negative marking
-    subject_data = []
+    # Subject-wise performance
     subject_performance = {}
-    
     for answer in answers:
         subject_name = answer.question.subject.name if answer.question.subject else "General"
         if subject_name not in subject_performance:
-            subject_performance[subject_name] = {
-                'total': 0, 
-                'correct': 0, 
-                'wrong': 0, 
-                'skipped': 0,
-                'raw_score': 0,
-                'score_with_negative': 0,
-                'negative': 0
-            }
-        
-        subject_performance[subject_name]['total'] += 1
+            subject_performance[subject_name] = {'total': 0, 'correct': 0, 'wrong': 0, 'skipped': 0,
+                                                 'raw_score': 0, 'score_with_negative': 0, 'negative': 0}
+        stats = subject_performance[subject_name]
+        stats['total'] += 1
         if not answer.selected_option:
-            subject_performance[subject_name]['skipped'] += 1
+            stats['skipped'] += 1
         elif answer.selected_option.is_correct:
-            subject_performance[subject_name]['correct'] += 1
-            subject_performance[subject_name]['raw_score'] += answer.question.marks
-            subject_performance[subject_name]['score_with_negative'] += answer.question.marks
+            stats['correct'] += 1
+            stats['raw_score'] += answer.question.marks
+            stats['score_with_negative'] += answer.question.marks
         else:
-            subject_performance[subject_name]['wrong'] += 1
+            stats['wrong'] += 1
             negative = answer.question.get_effective_negative_marks()
-            subject_performance[subject_name]['negative'] += negative
-            subject_performance[subject_name]['score_with_negative'] -= negative
+            stats['negative'] += negative
+            stats['score_with_negative'] -= negative
     
+    subject_data = []
     for subject, stats in subject_performance.items():
         accuracy = round((stats['score_with_negative'] / stats['total'] * 100), 1) if stats['total'] > 0 else 0
-        
         subject_data.append({
             'name': subject,
             'total': stats['total'],
@@ -1415,37 +1413,25 @@ def download_statistics_pdf(request, attempt_id):
             'accuracy': accuracy,
             'negative': round(stats['negative'], 1)
         })
-    
     subject_data.sort(key=lambda x: x['score_with_negative'], reverse=True)
     
-    # Difficulty data
-    difficulty_data = []
+    # Difficulty-wise performance
     difficulty_counts = {}
-    
     for answer in answers:
         difficulty = getattr(answer.question, 'difficulty', 'Medium')
         if difficulty not in difficulty_counts:
-            difficulty_counts[difficulty] = {
-                'total': 0, 
-                'correct': 0,
-                'score': 0
-            }
-        
-        difficulty_counts[difficulty]['total'] += 1
+            difficulty_counts[difficulty] = {'total': 0, 'correct': 0, 'score': 0}
+        stats = difficulty_counts[difficulty]
+        stats['total'] += 1
         if answer.selected_option and answer.selected_option.is_correct:
-            difficulty_counts[difficulty]['correct'] += 1
-            difficulty_counts[difficulty]['score'] += answer.question.marks
+            stats['correct'] += 1
+            stats['score'] += answer.question.marks
         elif answer.selected_option and not answer.selected_option.is_correct:
             negative = answer.question.get_effective_negative_marks()
-            difficulty_counts[difficulty]['score'] -= negative
+            stats['score'] -= negative
     
-    for diff_name, stats in difficulty_counts.items():
-        difficulty_data.append({
-            'name': diff_name,
-            'total': stats['total'],
-            'correct': stats['correct'],
-            'score': round(stats['score'], 1)
-        })
+    difficulty_data = [{'name': k, 'total': v['total'], 'correct': v['correct'], 'score': round(v['score'], 1)}
+                       for k, v in difficulty_counts.items()]
     
     # Rankings
     all_attempts = MockTestAttempt.objects.filter(
@@ -1454,38 +1440,23 @@ def download_statistics_pdf(request, attempt_id):
     ).order_by('-score_with_negative')
     
     total_attempts = all_attempts.count()
+    global_avg = round(sum(att.percentage_with_negative for att in all_attempts) / total_attempts, 1) if total_attempts else 0
+    top_score = round(all_attempts.first().percentage_with_negative, 1) if total_attempts else 0
     
-    # Global average
-    global_avg = 0
-    if total_attempts > 0:
-        total_percentage = sum(att.percentage_with_negative for att in all_attempts)
-        global_avg = round(total_percentage / total_attempts, 1)
-    
-    # Top score
-    top_score = 0
-    if total_attempts > 0:
-        top_attempt = all_attempts.first()
-        top_score = round(top_attempt.percentage_with_negative, 1)
-    
-    # Calculate user's rank
-    rank = None
-    for idx, att in enumerate(all_attempts, 1):
-        if att.id == attempt.id:
-            rank = idx
-            break
+    rank = next((idx for idx, att in enumerate(all_attempts, 1) if att.id == attempt.id), None)
     
     # Insights
     insights = []
     if subject_data:
         strongest = subject_data[0]
-        insights.append(f"Strongest: {strongest['name']} ({strongest['accuracy']}%)")
         weakest = subject_data[-1]
+        insights.append(f"Strongest: {strongest['name']} ({strongest['accuracy']}%)")
         if weakest['accuracy'] < 60:
             insights.append(f"Focus on: {weakest['name']} ({weakest['accuracy']}%)")
+    if score_with_negative < raw_score:
+        insights.append(f"Lost {round(raw_score - score_with_negative, 1)} marks due to negative marking")
     
-    if attempt.score_with_negative < attempt.raw_score:
-        insights.append(f"Lost {round(attempt.raw_score - attempt.score_with_negative, 1)} marks due to negative marking")
-    
+    # 3️⃣ Context for template
     context = {
         'attempt': attempt,
         'total_questions': total_questions,
@@ -1506,14 +1477,10 @@ def download_statistics_pdf(request, attempt_id):
         'insights': insights,
     }
     
-    # Render PDF template (without base.html)
+    # 4️⃣ Render PDF
     html_string = render_to_string('exams/statistics_pdf.html', context)
-    
-    # Create PDF
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{attempt.mock_test.title}_statistics.pdf"'
     
-    # Generate PDF
     HTML(string=html_string).write_pdf(response)
-    
-    return response    
+    return response

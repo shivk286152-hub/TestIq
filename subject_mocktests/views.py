@@ -345,9 +345,6 @@ def attempt_test(request, mocktest_id):
             topics[topic_name] = []
         topics[topic_name].append(q)
     
-    # IMPORTANT: Pass total_questions to template
-    total_questions = questions.count()
-    
     return render(request, 'subject_mocktests/attempt_test.html', {
         'mocktest': mocktest,
         'questions': questions,
@@ -355,8 +352,10 @@ def attempt_test(request, mocktest_id):
         'remaining_seconds': remaining_seconds,
         'language': language,
         'attempt': attempt,
-        'total_questions': total_questions,  # Add this line
+        'total_questions': questions.count(),
     })
+
+
 @login_required
 def ajax_question(request, mocktest_id):
     """AJAX endpoint to load question content"""

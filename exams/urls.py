@@ -65,5 +65,6 @@ urlpatterns = [
     path('statistics/<int:attempt_id>/pdf/', views.download_statistics_pdf, name='download_statistics_pdf'),
 
     path('faq/', views.faq_page, name='faq_page'),
+    # path('generate-pdf/', views.generate_pdf, name='generate_pdf'),
 
 ]
