@@ -16,44 +16,16 @@ urlpatterns = [
     # Mocktest detail
     path("mocktest/<int:pk>/", views.mocktest_detail, name="mocktest_detail"),
 
-    # NEW: Pretest detail page (instructions, terms, language)
+    # Pretest detail page
     path("test/<int:mocktest_id>/pretest/", views.pretest_detail, name="pretest_detail"),
-
-    # Start test page (handles form submission from pretest)
     path("test/<int:mocktest_id>/start/", views.start_test, name="start_test"),
-
-    # Attempt test (main exam page)
     path("attempt/<int:mocktest_id>/", views.attempt_test, name="attempt_test"),
-
-    # AJAX question loader
-    path(
-        "attempt/<int:mocktest_id>/ajax-question/",
-        views.ajax_question,
-        name="ajax_question"
-    ),
-
-    # Save answer
+    path("attempt/<int:mocktest_id>/ajax-question/", views.ajax_question, name="ajax_question"),
     path("save-answer/", views.save_answer, name="save_answer"),
-
-    # Submit test
-    path(
-        "mocktest/<int:mocktest_id>/submit/",
-        views.submit_test,
-        name="submit_test"
-    ),
-
-    # Result page
-    path(
-        "result/<int:attempt_id>/",
-        views.result_dashboard,
-        name="result_dashboard"
-    ),
-
-    # Dashboard
+    path("mocktest/<int:mocktest_id>/submit/", views.submit_test, name="submit_test"),
+    path("result/<int:attempt_id>/", views.result_dashboard, name="result_dashboard"),
     path("dashboard/", views.dashboard, name="dashboard"),
-    
     path('rankings/<int:attempt_id>/', views.view_rankings, name='view_rankings'),
-    
     path('detailed-analysis/<int:attempt_id>/', views.detailed_analysis, name='detailed_analysis'),
     
     # Testimonial URLs
@@ -63,8 +35,18 @@ urlpatterns = [
 
     path('statistics/<int:attempt_id>/', views.test_statistics, name='test_statistics'),
     path('statistics/<int:attempt_id>/pdf/', views.download_statistics_pdf, name='download_statistics_pdf'),
-
     path('faq/', views.faq_page, name='faq_page'),
-    # path('generate-pdf/', views.generate_pdf, name='generate_pdf'),
+    
+    # Contact URLs
+    path('contact/', views.contact_page, name='contact_page'),
+    path('contact/success/', views.contact_success, name='contact_success'),
+    
+    # Legal URLs - ADD THESE
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
 
+    # path('analytics/', views.advanced_analytics, name='advanced_analytics'),
+    
+    path('advanced-analytics/', views.advanced_analytics, name='advanced_analytics'),
+    path('test-content/<int:test_id>/', views.get_test_content, name='get_test_content'),
 ]

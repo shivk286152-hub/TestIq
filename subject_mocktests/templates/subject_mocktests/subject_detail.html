@@ -4,23 +4,21 @@
 {% block title %}{{ subject.name }} - Mock Tests | TestIQ{% endblock %}
 
 {% block content %}
-<!-- Animated Background (same as subject list) -->
+<!-- Animated Background -->
 <div class="fixed inset-0 -z-10 overflow-hidden">
     <div class="absolute inset-0 bg-[#0A0F1E]"></div>
-    <!-- Animated grid lines -->
     <div class="absolute inset-0 opacity-20" 
          style="background-image: linear-gradient(#1E293B 1px, transparent 1px), linear-gradient(90deg, #1E293B 1px, transparent 1px);
                 background-size: 50px 50px;">
     </div>
-    <!-- Animated gradient orbs -->
     <div class="absolute top-0 -left-20 w-[500px] h-[500px] bg-blue-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
     <div class="absolute top-0 -right-20 w-[500px] h-[500px] bg-purple-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
     <div class="absolute -bottom-40 left-20 w-[500px] h-[500px] bg-indigo-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
 </div>
 
-<!-- Breadcrumb with Glass Effect -->
-<div class="relative border-b border-gray-800 bg-gray-900/50 backdrop-blur-xl">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+<!-- Breadcrumb -->
+<div class="relative border-b border-gray-800 bg-gray-900/50 backdrop-blur-xl sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <nav class="flex items-center space-x-2 text-sm" aria-label="Breadcrumb">
             <a href="{% url 'subject_mocktests:subject_list' %}" class="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,45 +29,42 @@
             <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 font-semibold">{{ subject.name }}</span>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 font-semibold truncate max-w-[200px]">{{ subject.name }}</span>
         </nav>
     </div>
 </div>
 
 <!-- Main Content -->
-<div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+<div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
     
-    <!-- Header Section with Glass Effect -->
-    <div class="relative mb-12">
-        <!-- Background Glow -->
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-3xl blur-3xl"></div>
+    <!-- Header Section -->
+    <div class="relative mb-8 lg:mb-12">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl blur-3xl"></div>
         
-        <div class="relative bg-gradient-to-br from-gray-900/90 to-gray-950/90 backdrop-blur-xl rounded-2xl border border-gray-800 p-8 lg:p-10">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                <!-- Subject Info -->
+        <div class="relative bg-gradient-to-br from-gray-900/90 to-gray-950/90 backdrop-blur-xl rounded-2xl border border-gray-800 p-6 sm:p-8 lg:p-10">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div class="flex-1">
-                    <div class="flex items-center gap-4 mb-4">
-                        <!-- Subject Icon with Gradient -->
+                    <div class="flex items-center gap-4 mb-3">
                         <div class="relative">
                             <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur-lg opacity-50"></div>
-                            <div class="relative w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                                <span class="text-2xl font-bold text-white">{{ subject.name|slice:":2"|upper }}</span>
+                            <div class="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                <span class="text-xl sm:text-2xl font-bold text-white">{{ subject.name|slice:":2"|upper }}</span>
                             </div>
                         </div>
                         <div>
-                            <h1 class="text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+                            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
                                 {{ subject.name }}
                             </h1>
-                            <div class="flex items-center gap-2 mt-1">
-                                <div class="flex items-center gap-1 text-sm text-gray-400">
-                                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                <div class="flex items-center gap-1 text-xs sm:text-sm text-gray-400">
+                                    <svg class="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                                     </svg>
                                     <span>{{ topics|length }} Topics</span>
                                 </div>
-                                <span class="text-gray-600">•</span>
-                                <div class="flex items-center gap-1 text-sm text-gray-400">
-                                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span class="text-gray-600 text-xs sm:text-sm">•</span>
+                                <div class="flex items-center gap-1 text-xs sm:text-sm text-gray-400">
+                                    <svg class="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                     </svg>
                                     <span>{{ subject.mock_tests.count }} Tests</span>
@@ -79,19 +74,8 @@
                     </div>
                     
                     {% if subject.description %}
-                        <p class="text-gray-300 text-lg leading-relaxed max-w-3xl">{{ subject.description }}</p>
+                        <p class="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed">{{ subject.description|truncatechars:200 }}</p>
                     {% endif %}
-                </div>
-                
-                <!-- Stats Card -->
-                <div class="relative group">
-                    <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                    <div class="relative px-6 py-4 bg-gray-900/90 backdrop-blur-xl rounded-2xl border border-gray-800">
-                        <div class="text-center">
-                            <span class="text-3xl font-bold text-white">{{ subject.mock_tests.count }}</span>
-                            <span class="text-sm text-gray-400 block mt-1">Total Tests</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -99,118 +83,95 @@
 
     <!-- Topics Section -->
     {% if topics %}
-    <div class="mb-16">
-        <!-- Section Header -->
-        <div class="flex items-center justify-between mb-8">
-            <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-                <div class="p-2 bg-blue-500/20 rounded-xl">
-                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="mb-12 lg:mb-16">
+        <div class="flex items-center justify-between mb-5 sm:mb-8">
+            <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3">
+                <div class="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg sm:rounded-xl">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
                     </svg>
                 </div>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Topics</span>
+                <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Topics</span>
             </h2>
-            <span class="text-sm text-gray-400">{{ topics|length }} topics available</span>
+            <span class="text-xs sm:text-sm text-gray-400">{{ topics|length }} topics</span>
         </div>
         
-        <!-- Topics Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {% for topic in topics %}
-            {% with gradient=forloop.counter0|stringformat:"s" %}
-            <div class="group relative card-hover-effect">
-                <!-- Card Glow -->
+            <div class="group relative">
                 <div class="absolute -inset-0.5 bg-gradient-to-r 
                     {% if forloop.counter0|divisibleby:3 %}from-blue-600 to-cyan-600
                     {% elif forloop.counter0|divisibleby:2 %}from-purple-600 to-pink-600
                     {% else %}from-indigo-600 to-blue-600{% endif %} 
-                    rounded-2xl blur opacity-0 group-hover:opacity-30 transition-all duration-500">
-                </div>
+                    rounded-xl sm:rounded-2xl blur opacity-0 group-hover:opacity-30 transition-all duration-500"></div>
                 
-                <!-- Main Card -->
-                <div class="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl border border-gray-800 overflow-hidden hover:border-gray-700 transition-all">
-                    <!-- Colored Top Bar -->
+                <div class="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl sm:rounded-2xl border border-gray-800 overflow-hidden hover:border-gray-700 transition-all">
                     <div class="h-1 w-full bg-gradient-to-r 
                         {% if forloop.counter0|divisibleby:3 %}from-blue-500 to-cyan-500
                         {% elif forloop.counter0|divisibleby:2 %}from-purple-500 to-pink-500
                         {% else %}from-indigo-500 to-blue-500{% endif %}">
                     </div>
                     
-                    <div class="p-6">
-                        <!-- Topic Header -->
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="p-2 bg-gray-800 rounded-lg">
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="p-4 sm:p-6">
+                        <div class="flex items-start justify-between mb-3 sm:mb-4">
+                            <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                                <div class="p-1.5 sm:p-2 bg-gray-800 rounded-lg shrink-0">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
                                     </svg>
                                 </div>
-                                <h3 class="text-xl font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r
-                                    {% if forloop.counter0|divisibleby:3 %}from-blue-400 to-cyan-400
-                                    {% elif forloop.counter0|divisibleby:2 %}from-purple-400 to-pink-400
-                                    {% else %}from-indigo-400 to-blue-400{% endif %} 
-                                    transition-all">
-                                    {{ topic.name }}
-                                </h3>
+                                <h3 class="text-base sm:text-xl font-bold text-white truncate">{{ topic.name }}</h3>
                             </div>
-                            
-                            <!-- Test Count Badge -->
-                            <span class="px-3 py-1 bg-gray-800 rounded-full text-xs font-medium text-gray-300 border border-gray-700">
+                            <span class="px-2 py-0.5 sm:px-3 sm:py-1 bg-gray-800 rounded-full text-[10px] sm:text-xs font-medium text-gray-300 border border-gray-700 whitespace-nowrap ml-2">
                                 {{ topic.test_count }} tests
                             </span>
                         </div>
                         
-                        <!-- Description -->
-                        <p class="text-gray-400 text-sm mb-6 line-clamp-2">
+                        <p class="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6 line-clamp-2">
                             {% if topic.description %}
-                                {{ topic.description }}
+                                {{ topic.description|truncatechars:80 }}
                             {% else %}
-                                Practice {{ topic.name }} with our specialized tests and track your progress.
+                                Practice {{ topic.name }} with specialized mock tests
                             {% endif %}
                         </p>
                         
-                        <!-- View Button -->
                         <a href="{% url 'subject_mocktests:topic_detail' topic.id %}" 
-                           class="inline-flex items-center justify-between w-full px-4 py-2.5 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-xl text-gray-300 hover:text-white transition-all group/btn">
-                            <span class="font-medium">View Tests</span>
-                            <svg class="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           class="inline-flex items-center justify-between w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-lg sm:rounded-xl text-gray-300 hover:text-white transition-all group/btn text-sm sm:text-base">
+                            <span class="font-medium">Explore Tests</span>
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
                         </a>
                     </div>
                 </div>
             </div>
-            {% endwith %}
             {% endfor %}
         </div>
     </div>
     {% endif %}
 
-    <!-- Direct Mock Tests Section -->
+    <!-- Mock Tests Section -->
     {% if direct_tests %}
     <div>
-        <!-- Section Header -->
-        <div class="flex items-center justify-between mb-8">
-            <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-                <div class="p-2 bg-purple-500/20 rounded-xl">
-                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-center justify-between mb-5 sm:mb-8">
+            <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3">
+                <div class="p-1.5 sm:p-2 bg-purple-500/20 rounded-lg sm:rounded-xl">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                 </div>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Mock Tests</span>
+                <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Mock Tests</span>
             </h2>
-            <span class="text-sm text-gray-400">{{ direct_tests|length }} tests available</span>
+            <span class="text-xs sm:text-sm text-gray-400">{{ direct_tests|length }} available</span>
         </div>
         
-        <!-- Tests Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Desktop View (Cards) -->
+        <div class="hidden md:grid md:grid-cols-1 lg:grid-cols-2 gap-6">
             {% for test in direct_tests %}
-            <div class="group relative card-hover-effect">
-                <!-- Card Glow -->
+            <div class="group relative">
                 <div class="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-0 group-hover:opacity-30 transition-all duration-500"></div>
                 
-                <!-- Main Card -->
                 <div class="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl border border-gray-800 overflow-hidden hover:border-gray-700 transition-all">
-                    <!-- Difficulty Indicator Top Bar -->
                     <div class="h-1.5 w-full bg-gradient-to-r 
                         {% if test.difficulty == 'Easy' %}from-green-500 to-emerald-500
                         {% elif test.difficulty == 'Medium' %}from-yellow-500 to-amber-500
@@ -218,74 +179,49 @@
                     </div>
                     
                     <div class="p-6">
-                        <!-- Header with Title and Difficulty -->
+                        <!-- Header -->
                         <div class="flex justify-between items-start mb-4">
                             <h3 class="text-xl font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r from-purple-400 to-pink-400 transition-all">
                                 {{ test.title }}
                             </h3>
                             <span class="px-3 py-1.5 rounded-full text-xs font-semibold border
-                                {% if test.difficulty == 'Easy' %}
-                                    bg-green-500/10 text-green-400 border-green-500/30
-                                {% elif test.difficulty == 'Medium' %}
-                                    bg-yellow-500/10 text-yellow-400 border-yellow-500/30
-                                {% else %}
-                                    bg-red-500/10 text-red-400 border-red-500/30
-                                {% endif %}">
+                                {% if test.difficulty == 'Easy' %}bg-green-500/10 text-green-400 border-green-500/30
+                                {% elif test.difficulty == 'Medium' %}bg-yellow-500/10 text-yellow-400 border-yellow-500/30
+                                {% else %}bg-red-500/10 text-red-400 border-red-500/30{% endif %}">
                                 {{ test.difficulty }}
                             </span>
                         </div>
                         
                         <!-- Description -->
                         <p class="text-gray-400 text-sm mb-6">
-                            {% if test.description %}
-                                {{ test.description|truncatechars:120 }}
-                            {% else %}
-                                Test your knowledge with this comprehensive {{ test.difficulty|lower }} level mock test.
-                            {% endif %}
+                            {{ test.description|truncatechars:120|default:"Test your knowledge with this comprehensive mock test." }}
                         </p>
                         
-                        <!-- Test Stats Grid -->
-                        <div class="grid grid-cols-2 gap-3 mb-6">
-                            <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
-                                <div class="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    Questions
-                                </div>
-                                <div class="text-lg font-bold text-white">{{ test.total_questions }}</div>
+                        <!-- Stats Grid - Using correct field names -->
+                        <div class="grid grid-cols-4 gap-3 mb-6">
+                            <div class="bg-gray-800/50 rounded-xl p-3 text-center">
+                                <div class="text-xs text-gray-500 mb-1">Questions</div>
+                                <div class="text-lg font-bold text-white">{{ test.total_questions|default:0 }}</div>
                             </div>
-                            
-                            <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
-                                <div class="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    Duration
-                                </div>
-                                <div class="text-lg font-bold text-white">{{ test.duration }} min</div>
+                            <div class="bg-gray-800/50 rounded-xl p-3 text-center">
+                                <div class="text-xs text-gray-500 mb-1">Duration</div>
+                                <div class="text-lg font-bold text-white">{{ test.duration }}m</div>
                             </div>
-                            
-                            <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
-                                <div class="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                                    </svg>
-                                    Max Marks
-                                </div>
-                                <div class="text-lg font-bold text-white">{{ test.total_marks }}</div>
+                            <div class="bg-gray-800/50 rounded-xl p-3 text-center">
+                                <div class="text-xs text-gray-500 mb-1">Max Marks</div>
+                                <div class="text-lg font-bold text-white">{{ test.total_marks|default:test.total_questions }}</div>
                             </div>
-                            
-                            <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
-                                <div class="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                                    </svg>
-                                    Negative
-                                </div>
+                            <div class="bg-gray-800/50 rounded-xl p-3 text-center">
+                                <div class="text-xs text-gray-500 mb-1">Negative</div>
                                 <div class="text-lg font-bold 
                                     {% if test.negative_marking_type != 'no_negative' %}text-rose-400{% else %}text-green-400{% endif %}">
-                                    {% if test.negative_marking_type != 'no_negative' %}Yes{% else %}No{% endif %}
+                                    {% if test.negative_marking_type == 'fixed_per_question' %}
+                                        {{ test.negative_marking_value }}
+                                    {% elif test.negative_marking_type == 'percentage_of_marks' %}
+                                        {{ test.negative_marking_value }}%
+                                    {% else %}
+                                        No
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -293,14 +229,13 @@
                         <!-- Action Buttons -->
                         <div class="flex gap-3">
                             <a href="{% url 'subject_mocktests:pretest_detail' test.id %}" 
-                               class="flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-4 rounded-xl transition-all transform group-hover:scale-[1.02]">
+                               class="flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-4 rounded-xl transition-all">
                                 <span>Start Test</span>
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </a>
-                            
                             <button onclick="showTestDetails({{ test.id }})" 
                                     class="p-3 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-xl text-gray-400 hover:text-blue-400 transition-all">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -313,93 +248,165 @@
             </div>
             {% endfor %}
         </div>
+        
+        <!-- Mobile View (Compact Strips) -->
+        <div class="md:hidden space-y-3">
+            {% for test in direct_tests %}
+            <div class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl border border-gray-800 overflow-hidden">
+                <div class="relative">
+                    <!-- Difficulty Color Bar -->
+                    <div class="h-0.5 w-full bg-gradient-to-r 
+                        {% if test.difficulty == 'Easy' %}from-green-500 to-emerald-500
+                        {% elif test.difficulty == 'Medium' %}from-yellow-500 to-amber-500
+                        {% else %}from-red-500 to-rose-500{% endif %}">
+                    </div>
+                    
+                    <div class="p-3">
+                        <!-- First Row: Title and Quick Stats -->
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-bold text-white flex-1 mr-2 line-clamp-1">{{ test.title }}</h3>
+                            <div class="flex gap-1.5">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-medium border
+                                    {% if test.difficulty == 'Easy' %}bg-green-500/10 text-green-400 border-green-500/30
+                                    {% elif test.difficulty == 'Medium' %}bg-yellow-500/10 text-yellow-400 border-yellow-500/30
+                                    {% else %}bg-red-500/10 text-red-400 border-red-500/30{% endif %}">
+                                    {{ test.difficulty|slice:":1" }}
+                                </span>
+                                <span class="px-1.5 py-0.5 bg-blue-500/10 rounded text-[9px] font-medium text-blue-400 border border-blue-500/30">
+                                    {{ test.total_questions|default:0 }}Q
+                                </span>
+                                <span class="px-1.5 py-0.5 bg-purple-500/10 rounded text-[9px] font-medium text-purple-400 border border-purple-500/30">
+                                    {{ test.duration }}m
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Second Row: Detailed Stats -->
+                        <div class="flex items-center justify-between gap-2 mb-2 text-[10px]">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-gray-500">📊 {{ test.total_marks|default:test.total_questions }} marks</span>
+                                {% if test.negative_marking_type != 'no_negative' %}
+                                    <span class="text-rose-400">
+                                        ⚠️ -{% if test.negative_marking_type == 'fixed_per_question' %}{{ test.negative_marking_value }}{% else %}{{ test.negative_marking_value }}%{% endif %}
+                                    </span>
+                                {% else %}
+                                    <span class="text-green-400">✓ No -ve</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Third Row: Action Buttons -->
+                        <div class="flex gap-2 mt-2">
+                            <a href="{% url 'subject_mocktests:pretest_detail' test.id %}" 
+                               class="flex-1 inline-flex items-center justify-center gap-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-1.5 px-2 rounded-lg text-xs transition-all">
+                                <span>Start Test</span>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                </svg>
+                            </a>
+                            <button onclick="showTestDetails({{ test.id }})" 
+                                    class="px-2 py-1.5 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-blue-400 transition-all text-xs">
+                                Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
     
     <!-- Empty State -->
     {% if not topics and not direct_tests %}
-    <div class="relative text-center py-20 px-4">
-        <!-- Animated Background -->
-        <div class="absolute inset-0 bg-gradient-to-b from-gray-900/50 to-gray-950/50 rounded-3xl"></div>
+    <div class="relative text-center py-12 sm:py-20 px-4">
+        <div class="absolute inset-0 bg-gradient-to-b from-gray-900/50 to-gray-950/50 rounded-2xl sm:rounded-3xl"></div>
         
         <div class="relative">
-            <!-- Animated Icon -->
-            <div class="relative w-32 h-32 mx-auto mb-6">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl animate-pulse"></div>
-                <div class="absolute inset-2 bg-gray-900 rounded-2xl flex items-center justify-center">
-                    <svg class="w-16 h-16 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl animate-pulse"></div>
+                <div class="absolute inset-1 bg-gray-900 rounded-xl flex items-center justify-center">
+                    <svg class="w-10 h-10 sm:w-12 sm:h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                 </div>
             </div>
             
-            <h2 class="text-3xl font-bold text-white mb-3">No Tests Available</h2>
-            <p class="text-gray-400 mb-8 max-w-md mx-auto">There are no mock tests for {{ subject.name }} yet. Check back soon for new content!</p>
+            <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">No Tests Available</h2>
+            <p class="text-gray-400 text-sm sm:text-base mb-6 max-w-md mx-auto px-4">No mock tests for {{ subject.name }} yet. Check back soon!</p>
             
             <a href="{% url 'subject_mocktests:subject_list' %}" 
-               class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3.5 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
-                Browse Other Subjects
+                Browse Subjects
             </a>
         </div>
     </div>
     {% endif %}
 </div>
 
-<!-- Floating Action Buttons -->
-<div class="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
-    <!-- Scroll to Top -->
+<!-- Scroll to Top Button -->
+<div class="fixed bottom-4 right-4 z-50 md:bottom-6 md:right-6">
     <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" 
-            class="group relative p-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-110">
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-        <svg class="relative w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="p-3 md:p-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg md:rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-110">
+        <svg class="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
         </svg>
     </button>
 </div>
 
-<!-- Custom Animations -->
 <style>
     @keyframes blob {
-        0% { transform: translate(0px, 0px) scale(1); }
+        0%, 100% { transform: translate(0px, 0px) scale(1); }
         33% { transform: translate(30px, -50px) scale(1.1); }
         66% { transform: translate(-20px, 20px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
     }
     
-    .animate-blob {
-        animation: blob 7s infinite;
+    .animate-blob { animation: blob 7s infinite; }
+    .animation-delay-2000 { animation-delay: 2s; }
+    .animation-delay-4000 { animation-delay: 4s; }
+    
+    @keyframes slideIn {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
     
-    .animation-delay-2000 {
-        animation-delay: 2s;
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(-100%); opacity: 0; }
     }
     
-    .animation-delay-4000 {
-        animation-delay: 4s;
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     
-    .card-hover-effect {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     
-    .card-hover-effect:hover {
-        transform: translateY(-4px);
+    @media (max-width: 768px) {
+        button, a {
+            -webkit-tap-highlight-color: transparent;
+        }
     }
 </style>
 
-<!-- JavaScript -->
 <script>
     function showTestDetails(testId) {
-        // You can implement a modal or tooltip here
-        showToast('Test details feature coming soon!');
+        showToast('📋 Full details available on the test instruction page');
     }
     
     function showToast(message) {
         const toast = document.createElement('div');
-        toast.className = 'fixed bottom-6 left-6 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl border border-gray-800 transform transition-all duration-500 z-50';
+        toast.className = 'fixed bottom-20 left-4 right-4 md:left-6 md:bottom-6 md:right-auto bg-gray-900 text-white px-4 py-2.5 rounded-lg shadow-2xl border border-gray-700 z-50 text-sm max-w-md';
         toast.style.animation = 'slideIn 0.3s ease-out';
         toast.innerHTML = message;
         
@@ -410,19 +417,5 @@
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
-    
-    // Add slide animations
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(-100%); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
 </script>
 {% endblock %}

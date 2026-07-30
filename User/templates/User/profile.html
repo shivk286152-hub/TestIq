@@ -1,42 +1,42 @@
 {% extends "base.html" %}
-{% load form_tags %}
-{% load math_filters %}  <!-- Create this if you need math filters -->
+{% load static %}
 
-{% block title %}Profile{% endblock %}
+{% block title %}Profile | {{ site_name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="max-w-6xl mx-auto px-4 py-8">
 
     <!-- PAGE HEADER -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-semibold text-gray-800">Profile Settings</h1>
-        <p class="text-sm text-gray-500">Update your personal information</p>
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Profile Settings</h1>
+        <p class="text-gray-500 mt-1">Manage your personal information and track your progress</p>
     </div>
 
     <!-- COLLAPSIBLE PROFILE CARD -->
-    <div class="bg-white rounded-xl shadow mb-8" x-data="{ expanded: false }">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-8" x-data="{ expanded: false }">
         <!-- Card Header with Toggle -->
-        <div class="p-4 border-b border-gray-100 flex justify-between items-center cursor-pointer" @click="expanded = !expanded">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition" @click="expanded = !expanded">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xl font-bold shadow-md">
                     {% if user.profile.profile_pic %}
-                    <img src="{{ user.profile.profile_pic.url }}" class="w-10 h-10 rounded-full object-cover">
+                    <img src="{{ user.profile.profile_pic.url }}" class="w-14 h-14 rounded-full object-cover">
                     {% else %}
-                    <i class="fa-solid fa-user"></i>
+                    {{ user.username|first|upper }}
                     {% endif %}
                 </div>
                 <div>
-                    <h2 class="font-medium text-gray-800">{{ user.profile.name|default:user.username }}</h2>
-                    <p class="text-xs text-gray-500">{{ user.email }}</p>
+                    <h2 class="font-semibold text-gray-800 text-lg">{{ user.profile.name|default:user.username }}</h2>
+                    <p class="text-sm text-gray-500">{{ user.email }}</p>
                 </div>
             </div>
-            <button type="button"
-                    class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition">
-                <i class="fa-solid fa-chevron-right" :class="{ 'rotate-90': expanded }"></i>
+            <button type="button" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition transform" :class="{ 'rotate-180': expanded }">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
             </button>
         </div>
 
-        <!-- Collapsible Content - Profile Form -->
+        <!-- Collapsible Content -->
         <div x-show="expanded" 
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 transform -translate-y-2"
@@ -51,79 +51,54 @@
 
                     <!-- PROFILE IMAGE -->
                     <div class="flex items-center gap-6">
-                        <div>
+                        <div class="relative">
                             {% if user.profile.profile_pic %}
-                            <img src="{{ user.profile.profile_pic.url }}" class="w-24 h-24 rounded-full object-cover border">
+                            <img src="{{ user.profile.profile_pic.url }}" class="w-24 h-24 rounded-full object-cover border-4 border-white shadow">
                             {% else %}
-                            <div class="w-24 h-24 rounded-full bg-gray-200
-                                        flex items-center justify-center text-gray-500 text-4xl">
-                                <i class="fa-solid fa-user"></i>
+                            <div class="w-24 h-24 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-3xl font-bold shadow">
+                                {{ user.username|first|upper }}
                             </div>
                             {% endif %}
                         </div>
-
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Profile Picture
                             </label>
                             {{ form.profile_pic }}
-                            <p class="text-xs text-gray-500 mt-1">
+                            <p class="text-xs text-gray-500 mt-2">
                                 JPG or PNG. Max 2MB.
                             </p>
                         </div>
                     </div>
 
-                    <hr>
+                    <hr class="border-gray-200">
 
                     <!-- FORM GRID -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- NAME -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Name
-                            </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                             {{ form.name }}
                         </div>
-
-                        <!-- EMAIL -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Email <span class="text-red-500">*</span>
-                            </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
                             {{ form.email }}
                         </div>
-
-                        <!-- PHONE -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Phone (optional)
-                            </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                             {{ form.phone }}
                         </div>
-
-                        <!-- PINCODE -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Pincode
-                            </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
                             {{ form.pincode }}
                         </div>
-
-                        <!-- CITY -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                City
-                            </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
                             {{ form.city }}
                         </div>
-
-                        <!-- STATE -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                State
-                            </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
                             <div class="relative">
-                                <select name="state" id="id_state" class="appearance-none w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition pr-10">
+                                <select name="state" id="id_state" class="appearance-none w-full px-4 py-2 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                                     <option value="">Select State</option>
                                     <option value="Andhra Pradesh" {% if form.state.value == 'Andhra Pradesh' %}selected{% endif %}>Andhra Pradesh</option>
                                     <option value="Bihar" {% if form.state.value == 'Bihar' %}selected{% endif %}>Bihar</option>
@@ -135,21 +110,21 @@
                                     <option value="Uttar Pradesh" {% if form.state.value == 'Uttar Pradesh' %}selected{% endif %}>Uttar Pradesh</option>
                                     <option value="West Bengal" {% if form.state.value == 'West Bengal' %}selected{% endif %}>West Bengal</option>
                                 </select>
-                                <!-- Custom dropdown arrow -->
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
-                                    <i class="fa-solid fa-chevron-down text-gray-400"></i>
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- FORM ACTIONS -->
-                    <div class="flex justify-end gap-4 pt-4 border-t">
-                        <a href="{% url 'exams:home' %}"
-                           class="px-5 py-2 rounded-lg border text-gray-600 hover:bg-gray-200 hover:border-zinc-500 inline-block">
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                        <a href="{% url 'exams:home' %}" class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
                             Cancel
                         </a>
-                        <button type="submit" class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
+                        <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 transition shadow-md">
                             Save Changes
                         </button>
                     </div>
@@ -158,206 +133,382 @@
         </div>
     </div>
 
-    <!-- USER DASHBOARD SECTION -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Dashboard</h2>
-
-        <!-- Stats Cards with Real Data -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <!-- Total Tests -->
-            <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-blue-600 font-medium">Total Tests</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ total_tests }}</p>
+    <!-- ========== TWO DASHBOARD BUTTONS ========== -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <!-- Exams App Dashboard Button -->
+        <button onclick="showDashboard('exams')" id="btn-exams" 
+                class="group relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
+            <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+            <div class="relative flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                        <i class="fa-solid fa-file-lines"></i>
+                    <div class="text-left">
+                        <h3 class="text-2xl font-bold text-white">Exams App</h3>
+                        <p class="text-indigo-200 text-sm">Mock tests by category</p>
                     </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-3xl font-bold text-white">{{ exams_total }}</div>
+                    <p class="text-indigo-200 text-xs">Tests Completed</p>
                 </div>
             </div>
+        </button>
 
-            <!-- In Progress -->
-            <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-yellow-600 font-medium">In Progress</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ in_progress_tests }}</p>
+        <!-- Subject Mocktests Dashboard Button -->
+        <button onclick="showDashboard('subject')" id="btn-subject" 
+                class="group relative overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
+            <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+            <div class="relative flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
-                        <i class="fa-regular fa-clock"></i>
+                    <div class="text-left">
+                        <h3 class="text-2xl font-bold text-white">Subject Tests</h3>
+                        <p class="text-emerald-200 text-sm">Topic-wise practice</p>
                     </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-3xl font-bold text-white">{{ subject_total }}</div>
+                    <p class="text-emerald-200 text-xs">Tests Completed</p>
                 </div>
             </div>
+        </button>
+    </div>
 
-            <!-- Average Score -->
-            <div class="bg-purple-50 rounded-lg p-4 border border-purple-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-purple-600 font-medium">Avg. Score</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ avg_score }}%</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
-                        <i class="fa-solid fa-chart-line"></i>
-                    </div>
+    <!-- ========== EXAMS APP DASHBOARD ========== -->
+    <div id="exams-dashboard" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">📚 Exams App Dashboard</h2>
+                    <p class="text-gray-500 text-sm mt-1">Your performance in category-based mock tests</p>
                 </div>
-            </div>
-
-            <!-- Best Score -->
-            <div class="bg-green-50 rounded-lg p-4 border border-green-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-green-600 font-medium">Best Score</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ best_score }}%</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                        <i class="fa-solid fa-trophy"></i>
-                    </div>
-                </div>
+                <a href="{% url 'exams:dashboard' %}" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">View Full Dashboard →</a>
             </div>
         </div>
 
-        <!-- Additional Stats Row -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center">
-            <div class="bg-gray-50 rounded-lg p-3">
-                <p class="text-xs text-gray-500">Questions Answered</p>
-                <p class="text-lg font-semibold text-gray-800">{{ total_questions_answered }}</p>
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-gray-50/50">
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-500">Tests Completed</p>
+                <p class="text-2xl font-bold text-indigo-600">{{ exams_total }}</p>
             </div>
-            <div class="bg-gray-50 rounded-lg p-3">
-                <p class="text-xs text-gray-500">Correct Answers</p>
-                <p class="text-lg font-semibold text-green-600">{{ correct_answers }}</p>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-3">
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                 <p class="text-xs text-gray-500">Accuracy</p>
-                <p class="text-lg font-semibold text-blue-600">{{ accuracy_rate }}%</p>
+                <p class="text-2xl font-bold text-indigo-600">{{ exams_accuracy }}%</p>
             </div>
-            <div class="bg-gray-50 rounded-lg p-3">
-                <p class="text-xs text-gray-500">Testimonial</p>
-                <p class="text-lg font-semibold text-gray-800">
-                    {% if user_testimonial %}
-                        <span class="text-green-600">Submitted</span>
-                    {% else %}
-                        <span class="text-yellow-600">Pending</span>
-                    {% endif %}
-                </p>
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-500">Avg Score</p>
+                <p class="text-2xl font-bold text-indigo-600">{{ exams_avg_score }}%</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-500">Best Score</p>
+                <p class="text-2xl font-bold text-indigo-600">{{ exams_best_score }}%</p>
             </div>
         </div>
 
-        <!-- Recent Activity with Real Data -->
-        <div class="mb-6">
-            <h3 class="text-lg font-medium text-gray-700 mb-3">Recent Activity</h3>
-            <div class="space-y-3">
-                {% for attempt in recent_attempts %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+            <!-- Subject Performance Chart -->
+            <div class="bg-gray-50 rounded-xl p-4">
+                <h3 class="font-semibold text-gray-800 mb-3">📊 Subject-wise Performance</h3>
+                <div class="h-64">
+                    <canvas id="examsSubjectChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Weekly Trend Chart -->
+            <div class="bg-gray-50 rounded-xl p-4">
+                <h3 class="font-semibold text-gray-800 mb-3">📈 Weekly Performance Trend</h3>
+                <div class="h-64">
+                    <canvas id="examsWeeklyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tests -->
+        <div class="p-6 border-t border-gray-100">
+            <h3 class="font-semibold text-gray-800 mb-3">📝 Recent Tests</h3>
+            <div class="space-y-2">
+                {% for attempt in exams_recent %}
                 <a href="{% url 'exams:result_dashboard' attempt.id %}" class="block">
-                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                            <i class="fa-solid fa-pen-to-square text-sm"></i>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-indigo-50 transition border border-gray-100">
+                        <div>
+                            <p class="font-medium text-gray-800">{{ attempt.title }}</p>
+                            <p class="text-xs text-gray-500">{{ attempt.date }}</p>
                         </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-800">{{ attempt.mock_test.title }}</p>
-                            <p class="text-xs text-gray-500">
-                                {{ attempt.submitted_at|date:"M d, Y" }} • 
-                                Score: {{ attempt.correct_answers }}/{{ attempt.total_marks }}
-                            </p>
+                        <div class="text-right">
+                            <span class="font-bold text-indigo-600">{{ attempt.score }}%</span>
+                            <p class="text-xs text-gray-500">{{ attempt.correct }}/{{ attempt.total }}</p>
                         </div>
-                        {% if attempt.total_marks > 0 %}
-                            {% with percentage=attempt.correct_answers|div:attempt.total_marks|mul:100 %}
-                                <span class="text-sm font-semibold px-2 py-1 rounded
-                                    {% if percentage >= 80 %}bg-green-100 text-green-700
-                                    {% elif percentage >= 60 %}bg-yellow-100 text-yellow-700
-                                    {% else %}bg-red-100 text-red-700{% endif %}">
-                                    {{ percentage|floatformat:1 }}%
-                                </span>
-                            {% endwith %}
-                        {% endif %}
                     </div>
                 </a>
                 {% empty %}
                 <div class="text-center py-8 bg-gray-50 rounded-lg">
-                    <div class="text-gray-400 mb-2">
-                        <i class="fa-solid fa-chart-line text-4xl"></i>
-                    </div>
-                    <p class="text-gray-500">No tests attempted yet</p>
-                    <a href="{% url 'exams:home' %}" class="text-sm text-blue-600 hover:underline mt-2 inline-block">
-                        Browse Tests →
-                    </a>
+                    <p class="text-gray-500">No tests completed yet</p>
+                    <a href="{% url 'exams:home' %}" class="text-indigo-600 text-sm mt-2 inline-block">Start a test →</a>
                 </div>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- Subject Performance Chart (if you want to include it) -->
-        {% if subject_labels %}
-        <div class="mb-6">
-            <h3 class="text-lg font-medium text-gray-700 mb-3">Subject Performance</h3>
-            <div class="bg-gray-50 rounded-lg p-4">
+        <!-- In Progress Tests -->
+        {% if exams_in_progress > 0 %}
+        <div class="p-6 border-t border-gray-100 bg-yellow-50/30">
+            <h3 class="font-semibold text-gray-800 mb-3">⏳ In Progress ({{ exams_in_progress }})</h3>
+            <p class="text-sm text-gray-600">You have {{ exams_in_progress }} unfinished test{{ exams_in_progress|pluralize }}. <a href="{% url 'exams:home' %}" class="text-indigo-600">Continue practicing →</a></p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ========== SUBJECT MOCKTESTS DASHBOARD ========== -->
+    <div id="subject-dashboard" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hidden">
+        <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-teal-50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">🎯 Subject Tests Dashboard</h2>
+                    <p class="text-gray-500 text-sm mt-1">Your performance in topic-wise mock tests</p>
+                </div>
+                <a href="{% url 'subject_mocktests:subject_dashboard' %}" class="text-emerald-600 hover:text-emerald-700 text-sm font-medium">View Full Dashboard →</a>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-gray-50/50">
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-500">Tests Completed</p>
+                <p class="text-2xl font-bold text-emerald-600">{{ subject_total }}</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-500">Accuracy</p>
+                <p class="text-2xl font-bold text-emerald-600">{{ subject_accuracy }}%</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-500">Avg Score</p>
+                <p class="text-2xl font-bold text-emerald-600">{{ subject_avg_score }}%</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-500">Best Score</p>
+                <p class="text-2xl font-bold text-emerald-600">{{ subject_best_score }}%</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+            <!-- Topic Performance Chart -->
+            <div class="bg-gray-50 rounded-xl p-4">
+                <h3 class="font-semibold text-gray-800 mb-3">📊 Topic-wise Performance</h3>
                 <div class="h-64">
-                    <canvas id="subjectChart"></canvas>
+                    <canvas id="subjectTopicChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Weekly Trend Chart -->
+            <div class="bg-gray-50 rounded-xl p-4">
+                <h3 class="font-semibold text-gray-800 mb-3">📈 Weekly Performance Trend</h3>
+                <div class="h-64">
+                    <canvas id="subjectWeeklyChart"></canvas>
                 </div>
             </div>
         </div>
-        {% endif %}
 
-        <!-- Quick Actions -->
-        <div>
-            <h3 class="text-lg font-medium text-gray-700 mb-3">Quick Actions</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <a href="{% url 'exams:home' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
-                    <i class="fa-solid fa-book-open text-blue-600 mb-1 group-hover:scale-110 transition"></i>
-                    <span class="text-xs text-gray-600">New Test</span>
+        <!-- Recent Tests -->
+        <div class="p-6 border-t border-gray-100">
+            <h3 class="font-semibold text-gray-800 mb-3">📝 Recent Tests</h3>
+            <div class="space-y-2">
+                {% for attempt in subject_recent %}
+                <a href="{% url 'subject_mocktests:result_dashboard' attempt.id %}" class="block">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-emerald-50 transition border border-gray-100">
+                        <div>
+                            <p class="font-medium text-gray-800">{{ attempt.title }}</p>
+                            <p class="text-xs text-gray-500">{{ attempt.date }}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-bold text-emerald-600">{{ attempt.score }}%</span>
+                            <p class="text-xs text-gray-500">{{ attempt.correct }}/{{ attempt.total }}</p>
+                        </div>
+                    </div>
                 </a>
-                <a href="{% url 'exams:dashboard' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
-                    <i class="fa-solid fa-chart-simple text-green-600 mb-1 group-hover:scale-110 transition"></i>
-                    <span class="text-xs text-gray-600">Full Dashboard</span>
-                </a>
-                <a href="{% url 'exams:submit_testimonial' %}" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
-                    <i class="fa-solid fa-star text-yellow-600 mb-1 group-hover:scale-110 transition"></i>
-                    <span class="text-xs text-gray-600">Testimonial</span>
-                </a>
-                <a href="#" class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
-                    <i class="fa-solid fa-gear text-gray-600 mb-1 group-hover:scale-110 transition"></i>
-                    <span class="text-xs text-gray-600">Settings</span>
-                </a>
+                {% empty %}
+                <div class="text-center py-8 bg-gray-50 rounded-lg">
+                    <p class="text-gray-500">No tests completed yet</p>
+                    <a href="{% url 'subject_mocktests:subject_list' %}" class="text-emerald-600 text-sm mt-2 inline-block">Start a test →</a>
+                </div>
+                {% endfor %}
             </div>
         </div>
+
+        <!-- In Progress Tests -->
+        {% if subject_in_progress > 0 %}
+        <div class="p-6 border-t border-gray-100 bg-yellow-50/30">
+            <h3 class="font-semibold text-gray-800 mb-3">⏳ In Progress ({{ subject_in_progress }})</h3>
+            <p class="text-sm text-gray-600">You have {{ subject_in_progress }} unfinished test{{ subject_in_progress|pluralize }}. <a href="{% url 'subject_mocktests:subject_list' %}" class="text-emerald-600">Continue practicing →</a></p>
+        </div>
+        {% endif %}
     </div>
 </div>
 
 <!-- Alpine.js -->
 <script src="//unpkg.com/alpinejs" defer></script>
 
-<!-- Chart.js for subject performance -->
-{% if subject_labels %}
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('subjectChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: {{ subject_labels_json|safe }},
-            datasets: [{
-                label: 'Performance (%)',
-                data: {{ subject_scores_json|safe }},
-                backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                borderColor: 'rgb(59, 130, 246)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100
+    // Dashboard switching function
+    function showDashboard(type) {
+        const examsDashboard = document.getElementById('exams-dashboard');
+        const subjectDashboard = document.getElementById('subject-dashboard');
+        const btnExams = document.getElementById('btn-exams');
+        const btnSubject = document.getElementById('btn-subject');
+        
+        if (type === 'exams') {
+            examsDashboard.classList.remove('hidden');
+            subjectDashboard.classList.add('hidden');
+            btnExams.style.opacity = '1';
+            btnSubject.style.opacity = '0.6';
+        } else {
+            examsDashboard.classList.add('hidden');
+            subjectDashboard.classList.remove('hidden');
+            btnExams.style.opacity = '0.6';
+            btnSubject.style.opacity = '1';
+        }
+    }
+
+    // Initialize charts when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show exams dashboard by default
+        showDashboard('exams');
+        
+        // Exams Subject Chart
+        const examsSubjectCtx = document.getElementById('examsSubjectChart')?.getContext('2d');
+        if (examsSubjectCtx && {{ exams_subject_labels_json|safe }}.length) {
+            new Chart(examsSubjectCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ exams_subject_labels_json|safe }},
+                    datasets: [{
+                        label: 'Accuracy (%)',
+                        data: {{ exams_subject_scores_json|safe }},
+                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                        borderColor: 'rgb(99, 102, 241)',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { ticks: { font: { size: 11 } } }
+                    }
                 }
-            }
+            });
+        }
+        
+        // Exams Weekly Chart
+        const examsWeeklyCtx = document.getElementById('examsWeeklyChart')?.getContext('2d');
+        if (examsWeeklyCtx && {{ exams_weekly_labels_json|safe }}.length) {
+            new Chart(examsWeeklyCtx, {
+                type: 'line',
+                data: {
+                    labels: {{ exams_weekly_labels_json|safe }},
+                    datasets: [{
+                        label: 'Score (%)',
+                        data: {{ exams_weekly_scores_json|safe }},
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: 'rgb(99, 102, 241)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' } }
+                    }
+                }
+            });
+        }
+        
+        // Subject Topic Chart
+        const subjectTopicCtx = document.getElementById('subjectTopicChart')?.getContext('2d');
+        if (subjectTopicCtx && {{ subject_topic_labels_json|safe }}.length) {
+            new Chart(subjectTopicCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ subject_topic_labels_json|safe }},
+                    datasets: [{
+                        label: 'Accuracy (%)',
+                        data: {{ subject_topic_scores_json|safe }},
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                        borderColor: 'rgb(16, 185, 129)',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { ticks: { font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+        
+        // Subject Weekly Chart
+        const subjectWeeklyCtx = document.getElementById('subjectWeeklyChart')?.getContext('2d');
+        if (subjectWeeklyCtx && {{ subject_weekly_labels_json|safe }}.length) {
+            new Chart(subjectWeeklyCtx, {
+                type: 'line',
+                data: {
+                    labels: {{ subject_weekly_labels_json|safe }},
+                    datasets: [{
+                        label: 'Score (%)',
+                        data: {{ subject_weekly_scores_json|safe }},
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: 'rgb(16, 185, 129)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' } }
+                    }
+                }
+            });
         }
     });
-});
 </script>
-{% endif %}
+
+<style>
+    .rotate-180 {
+        transform: rotate(180deg);
+    }
+    .transition {
+        transition: all 0.2s ease;
+    }
+</style>
 
 <!-- Messages Toast -->
 {% if messages %}
@@ -374,9 +525,6 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 
 <style>
-.rotate-90 {
-    transform: rotate(90deg);
-}
 @keyframes slide-in {
     from {
         transform: translateX(100%);

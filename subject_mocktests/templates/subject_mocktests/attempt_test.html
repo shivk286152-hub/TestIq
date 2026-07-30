@@ -158,7 +158,7 @@
             </div>
         </div>
 
-        <!-- Right Sidebar - Test Status (Mobile) -->
+        <!-- Right Sidebar - Test Status (Mobile Only) -->
         <div class="lg:hidden order-3">
             <div class="bg-white rounded-xl shadow-lg p-4">
                 <h3 class="font-semibold text-gray-700 mb-3 text-sm md:text-base">Test Status</h3>
@@ -172,14 +172,82 @@
                         <p class="text-lg md:text-2xl font-bold text-yellow-600"><span id="mobile-skipped">0</span></p>
                     </div>
                 </div>
-                <!-- Submit Button -->
-                <form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="submit-form" class="mt-4">
+                <!-- Submit Button for Mobile -->
+                <form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="submit-form-mobile" class="mt-4">
                     {% csrf_token %}
-                    <button type="button" onclick="confirmSubmit()"
+                    <button type="button" onclick="confirmSubmit('mobile')"
                         class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-sm md:text-base">
                         Submit Test
                     </button>
                 </form>
+            </div>
+        </div>
+
+        <!-- Right Sidebar - Test Status (Desktop Only) - WITH SUBMIT BUTTON -->
+        <div class="hidden lg:block order-3 lg:w-72">
+            <div class="bg-white rounded-xl shadow-lg p-5 sticky top-28">
+                <h3 class="font-semibold text-gray-700 mb-4 text-lg">Test Summary</h3>
+                
+                <!-- Stats -->
+                <div class="space-y-4 mb-6">
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                        <span class="text-sm text-gray-600">Total Questions:</span>
+                        <span class="font-bold text-gray-800">{{ total_questions }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Answered:</span>
+                        <span class="font-semibold text-green-600 text-lg"><span id="desktop-answered">0</span>/{{ total_questions }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Skipped:</span>
+                        <span class="font-semibold text-yellow-600 text-lg"><span id="desktop-skipped">0</span></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Remaining:</span>
+                        <span class="font-semibold text-gray-600 text-lg"><span id="desktop-remaining">{{ total_questions }}</span></span>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-6">
+                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Progress</span>
+                        <span><span id="desktop-progress-percent">0</span>%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div id="desktop-progress" class="bg-indigo-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Time Info -->
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Started:
+                        </span>
+                        <span class="font-medium">{{ attempt.started_at|time }}</span>
+                    </div>
+                </div>
+
+                <!-- Submit Button for Desktop - THIS WAS MISSING -->
+                <form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="submit-form-desktop">
+                    {% csrf_token %}
+                    <button type="button" onclick="confirmSubmit('desktop')"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-sm flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Submit Test
+                    </button>
+                </form>
+
+                <!-- Warning Message -->
+                <p class="text-xs text-gray-400 mt-3 text-center">
+                    ⚠️ You cannot change answers after submission
+                </p>
             </div>
         </div>
     </div>
@@ -478,19 +546,49 @@
     function updateCounts() {
         let answered = answeredQuestions.size;
         let skipped = skippedQuestions.size;
+        let remaining = totalQuestions - answered - skipped;
+        let progressPercent = totalQuestions > 0 ? Math.round((answered / totalQuestions) * 100) : 0;
+        
+        // Update all counters
         document.getElementById('answered-count').textContent = answered;
         document.getElementById('skipped-count').textContent = skipped;
         document.getElementById('mobile-answered').textContent = answered;
         document.getElementById('mobile-skipped').textContent = skipped;
+        
+        // Desktop counters
+        if (document.getElementById('desktop-answered')) {
+            document.getElementById('desktop-answered').textContent = answered;
+            document.getElementById('desktop-skipped').textContent = skipped;
+            document.getElementById('desktop-remaining').textContent = remaining;
+            document.getElementById('desktop-progress').style.width = progressPercent + '%';
+            document.getElementById('desktop-progress-percent').textContent = progressPercent;
+        }
     }
 
-    window.confirmSubmit = function() {
-        if (confirm('Are you sure you want to submit the test? You cannot change your answers after submission.')) {
+    window.confirmSubmit = function(device = 'mobile') {
+        let message = 'Are you sure you want to submit the test? You cannot change your answers after submission.';
+        
+        // Add warning if questions are unanswered
+        let answered = answeredQuestions.size;
+        let skipped = skippedQuestions.size;
+        let unanswered = totalQuestions - answered - skipped;
+        
+        if (unanswered > 0) {
+            message = `You have ${unanswered} unanswered questions. ${message}`;
+        }
+        
+        if (confirm(message)) {
             if (timerInterval) clearInterval(timerInterval);
             for (let i = 1; i <= totalQuestions; i++) {
                 localStorage.removeItem(`q_${mocktestId}_${i}`);
             }
-            document.getElementById('submit-form').submit();
+            
+            // Submit the appropriate form
+            if (device === 'mobile') {
+                document.getElementById('submit-form-mobile').submit();
+            } else {
+                document.getElementById('submit-form-desktop').submit();
+            }
         }
     };
 
@@ -498,6 +596,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         loadQuestion(1);
 
+        // Load saved answers from localStorage
         for (let i = 1; i <= totalQuestions; i++) {
             let saved = localStorage.getItem(`q_${mocktestId}_${i}`);
             if (saved) {
@@ -510,6 +609,7 @@
         }
         updateCounts();
 
+        // Question navigation
         document.addEventListener('click', function(e) {
             let navItem = e.target.closest('.question-nav-item');
             if (navItem) {
@@ -519,6 +619,7 @@
             }
         });
 
+        // Answer selection
         document.addEventListener('change', function(e) {
             if (e.target.name && e.target.name.startsWith('question_')) {
                 let questionId = e.target.name.replace('question_', '');
@@ -529,6 +630,7 @@
             }
         });
 
+        // Navigation buttons
         document.getElementById('prev-btn').addEventListener('click', function() {
             if (currentQuestion > 1) loadQuestion(currentQuestion - 1);
         });
@@ -543,6 +645,7 @@
         });
     });
 
+    // Warn user before leaving
     window.addEventListener('beforeunload', function(e) {
         if (answeredQuestions.size > 0 || skippedQuestions.size > 0) {
             e.preventDefault();

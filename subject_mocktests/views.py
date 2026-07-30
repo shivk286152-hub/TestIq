@@ -227,6 +227,13 @@ def pretest_detail(request, mocktest_id):
     """Pretest page with instructions and language selection"""
     mocktest = get_object_or_404(MockTest, id=mocktest_id, is_active=True)
     
+    # IMPORTANT: Calculate total questions and marks if not set
+    if mocktest.total_questions == 0:
+        mocktest.total_questions = mocktest.questions.count()
+    
+    if mocktest.total_marks == 0:
+        mocktest.total_marks = sum(q.marks for q in mocktest.questions.all())
+    
     # Check for incomplete attempt
     existing_attempt = MockTestAttempt.objects.filter(
         user=request.user,
@@ -241,17 +248,29 @@ def pretest_detail(request, mocktest_id):
         is_completed=True
     ).count()
     
+    # Get previous best score
+    previous_best = None
+    if previous_attempts > 0:
+        best_attempt = MockTestAttempt.objects.filter(
+            user=request.user,
+            mock_test=mocktest,
+            is_completed=True
+        ).order_by('-score').first()
+        
+        if best_attempt:
+            previous_best = f"{best_attempt.percentage}%"
+    
     context = {
         'mocktest': mocktest,
         'existing_attempt': existing_attempt,
         'previous_attempts': previous_attempts,
+        'previous_best': previous_best,
         'languages': [
             {'code': 'en', 'name': 'English'},
             {'code': 'hi', 'name': 'हिन्दी (Hindi)'},
         ]
     }
     return render(request, 'subject_mocktests/pretest_detail.html', context)
-
 
 @login_required
 def start_test(request, mocktest_id):
@@ -550,8 +569,14 @@ def result_dashboard(request, attempt_id):
     percentage = attempt.percentage
     
     # Calculate marks
-    marks_obtained = stats['score']
-    max_marks = stats['max_score']
+    marks_obtained = stats['score']  # Score with negative marking
+    max_marks = stats['max_score']    # Maximum possible marks
+    
+    # NEW: Calculate raw marks (correct - wrong)
+    raw_marks = stats['correct'] - stats['wrong']
+    
+    # NEW: Calculate total negative marks applied
+    negative_applied = marks_obtained - raw_marks if marks_obtained < raw_marks else 0
     
     # Topic stats with marks
     topic_stats = []
@@ -626,12 +651,18 @@ def result_dashboard(request, attempt_id):
     context = {
         'attempt': attempt,
         'answers': answers,
-        'total_questions': stats['total_questions'],  # FIXED: using stats['total_questions']
-        'correct': stats['correct'],  # FIXED: using stats['correct']
-        'wrong': stats['wrong'],  # FIXED: using stats['wrong']
-        'skipped': stats['skipped'],  # FIXED: using stats['skipped']
+        'total_questions': stats['total_questions'],
+        'correct': stats['correct'],
+        'wrong': stats['wrong'],
+        'skipped': stats['skipped'],
+        # Raw marks (correct - wrong)
+        'raw_marks': raw_marks,
+        # Marks with negative applied
         'marks_obtained': marks_obtained,
+        # Maximum possible marks
         'max_marks': max_marks,
+        # Total negative marks deducted
+        'negative_applied': abs(negative_applied),
         'percentage': percentage,
         'rank': rank,
         'percentile': percentile,
@@ -641,7 +672,6 @@ def result_dashboard(request, attempt_id):
     
     # Use the same template as main app but with our context
     return render(request, 'subject_mocktests/result_dashboard.html', context)
-
 
 @login_required
 def subject_dashboard(request):

@@ -13,7 +13,8 @@ urlpatterns = [
     path('current-affairs/', include('CurrentAffairs.urls')),
     # your app URLs
     path('ckeditor/', include('ckeditor_uploader.urls')),
-     path('subject-mocktests/', include('subject_mocktests.urls')), 
+    path('subject-mocktests/', include('subject_mocktests.urls')), 
+   
    
 
     # ... your other URLs

@@ -42,4 +42,6 @@ urlpatterns = [
     # Dashboard for subject mock tests
     path('my-attempts/', views.subject_dashboard, name='subject_dashboard'),
 
+
+
 ]

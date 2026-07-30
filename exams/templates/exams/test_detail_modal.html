@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ test.title }} - Test Content{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== CUSTOM ANIMATIONS ===== */
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    .float-animation { animation: float 6s ease-in-out infinite; }
+
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    .shimmer-bg {
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(30px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .fade-slide-up {
+        animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+    }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* ===== GLASSMORPHISM UTILITIES ===== */
+    .glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .glass-dark {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+    }
+
+    /* ===== GRADIENT TEXT ===== */
+    .gradient-text {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* ===== CONTENT BODY STYLING ===== */
+    .content-body {
+        color: #1e293b;
+        line-height: 1.8;
+    }
+
+    .content-body h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin: 1.5rem 0 0.75rem 0;
+        color: #0f172a;
+        letter-spacing: -0.02em;
+    }
+    .content-body h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 1.25rem 0 0.625rem 0;
+        color: #1e293b;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .content-body h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1rem 0 0.5rem 0;
+        color: #1e293b;
+    }
+    .content-body p {
+        margin-bottom: 1rem;
+        color: #334155;
+    }
+    .content-body ul, .content-body ol {
+        padding-left: 1.5rem;
+        margin: 1rem 0;
+    }
+    .content-body ul li { list-style-type: disc; margin-bottom: 0.4rem; }
+    .content-body ol li { list-style-type: decimal; margin-bottom: 0.4rem; }
+    
+    .content-body blockquote {
+        border-left: 4px solid #6366f1;
+        padding: 1rem 1.5rem;
+        margin: 1.25rem 0;
+        background: linear-gradient(to right, #eef2ff, transparent);
+        border-radius: 0 12px 12px 0;
+        font-style: italic;
+        color: #475569;
+    }
+
+    .content-body table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.25rem 0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .content-body th {
+        background: #f1f5f9;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .content-body td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .content-body tr:last-child td { border-bottom: none; }
+    .content-body tr:hover td { background: #f8fafc; }
+
+    .content-body img {
+        max-width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        margin: 1rem 0;
+    }
+
+    /* ===== DIFFICULTY BADGES ===== */
+    .badge-difficulty {
+        padding: 0.3rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .badge-difficulty.easy { background: #d1fae5; color: #065f46; }
+    .badge-difficulty.medium { background: #fef3c7; color: #92400e; }
+    .badge-difficulty.hard { background: #fee2e2; color: #991b1b; }
+    .badge-difficulty.expert { background: #fce4ec; color: #880e4f; }
+
+    /* ===== MOBILE STICKY BAR ===== */
+    .mobile-sticky-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(0,0,0,0.04);
+        z-index: 50;
+        display: none;
+    }
+    @media (max-width: 768px) {
+        .mobile-sticky-bar { display: block; }
+        .desktop-btn { display: none !important; }
+        .content-page { padding-bottom: 90px; }
+    }
+
+    /* ===== STATS CARD HOVER ===== */
+    .stat-card-hover {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stat-card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -8px rgba(79, 70, 229, 0.15);
+        border-color: #c7d2fe;
+    }
+
+    /* ===== SECTION CARD HOVER ===== */
+    .section-card {
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .section-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 20px 40px -12px rgba(79, 70, 229, 0.08);
+        border-color: #a5b4fc;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px) {
+        .content-body h1 { font-size: 1.5rem; }
+        .content-body h2 { font-size: 1.25rem; }
+        .content-body { font-size: 0.95rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-page min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/30">
+
+    <!-- ===== DECORATIVE ELEMENTS ===== -->
+    <div class="fixed top-20 right-10 w-64 h-64 bg-purple-200/30 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="fixed bottom-20 left-10 w-80 h-80 bg-indigo-200/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6 md:py-12 relative z-10">
+
+        <!-- ===== TOP BAR ===== -->
+        <div class="flex items-center justify-between flex-wrap gap-4 mb-8 fade-slide-up delay-1">
+            <a href="javascript:history.back()" 
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:bg-white transition-all duration-300 hover:-translate-x-1 text-sm font-semibold text-gray-700 no-print">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back
+            </a>
+            
+            <div class="flex items-center gap-3 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-white/80 shadow-sm">
+                <span class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+                <span class="text-xs font-bold text-indigo-900 tracking-wider uppercase">
+                    {{ content_sections|length }} Section{{ content_sections|pluralize }}
+                </span>
+            </div>
+        </div>
+
+        <!-- ===== TEST CARD ===== -->
+        {% if test %}
+        <div class="glass rounded-2xl p-6 md:p-8 shadow-xl shadow-indigo-500/5 fade-slide-up delay-2">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="p-3 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl shadow-sm">
+                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                            {{ test.title }}
+                        </h1>
+                    </div>
+                    
+                    {% if test.description %}
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed">{{ test.description }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="flex-shrink-0">
+                    <span class="badge-difficulty 
+                        {% if test.difficulty|lower == 'expert' %}expert
+                        {% elif test.difficulty|lower == 'hard' %}hard
+                        {% elif test.difficulty|lower == 'medium' %}medium
+                        {% else %}easy{% endif %}">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        {{ test.difficulty|default:"Medium"|title }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6 pt-6 border-t border-gray-100/80">
+                <div class="stat-card-hover flex items-center gap-3 p-3 bg-white/60 rounded-xl border border-gray-100/50">
+                    <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-slate-800">{{ test.questions.count|default:15 }}</div>
+                        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Questions</div>
+                    </div>
+                </div>
+
+                <div class="stat-card-hover flex items-center gap-3 p-3 bg-white/60 rounded-xl border border-gray-100/50">
+                    <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-slate-800">{{ test.duration|default:30 }} Min</div>
+                        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Duration</div>
+                    </div>
+                </div>
+
+                <div class="stat-card-hover flex items-center gap-3 p-3 bg-white/60 rounded-xl border border-gray-100/50 col-span-2 md:col-span-1">
+                    <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-slate-800">{{ test.total_marks|default:test.questions.count }}</div>
+                        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Total Marks</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CONTENT SECTIONS ===== -->
+        {% if content_sections %}
+            <div class="flex items-center justify-between mt-10 mb-6 flex-wrap gap-3 fade-slide-up delay-3">
+                <h2 class="text-xl font-extrabold text-slate-900 flex items-center gap-3">
+                    <span class="w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></span>
+                    Study Material
+                    <span class="text-xs font-medium text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">{{ content_sections|length }}</span>
+                </h2>
+                
+                <a href="{% url 'exams:pretest_detail' test.id %}" 
+                   class="desktop-btn inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-xl hover:shadow-indigo-500/25 hover:-translate-y-0.5 transition-all duration-300 no-print text-sm">
+                    Start Test
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </a>
+            </div>
+            
+            {% for section in content_sections %}
+            <div class="section-card glass-dark rounded-2xl p-6 md:p-8 mb-4 shadow-sm fade-slide-up delay-{{ forloop.counter|add:2|slice:':1' }}">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl text-white font-bold text-sm shadow-lg shadow-indigo-500/25">
+                        {{ forloop.counter }}
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">
+                        {{ section.section_title|default:"Section" }}
+                    </h3>
+                    <div class="flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent"></div>
+                </div>
+                <div class="content-body">
+                    {{ section.content|safe }}
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Bottom Button -->
+            <div class="flex justify-center mt-10 desktop-btn fade-slide-up delay-5">
+                <a href="{% url 'exams:pretest_detail' test.id %}" 
+                   class="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-2xl hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-1 transition-all duration-300 text-lg no-print">
+                    Start {{ test.title }}
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </a>
+            </div>
+            
+        {% else %}
+            <!-- No Content -->
+            <div class="glass-dark rounded-2xl p-12 text-center mt-6 fade-slide-up delay-3">
+                <div class="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-800 mb-2">Ready to Begin?</h3>
+                <p class="text-slate-500 max-w-md mx-auto mb-8">No pre-reading required. Jump straight into the questions.</p>
+                <a href="{% url 'exams:pretest_detail' test.id %}" 
+                   class="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-xl hover:shadow-indigo-500/25 hover:-translate-y-0.5 transition-all duration-300">
+                    Start Test Now
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </a>
+            </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- Error -->
+        <div class="glass-dark rounded-2xl p-12 text-center fade-slide-up delay-1">
+            <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-800 mb-2">Test Not Found</h3>
+            <p class="text-slate-500 mb-8">The test you're looking for doesn't exist or has been removed.</p>
+            <a href="{% url 'exams:home' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-all">
+                Go Home
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- ===== MOBILE STICKY BAR ===== -->
+    <!-- <div class="mobile-sticky-bar no-print">
+        <a href="{% url 'exams:pretest_detail' test.id %}" 
+           class="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl hover:shadow-xl hover:shadow-indigo-500/25 transition-all duration-300 text-sm">
+            Start Test
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+        </a>
+    </div> -->
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Click to scroll and highlight sections
+        document.querySelectorAll('.section-card .flex.items-center.gap-3').forEach((header) => {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', function() {
+                const section = this.closest('.section-card');
+                if (section) {
+                    const offset = 80;
+                    const rect = section.getBoundingClientRect();
+                    const top = rect.top + window.pageYOffset - offset;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                    
+                    // Highlight effect
+                    section.style.transition = 'all 0.5s ease';
+                    section.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.2), 0 20px 40px -12px rgba(79, 70, 229, 0.15)';
+                    section.style.borderColor = '#818cf8';
+                    section.style.transform = 'scale(1.01)';
+                    
+                    setTimeout(() => {
+                        section.style.boxShadow = '';
+                        section.style.borderColor = '';
+                        section.style.transform = '';
+                    }, 1500);
+                }
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const backBtn = document.querySelector('a[href*="javascript:history.back"]');
+                if (backBtn) backBtn.click();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                const startBtn = document.querySelector('a[href*="pretest_detail"]');
+                if (startBtn) startBtn.click();
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

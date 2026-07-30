@@ -7,6 +7,9 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Avg, F, Q, Case, When, IntegerField
 from django.contrib import messages
 from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from .forms import ContactForm
+from .models import Contact
 # from weasyprint import HTML, CSS
 
 import tempfile
@@ -34,7 +37,7 @@ from .forms import TestimonialForm
 # ==============================
 # HOME
 # ==============================
-# views.py - Update your home view
+
 def home(request):
     try:
         categories = ExamCategory.objects.all()
@@ -66,7 +69,12 @@ def home(request):
                 print(f"Error fetching user_testimonial: {e}")
                 user_testimonial = None
         
-        faqs_home = FAQ.objects.filter(is_active=True).order_by('order', 'created_at')[:4]
+        # UPDATED: Show FAQs that are active AND marked for homepage
+        faqs_home = FAQ.objects.filter(
+            is_active=True, 
+            show_on_homepage=True
+        ).order_by('order', 'created_at')[:4]
+        
         # Add user progress for each category (optional)
         if request.user.is_authenticated:
             for cat in categories:
@@ -109,8 +117,11 @@ def about(request):
  # Add this import at the top with your other imports
 
 def faq_page(request):
-    """Separate FAQ page"""
-    faqs = FAQ.objects.filter(is_active=True).order_by('order', 'created_at')
+    """Separate FAQ page - shows all active FAQs"""
+    # UPDATED: Show all active FAQs (regardless of homepage setting)
+    faqs = FAQ.objects.filter(
+        is_active=True
+    ).order_by('order', 'created_at')
     
     # Group by category
     categories = {}
@@ -125,8 +136,52 @@ def faq_page(request):
         'categories': categories,
         'site_name': 'TestIQ',
     }
-    return render(request, 'exams/faq.html', context)    
+    return render(request, 'exams/faq.html', context)
 
+
+def contact_page(request):
+    """Contact page view"""
+    form = ContactForm()
+    
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            contact = form.save(commit=False)
+            
+            # Set user if logged in
+            if request.user.is_authenticated:
+                contact.user = request.user
+            
+            # Get IP and user agent
+            contact.ip_address = request.META.get('REMOTE_ADDR')
+            contact.user_agent = request.META.get('HTTP_USER_AGENT', '')
+            
+            contact.save()
+            
+            messages.success(request, 'Thank you for contacting us! We\'ll get back to you soon.')
+            return redirect('exams:contact_success')  # ← Changed to success page
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    
+    context = {
+        'form': form,
+        'site_name': 'TestIQ',
+    }
+    return render(request, 'exams/contact.html', context)
+
+def contact_success(request):
+    """Contact form success page"""
+    return render(request, 'exams/contact_success.html')
+
+
+def privacy_policy(request):
+    """Privacy policy page"""
+    return render(request, 'exams/privacy_policy.html', {'site_name': 'TestIQ'})
+
+def terms_of_service(request):
+    """Terms of service page"""
+    return render(request, 'exams/terms_of_service.html', {'site_name': 'TestIQ'})    
+   
 # ==============================
 # CATEGORY
 # ==============================
@@ -1130,222 +1185,283 @@ def result_dashboard(request, attempt_id):
 
 @login_required
 def test_statistics(request, attempt_id):
-    attempt = get_object_or_404(
-        MockTestAttempt,
-        id=attempt_id,
-        user=request.user,
-        is_completed=True
-    )
+    import json
+    import logging
     
-    answers = attempt.answers.select_related('question', 'selected_option', 'question__subject').all()
+    logger = logging.getLogger(__name__)
     
-    # Basic stats
-    total_questions = answers.count()
-    correct = attempt.correct_answers
-    wrong = attempt.wrong_answers
-    skipped = attempt.skipped_answers
-    
-    # Scores
-    raw_score = attempt.raw_score
-    score_with_negative = attempt.score_with_negative
-    negative_applied = attempt.negative_marks_applied
-    
-    # Subject data with negative marking
-    subject_data = []
-    subject_performance = {}
-    
-    for answer in answers:
-        subject_name = answer.question.subject.name if answer.question.subject else "General"
-        if subject_name not in subject_performance:
-            subject_performance[subject_name] = {
-                'total': 0, 
-                'correct': 0, 
-                'wrong': 0, 
-                'skipped': 0,
-                'raw_score': 0,
-                'score_with_negative': 0,
-                'negative': 0
-            }
+    try:
+        attempt = get_object_or_404(
+            MockTestAttempt,
+            id=attempt_id,
+            user=request.user,
+            is_completed=True
+        )
         
-        subject_performance[subject_name]['total'] += 1
-        if not answer.selected_option:
-            subject_performance[subject_name]['skipped'] += 1
-        elif answer.selected_option.is_correct:
-            subject_performance[subject_name]['correct'] += 1
-            subject_performance[subject_name]['raw_score'] += answer.question.marks
-            subject_performance[subject_name]['score_with_negative'] += answer.question.marks
-        else:
-            subject_performance[subject_name]['wrong'] += 1
-            negative = answer.question.get_effective_negative_marks()
-            subject_performance[subject_name]['negative'] += negative
-            subject_performance[subject_name]['score_with_negative'] -= negative
-    
-    for subject, stats in subject_performance.items():
-        accuracy = round((stats['score_with_negative'] / stats['total'] * 100), 1) if stats['total'] > 0 else 0
-        raw_accuracy = round((stats['correct'] / stats['total'] * 100), 1) if stats['total'] > 0 else 0
+        # DEBUG: Print attempt info
+        print(f"=== DEBUG: Attempt ID: {attempt.id}, User: {request.user.username} ===")
         
-        subject_data.append({
-            'name': subject,
-            'total': stats['total'],
-            'correct': stats['correct'],
-            'wrong': stats['wrong'],
-            'skipped': stats['skipped'],
-            'raw_score': stats['raw_score'],
-            'score_with_negative': round(stats['score_with_negative'], 1),
-            'accuracy': accuracy,
-            'raw_accuracy': raw_accuracy,
-            'negative': round(stats['negative'], 1)
+        answers = attempt.answers.select_related('question', 'selected_option', 'question__subject').all()
+        
+        # DEBUG: Check if answers exist
+        print(f"Answers count: {answers.count()}")
+        
+        # Basic stats
+        total_questions = answers.count()
+        correct = attempt.correct_answers
+        wrong = attempt.wrong_answers
+        skipped = attempt.skipped_answers
+        
+        print(f"Stats - Total: {total_questions}, Correct: {correct}, Wrong: {wrong}, Skipped: {skipped}")
+        
+        # Scores
+        raw_score = attempt.raw_score
+        score_with_negative = attempt.score_with_negative
+        negative_applied = attempt.negative_marks_applied
+        
+        # Subject data with negative marking
+        subject_data = []
+        subject_performance = {}
+        
+        for answer in answers:
+            subject_name = answer.question.subject.name if answer.question.subject else "General"
+            if subject_name not in subject_performance:
+                subject_performance[subject_name] = {
+                    'total': 0, 
+                    'correct': 0, 
+                    'wrong': 0, 
+                    'skipped': 0,
+                    'raw_score': 0,
+                    'score_with_negative': 0,
+                    'negative': 0
+                }
+            
+            subject_performance[subject_name]['total'] += 1
+            if not answer.selected_option:
+                subject_performance[subject_name]['skipped'] += 1
+            elif answer.selected_option.is_correct:
+                subject_performance[subject_name]['correct'] += 1
+                subject_performance[subject_name]['raw_score'] += answer.question.marks
+                subject_performance[subject_name]['score_with_negative'] += answer.question.marks
+            else:
+                subject_performance[subject_name]['wrong'] += 1
+                negative = answer.question.get_effective_negative_marks()
+                subject_performance[subject_name]['negative'] += negative
+                subject_performance[subject_name]['score_with_negative'] -= negative
+        
+        print(f"Subject performance data: {subject_performance}")
+        
+        for subject, stats in subject_performance.items():
+            # Calculate accuracy based on score_with_negative
+            if stats['total'] > 0:
+                accuracy = round((stats['score_with_negative'] / stats['total'] * 100), 1)
+            else:
+                accuracy = 0
+                
+            raw_accuracy = round((stats['correct'] / stats['total'] * 100), 1) if stats['total'] > 0 else 0
+            
+            subject_data.append({
+                'name': subject,
+                'total': stats['total'],
+                'correct': stats['correct'],
+                'wrong': stats['wrong'],
+                'skipped': stats['skipped'],
+                'raw_score': stats['raw_score'],
+                'score_with_negative': round(stats['score_with_negative'], 1),
+                'accuracy': accuracy,
+                'raw_accuracy': raw_accuracy,
+                'negative': round(stats['negative'], 1)
+            })
+        
+        subject_data.sort(key=lambda x: x['score_with_negative'], reverse=True)
+        
+        print(f"Final subject_data: {subject_data}")
+        
+        # Difficulty data
+        difficulty_data = []
+        difficulty_counts = {}
+        
+        difficulty_order = ['Easy', 'Medium', 'Hard', 'Very Hard']
+        
+        for answer in answers:
+            difficulty = getattr(answer.question, 'difficulty', 'Medium')
+            if difficulty not in difficulty_counts:
+                difficulty_counts[difficulty] = {
+                    'total': 0, 
+                    'correct': 0,
+                    'score': 0
+                }
+            
+            difficulty_counts[difficulty]['total'] += 1
+            if answer.selected_option and answer.selected_option.is_correct:
+                difficulty_counts[difficulty]['correct'] += 1
+                difficulty_counts[difficulty]['score'] += answer.question.marks
+            elif answer.selected_option and not answer.selected_option.is_correct:
+                negative = answer.question.get_effective_negative_marks()
+                difficulty_counts[difficulty]['score'] -= negative
+        
+        print(f"Difficulty counts: {difficulty_counts}")
+        
+        for diff_name in difficulty_order:
+            if diff_name in difficulty_counts:
+                stats = difficulty_counts[diff_name]
+                difficulty_data.append({
+                    'name': diff_name,
+                    'total': stats['total'],
+                    'correct': stats['correct'],
+                    'score': round(stats['score'], 1)
+                })
+        
+        for diff_name, stats in difficulty_counts.items():
+            if diff_name not in difficulty_order:
+                difficulty_data.append({
+                    'name': diff_name,
+                    'total': stats['total'],
+                    'correct': stats['correct'],
+                    'score': round(stats['score'], 1)
+                })
+        
+        print(f"Difficulty data: {difficulty_data}")
+        
+        # Rankings
+        all_attempts = MockTestAttempt.objects.filter(
+            mock_test=attempt.mock_test,
+            is_completed=True
+        ).select_related('user').order_by('-score_with_negative')
+        
+        total_attempts = all_attempts.count()
+        
+        rank = None
+        for idx, att in enumerate(all_attempts, 1):
+            if att.id == attempt.id:
+                rank = idx
+                break
+        
+        percentile = None
+        if rank and total_attempts > 0:
+            percentile = round(((total_attempts - rank) / total_attempts) * 100, 1)
+        
+        global_avg = 0
+        top_score = 0
+        
+        if total_attempts > 0:
+            total_percentage = sum(att.percentage_with_negative for att in all_attempts)
+            global_avg = round(total_percentage / total_attempts, 1)
+            top_attempt = all_attempts.first()
+            if top_attempt:
+                top_score = round(top_attempt.percentage_with_negative, 1)
+        
+        print(f"Rank: {rank}, Percentile: {percentile}, Total attempts: {total_attempts}")
+        
+        # Top scorers
+        user_best_scores = {}
+        for att in all_attempts:
+            user_id = att.user.id
+            score = att.score_with_negative
+            if user_id not in user_best_scores or score > user_best_scores[user_id]['score']:
+                user_best_scores[user_id] = {
+                    'attempt': att,
+                    'score': score
+                }
+        
+        best_attempts_list = [data['attempt'] for data in user_best_scores.values()]
+        best_attempts_list.sort(key=lambda x: x.score_with_negative, reverse=True)
+        
+        top_scorers = []
+        for idx, att in enumerate(best_attempts_list[:10], 1):
+            user_name = att.user.get_full_name() or att.user.username
+            
+            if att.user.first_name:
+                first_char = att.user.first_name[0]
+            elif att.user.username:
+                first_char = att.user.username[0]
+            else:
+                first_char = 'U'
+            
+            top_scorers.append({
+                'rank': idx,
+                'name': user_name,
+                'initials': first_char.upper(),
+                'score': round(att.percentage_with_negative, 1),
+                'correct': att.correct_answers,
+                'total': att.total_marks,
+                'is_current': att.id == attempt.id
+            })
+        
+        print(f"Top scorers count: {len(top_scorers)}")
+        
+        # Insights
+        insights = []
+        if subject_data:
+            strongest = max(subject_data, key=lambda x: x['accuracy'])
+            insights.append(f"Strongest: {strongest['name']} ({strongest['accuracy']}%)")
+            weakest = min(subject_data, key=lambda x: x['accuracy'])
+            if weakest['accuracy'] < 60:
+                insights.append(f"Focus on: {weakest['name']} ({weakest['accuracy']}%)")
+        
+        if attempt.score_with_negative < attempt.raw_score:
+            lost_marks = round(attempt.raw_score - attempt.score_with_negative, 1)
+            insights.append(f"Lost {lost_marks} marks due to negative marking")
+        
+        if rank:
+            if rank == 1:
+                insights.append(f"🏆 Congratulations! You're Rank 1!")
+            elif rank <= 3:
+                insights.append(f"🏆 Outstanding! You're in Top {rank}!")
+            elif rank <= 10:
+                insights.append(f"🎯 Great job! You're in Top 10!")
+        
+        print(f"Insights: {insights}")
+        
+        # Chart data
+        chart_data = {
+            'subject_names': [s['name'] for s in subject_data],
+            'subject_scores': [s['score_with_negative'] for s in subject_data],
+            'difficulty_labels': [d['name'] for d in difficulty_data],
+            'difficulty_scores': [d['score'] for d in difficulty_data],
+        }
+        
+        print(f"Chart data: {chart_data}")
+        
+        context = {
+            'attempt': attempt,
+            'total_questions': total_questions,
+            'correct': correct,
+            'wrong': wrong,
+            'skipped': skipped,
+            'raw_score': raw_score,
+            'score_with_negative': score_with_negative,
+            'negative_applied': negative_applied,
+            'percentage_raw': attempt.percentage_raw,
+            'percentage_with_negative': attempt.percentage_with_negative,
+            'subject_data': subject_data,
+            'difficulty_data': difficulty_data,
+            'top_scorers': top_scorers,
+            'rank': rank,
+            'percentile': percentile,
+            'total_attempts': total_attempts,
+            'global_avg': global_avg,
+            'top_score': top_score,
+            'insights': insights,
+            'chart_data_json': json.dumps(chart_data),
+        }
+        
+        return render(request, 'exams/test_statistics.html', context)
+        
+    except Exception as e:
+        print(f"ERROR in test_statistics: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # Return a basic context with error info
+        return render(request, 'exams/test_statistics.html', {
+            'attempt': attempt if 'attempt' in locals() else None,
+            'subject_data': [],
+            'difficulty_data': [],
+            'top_scorers': [],
+            'insights': [f"Error loading statistics: {str(e)}"],
+            'chart_data_json': json.dumps({'difficulty_labels': [], 'difficulty_scores': []}),
         })
-    
-    subject_data.sort(key=lambda x: x['score_with_negative'], reverse=True)
-    
-    # Difficulty data with negative marking
-    difficulty_data = []
-    difficulty_counts = {}
-    
-    for answer in answers:
-        difficulty = getattr(answer.question, 'difficulty', 'Medium')
-        if difficulty not in difficulty_counts:
-            difficulty_counts[difficulty] = {
-                'total': 0, 
-                'correct': 0,
-                'score': 0
-            }
-        
-        difficulty_counts[difficulty]['total'] += 1
-        if answer.selected_option and answer.selected_option.is_correct:
-            difficulty_counts[difficulty]['correct'] += 1
-            difficulty_counts[difficulty]['score'] += answer.question.marks
-        elif answer.selected_option and not answer.selected_option.is_correct:
-            negative = answer.question.get_effective_negative_marks()
-            difficulty_counts[difficulty]['score'] -= negative
-    
-    for diff_name, stats in difficulty_counts.items():
-        difficulty_data.append({
-            'name': diff_name,
-            'total': stats['total'],
-            'correct': stats['correct'],
-            'score': round(stats['score'], 1)
-        })
-    
-    # ===== FIXED RANKINGS SECTION =====
-    # Get ALL completed attempts for this test
-    all_attempts = MockTestAttempt.objects.filter(
-        mock_test=attempt.mock_test,
-        is_completed=True
-    ).select_related('user').order_by('-score_with_negative')
-    
-    total_attempts = all_attempts.count()
-    
-    # Calculate user's rank
-    rank = None
-    for idx, att in enumerate(all_attempts, 1):
-        if att.id == attempt.id:
-            rank = idx
-            break
-    
-    # Calculate percentile
-    percentile = None
-    if rank and total_attempts > 0:
-        percentile = round(((total_attempts - rank) / total_attempts) * 100, 1)
-    
-    # Calculate global stats
-    global_avg = 0
-    top_score = 0
-    
-    if total_attempts > 0:
-        # Global average (using percentage_with_negative)
-        total_percentage = sum(att.percentage_with_negative for att in all_attempts)
-        global_avg = round(total_percentage / total_attempts, 1)
-        
-        # Top score
-        top_attempt = all_attempts.first()
-        if top_attempt:
-            top_score = round(top_attempt.percentage_with_negative, 1)
-    
-    # ===== FIXED: Get UNIQUE users with their BEST scores =====
-    # This prevents the same user from appearing multiple times
-    user_best_scores = {}
-    
-    for att in all_attempts:
-        user_id = att.user.id
-        score = att.score_with_negative
-        percentage = att.percentage_with_negative
-        
-        # Keep only the best score for each user
-        if user_id not in user_best_scores or score > user_best_scores[user_id]['score']:
-            user_best_scores[user_id] = {
-                'attempt': att,
-                'score': score,
-                'percentage': percentage
-            }
-    
-    # Convert to list and sort by best score
-    best_attempts_list = [data['attempt'] for data in user_best_scores.values()]
-    best_attempts_list.sort(key=lambda x: x.score_with_negative, reverse=True)
-    
-    # Create top scorers from BEST attempts (top 10)
-    top_scorers = []
-    for idx, att in enumerate(best_attempts_list[:10], 1):
-        top_scorers.append({
-            'rank': idx,
-            'name': att.user.get_full_name() or att.user.username,
-            'initials': (att.user.first_name[0] if att.user.first_name else att.user.username[0]).upper(),
-            'score': round(att.percentage_with_negative, 1),
-            'correct': att.correct_answers,
-            'total': att.total_marks,
-            'is_current': att.id == attempt.id
-        })
-    
-    # Insights
-    insights = []
-    if subject_data:
-        strongest = subject_data[0]
-        insights.append(f"Strongest: {strongest['name']} ({strongest['accuracy']}%)")
-        weakest = subject_data[-1]
-        if weakest['accuracy'] < 60:
-            insights.append(f"Focus on: {weakest['name']} ({weakest['accuracy']}%)")
-    
-    if attempt.score_with_negative < attempt.raw_score:
-        insights.append(f"Lost {round(attempt.raw_score - attempt.score_with_negative, 1)} marks due to negative marking")
-    
-    if rank and rank <= 3:
-        insights.append(f"🏆 Outstanding! You're in Top {rank}!")
-    elif rank and rank <= 10:
-        insights.append(f"🎯 Great job! You're in Top 10!")
-    
-    chart_data = {
-        'subject_names': [s['name'] for s in subject_data],
-        'subject_scores': [s['score_with_negative'] for s in subject_data],
-        'difficulty_labels': [d['name'] for d in difficulty_data],
-        'difficulty_scores': [d['score'] for d in difficulty_data],
-    }
-    
-    context = {
-        'attempt': attempt,
-        'total_questions': total_questions,
-        'correct': correct,
-        'wrong': wrong,
-        'skipped': skipped,
-        'raw_score': raw_score,
-        'score_with_negative': score_with_negative,
-        'negative_applied': negative_applied,
-        'percentage_raw': attempt.percentage_raw,
-        'percentage_with_negative': attempt.percentage_with_negative,
-        'subject_data': subject_data,
-        'difficulty_data': difficulty_data,
-        'top_scorers': top_scorers,
-        'rank': rank,
-        'percentile': percentile,
-        'total_attempts': total_attempts,
-        'global_avg': global_avg,
-        'top_score': top_score,
-        'insights': insights,
-        'chart_data_json': json.dumps(chart_data),
-    }
-    
-    return render(request, 'exams/test_statistics.html', context)
-
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -1484,3 +1600,195 @@ def download_statistics_pdf(request, attempt_id):
     
     HTML(string=html_string).write_pdf(response)
     return response
+
+@login_required
+def advanced_analytics(request):
+    """Advanced analytics dashboard with multiple charts"""
+    # Get all user attempts - FIXED: removed invalid select_related
+    attempts = MockTestAttempt.objects.filter(
+        user=request.user,
+        is_completed=True
+    ).order_by('-submitted_at')
+    
+    # Get all user answers
+    answers = UserAnswer.objects.filter(
+        attempt__user=request.user,
+        attempt__is_completed=True
+    ).select_related('question', 'selected_option')
+    
+    # Calculate total tests
+    total_tests = attempts.count()
+    
+    # Calculate average score
+    avg_score = 0
+    if total_tests > 0:
+        total_percentage = 0
+        for attempt in attempts:
+            if attempt.total_marks and attempt.total_marks > 0:
+                total_percentage += attempt.percentage_with_negative
+        avg_score = round(total_percentage / total_tests, 1)
+    
+    # Calculate accuracy
+    total_answers = answers.count()
+    correct_answers = answers.filter(is_correct=True).count()
+    accuracy = round((correct_answers / total_answers * 100), 1) if total_answers > 0 else 0
+    
+    # Calculate streak
+    streak = 0
+    if attempts.exists():
+        from datetime import date, timedelta
+        attempt_dates = set(attempt.submitted_at.date() for attempt in attempts if attempt.submitted_at)
+        today = date.today()
+        current_date = today
+        while current_date in attempt_dates:
+            streak += 1
+            current_date -= timedelta(days=1)
+    
+    # Subject-wise performance (using question's subject from exams app)
+    subject_performance = {}
+    for answer in answers:
+        # Get subject from question (if available in exams app)
+        subject_name = getattr(answer.question, 'subject', None)
+        if subject_name:
+            subject_name = subject_name.name if hasattr(subject_name, 'name') else str(subject_name)
+        else:
+            subject_name = "General"
+        
+        if subject_name not in subject_performance:
+            subject_performance[subject_name] = {
+                'name': subject_name,
+                'total': 0,
+                'correct': 0,
+                'wrong': 0,
+                'skipped': 0,
+                'score': 0,
+                'accuracy': 0
+            }
+        
+        subject_performance[subject_name]['total'] += 1
+        if not answer.selected_option:
+            subject_performance[subject_name]['skipped'] += 1
+        elif answer.is_correct:
+            subject_performance[subject_name]['correct'] += 1
+            subject_performance[subject_name]['score'] += answer.question.marks
+        else:
+            subject_performance[subject_name]['wrong'] += 1
+    
+    # Calculate subject accuracies
+    subject_data = []
+    for subject, data in subject_performance.items():
+        if data['total'] > 0:
+            data['accuracy'] = round((data['correct'] / data['total']) * 100, 1)
+        subject_data.append(data)
+    
+    # Find strongest and weakest subjects
+    strongest_subject = max(subject_data, key=lambda x: x['accuracy']) if subject_data else None
+    weakest_subject = min(subject_data, key=lambda x: x['accuracy']) if subject_data else None
+    
+    # Difficulty-wise performance
+    difficulty_data = []
+    difficulty_counts = {}
+    for answer in answers:
+        diff = getattr(answer.question, 'difficulty', 'Medium')
+        if diff not in difficulty_counts:
+            difficulty_counts[diff] = {'total': 0, 'correct': 0}
+        difficulty_counts[diff]['total'] += 1
+        if answer.is_correct:
+            difficulty_counts[diff]['correct'] += 1
+    
+    for diff, counts in difficulty_counts.items():
+        difficulty_data.append({
+            'name': diff,
+            'total': counts['total'],
+            'correct': counts['correct']
+        })
+    
+    # Prepare attempts data for line chart
+    attempts_chrono = attempts.order_by('submitted_at')
+    attempts_data = []
+    for attempt in attempts_chrono:
+        if attempt.submitted_at:
+            attempts_data.append({
+                'date': attempt.submitted_at.strftime('%Y-%m-%d'),
+                'test_name': attempt.mock_test.title,
+                'score': round(attempt.percentage_with_negative, 1),
+            })
+    
+    # Chart data
+    chart_data = {
+        'subject_names': [s['name'] for s in subject_data],
+        'subject_scores': [s['accuracy'] for s in subject_data],
+        'difficulty_labels': [d['name'] for d in difficulty_data],
+        'difficulty_scores': [d['correct'] for d in difficulty_data],
+    }
+    
+    context = {
+        'total_tests': total_tests,
+        'avg_score': avg_score,
+        'accuracy': accuracy,
+        'streak': streak,
+        'subject_data': subject_data,
+        'difficulty_data': difficulty_data,
+        'strongest_subject': strongest_subject['name'] if strongest_subject else 'N/A',
+        'strongest_accuracy': strongest_subject['accuracy'] if strongest_subject else 0,
+        'strongest_correct': strongest_subject['correct'] if strongest_subject else 0,
+        'strongest_total': strongest_subject['total'] if strongest_subject else 0,
+        'weakest_subject': weakest_subject['name'] if weakest_subject else 'N/A',
+        'weakest_accuracy': weakest_subject['accuracy'] if weakest_subject else 0,
+        'weakest_correct': weakest_subject['correct'] if weakest_subject else 0,
+        'weakest_total': weakest_subject['total'] if weakest_subject else 0,
+        'chart_data_json': json.dumps(chart_data),
+        'subject_data_json': json.dumps(subject_data),
+        'difficulty_data_json': json.dumps(difficulty_data),
+        'attempts_json': json.dumps(attempts_data),
+    }
+    
+    return render(request, 'exams/advanced_analytics.html', context)
+
+def get_test_content(request, test_id):
+    """
+    View to display test content sections on a dedicated page
+    Uses MockTestContentSection model
+    """
+    try:
+        test = get_object_or_404(MockTest, id=test_id, is_active=True)
+        language = request.GET.get('lang', 'en')
+        
+        # Get content sections from MockTestContentSection model
+        from .models import MockTestContentSection
+        content_sections = MockTestContentSection.objects.filter(
+            mock_test=test,
+            is_active=True
+        ).order_by('order')
+        
+        # Prepare section data for template
+        sections_data = []
+        for section in content_sections:
+            sections_data.append({
+                'id': section.id,
+                'section_title': section.get_title(language),
+                'content': section.get_content(language),
+                'order': section.order,
+                'image': section.image.url if section.image else None,
+                'image_alt': section.get_image_alt(language),
+                'table_data': section.table_data,
+                'list_items': section.list_items,
+            })
+        
+        return render(request, 'exams/test_detail_modal.html', {
+            'test': test,
+            'content_sections': sections_data,
+            'language': language,
+        })
+        
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in get_test_content: {str(e)}")
+        
+        return render(request, 'exams/test_detail_modal.html', {
+            'test': None,
+            'content_sections': [],
+            'error': str(e),
+            'language': request.GET.get('lang', 'en'),
+        })

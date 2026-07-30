@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Thank You - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center px-4 py-8">
+    <div class="text-center max-w-2xl mx-auto">
+        <!-- Success Icon with pulse animation -->
+        <div class="relative mb-8">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <div class="absolute inset-0 -z-10">
+                <div class="w-32 h-32 bg-green-50 rounded-full mx-auto blur-3xl"></div>
+            </div>
+        </div>
+
+        <!-- Main Message -->
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Thank You!</h1>
+        <p class="text-lg text-gray-600 mb-6">
+            Your message has been sent successfully. We'll get back to you within 24 hours.
+        </p>
+
+        <!-- Additional Info Card -->
+        <div class="bg-indigo-50 rounded-xl p-6 mb-8 text-left">
+            <h2 class="font-semibold text-indigo-900 mb-3 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                What happens next?
+            </h2>
+            <ul class="space-y-2 text-sm text-indigo-800">
+                <li class="flex items-start">
+                    <span class="mr-2">📧</span>
+                    <span>We'll review your message within 24 hours</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">📬</span>
+                    <span>You'll receive a response at your email address</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">📝</span>
+                    <span>A confirmation has been sent to your inbox</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'exams:home' %}" 
+               class="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition transform hover:-translate-y-1 hover:shadow-lg">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Go to Home
+            </a>
+            <a href="{% url 'exams:contact_page' %}" 
+               class="inline-flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition transform hover:-translate-y-1 hover:shadow-lg">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Send Another Message
+            </a>
+        </div>
+
+        <!-- Support Link -->
+        <p class="text-sm text-gray-500 mt-6">
+            Need immediate help? <a href="{% url 'exams:faq_page' %}" class="text-indigo-600 hover:underline">Visit our FAQ</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

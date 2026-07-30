@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <title>{% block title %}{{ site_name }}{% endblock %}</title>
 
@@ -17,7 +17,18 @@
       --sidebar-open: 14rem;
       --sidebar-close: 4.5rem;
       --bottom-header-h: 4rem;
-      /* Added bottom header height */
+    }
+
+    /* Reset and Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f3f4f6;
+      overflow-x: hidden;
     }
 
     /* ===== HEADER ===== */
@@ -27,7 +38,9 @@
       top: 0;
       left: 0;
       right: 0;
-      z-index: 50;
+      z-index: 100;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     /* ===== SIDEBAR ===== */
@@ -35,16 +48,17 @@
       position: fixed;
       top: var(--header-h);
       left: 0;
-      height: calc(100vh - var(--header-h) - var(--bottom-header-h));
-      /* Adjusted for bottom header */
+      bottom: 0;
       width: var(--sidebar-open);
-      background: #374151;
+      background: #1f2937;
       color: white;
       display: flex;
       flex-direction: column;
-      transition: width 0.3s ease;
-      z-index: 40;
-      overflow-y: auto;
+      transition: width 0.2s ease-out;
+      z-index: 90;
+      overflow: hidden;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+      will-change: width;
     }
 
     /* collapsed desktop */
@@ -56,17 +70,19 @@
       display: none;
     }
 
-    /* sidebar content - make it scrollable */
+    /* Sidebar Content - Independent Scrollable Area */
     .sidebar-content {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
       scrollbar-width: thin;
       scrollbar-color: #4b5563 #1f2937;
+      padding: 0.5rem 0;
     }
 
     /* Custom scrollbar for sidebar */
     .sidebar-content::-webkit-scrollbar {
-      width: 6px;
+      width: 5px;
     }
 
     .sidebar-content::-webkit-scrollbar-track {
@@ -82,221 +98,262 @@
       background: #6b7280;
     }
 
-    /* bottom auth - fixed at bottom of sidebar */
+    /* Sidebar Bottom - Fixed at bottom */
     .sidebar-bottom {
-      border-top: 1px solid #4b5563;
-      background: #374151;
-      padding: 0.75rem 0;
+      border-top: 1px solid #374151;
+      background: #1f2937;
+      padding: 0.5rem 0;
       flex-shrink: 0;
     }
 
-    /* ===== MAIN ===== */
+    /* Sidebar Links */
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      color: #e5e7eb;
+      transition: background 0.15s ease;
+      text-decoration: none;
+      width: 100%;
+      white-space: nowrap;
+    }
+
+    .sidebar-link:hover {
+      background: #374151;
+      color: white;
+    }
+
+    .menu-active {
+      background: #111827;
+      border-left: 3px solid #3b82f6;
+      color: white;
+    }
+
+    /* Dropdown Styles */
+    .dropdown-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      width: 100%;
+    }
+
+    .dropdown-btn:hover {
+      background: #374151;
+    }
+
+    .dropdown-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.25s ease-out;
+      background: #111827;
+    }
+
+    .dropdown-content.show {
+      max-height: 500px;
+      transition: max-height 0.35s ease-in;
+    }
+
+    .dropdown-item {
+      padding: 0.625rem 1rem 0.625rem 2.5rem !important;
+      font-size: 0.875rem;
+    }
+
+    .dropdown-item:hover {
+      background: #374151;
+    }
+
+    /* ===== MAIN CONTENT ===== */
     .main {
       margin-left: var(--sidebar-open);
       margin-top: var(--header-h);
-      margin-bottom: var(--bottom-header-h);
-      /* Added bottom margin */
-      min-height: calc(100vh - var(--header-h) - var(--bottom-header-h));
-      transition: margin-left 0.3s ease;
-      overflow-y: auto;
-      padding: 1rem;
+      min-height: calc(100vh - var(--header-h));
+      transition: margin-left 0.2s ease-out;
+      padding: 1.5rem;
+      will-change: margin-left;
     }
 
     .main.collapsed {
       margin-left: var(--sidebar-close);
     }
 
-    /* ===== BOTTOM HEADER ===== */
-    #bottomHeader {
+    /* ===== BOTTOM HEADER (Mobile Only) ===== */
+    .bottom-header {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
       height: var(--bottom-header-h);
-      transform: translateY(0);
-      z-index: 45;
-      /* Lower than sidebar */
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid #e5e7eb;
+      display: none;
+      z-index: 95;
+      transition: transform 0.2s ease;
     }
 
-    /* ===== MOBILE ===== */
-    @media(max-width:768px) {
+    /* ===== MOBILE STYLES ===== */
+    @media (max-width: 768px) {
       .sidebar {
         transform: translateX(-100%);
-        width: 14rem;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-        height: calc(100vh - var(--header-h) - var(--bottom-header-h));
-        /* Adjusted */
-        top: var(--header-h);
+        width: 16rem;
+        transition: transform 0.25s ease-out;
+        box-shadow: none;
+        will-change: transform;
       }
 
       .sidebar.open {
         transform: translateX(0);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .sidebar.collapsed {
+        width: 16rem;
       }
 
       .main,
       .main.collapsed {
-        margin-left: 0;
-        margin-bottom: var(--bottom-header-h);
-        /* Keep bottom margin */
+        margin-left: 0 !important;
+        padding-bottom: calc(var(--bottom-header-h) + 1rem);
+        min-height: calc(100vh - var(--header-h));
+        transition: none;
       }
 
       .overlay {
         position: fixed;
-        inset: 0;
         top: var(--header-h);
-        background: rgba(0, 0, 0, .4);
-        display: none;
-        z-index: 35;
-        height: calc(100vh - var(--header-h));
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+        z-index: 85;
       }
 
       .overlay.show {
-        display: block;
+        opacity: 1;
+        visibility: visible;
       }
 
-      /* Adjust bottom header on mobile */
-      #bottomHeader {
-        z-index: 45;
+      .bottom-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+      }
+
+      .swipe-area {
+        position: fixed;
+        top: var(--header-h);
+        left: 0;
+        width: 20px;
+        bottom: 0;
+        z-index: 80;
       }
     }
 
-    /* Desktop specific */
-    @media(min-width:769px) {
-      .main {
-        margin-bottom: 0;
-        /* No bottom margin on desktop */
-        min-height: calc(100vh - var(--header-h));
+    /* ===== DESKTOP STYLES ===== */
+    @media (min-width: 769px) {
+      .bottom-header {
+        display: none !important;
       }
-
-      #bottomHeader {
+      
+      .overlay {
         display: none;
-        /* Hide bottom header on desktop */
+      }
+      
+      .swipe-area {
+        display: none;
       }
     }
 
+    /* Utility Classes */
     .progress-btn {
       position: relative;
       background: #f9fafb;
       overflow: hidden;
-      border-radius: 999px;
+      border-radius: 9999px;
       text-decoration: none;
+      transition: all 0.3s ease;
     }
 
-    /* Running border */
     .progress-btn::before {
       content: "";
       position: absolute;
       inset: 0;
       border: 3px solid black;
-      border-radius: 999px;
+      border-radius: 9999px;
       clip-path: inset(0 100% 100% 0);
       transition: clip-path 2s linear;
       pointer-events: none;
     }
 
-    /* Animate */
     .progress-btn.animate::before {
       clip-path: inset(0 0 0 0);
     }
 
-    /* Final state */
     .progress-btn.done {
       background: black;
       color: white;
     }
 
-    /* Dropdown styles for Test menu - FIXED */
-    .dropdown-content {
-      max-height: 0;
+    /* Prevent body scroll when sidebar open on mobile */
+    body.sidebar-open {
       overflow: hidden;
-      transition: max-height 0.3s ease-out;
-      background: #4b5563;
-      border-radius: 0 0 0.5rem 0.5rem;
-    }
-
-    .dropdown-content.show {
-      max-height: 400px !important;
-      transition: max-height 0.5s ease-in;
-    }
-
-    .dropdown-item {
-      padding-left: 3rem !important;
-      font-size: 0.9rem;
-    }
-
-    .dropdown-item:hover {
-      background: #6b7280;
-    }
-
-    /* Active parent menu */
-    .menu-active {
-      background: #1f2937;
-      border-left: 4px solid #3b82f6;
-      font-weight: 600;
-    }
-
-    /* Touch swipe area */
-    .swipe-area {
       position: fixed;
-      top: var(--header-h);
-      left: 0;
-      width: 20px;
-      height: calc(100vh - var(--header-h) - var(--bottom-header-h));
-      z-index: 45;
-    }
-
-    /* Ensure dropdown items are visible */
-    .dropdown-content ul li a,
-    .dropdown-content ul li {
-      color: white;
-      display: flex;
-      align-items: center;
       width: 100%;
+      height: 100%;
     }
 
-    /* Fix for content being hidden under bottom header on mobile */
-    @media(max-width:768px) {
+    /* Desktop - ensure no layout shift */
+    @media (min-width: 769px) {
       body {
-        padding-bottom: var(--bottom-header-h);
+        overflow-y: auto;
       }
-
+      
+      .sidebar,
       .main {
-        padding-bottom: 0;
+        transition-timing-function: cubic-bezier(0.2, 0.9, 0.4, 1.1);
       }
     }
   </style>
 </head>
 
-<body class="bg-gray-100">
+<body>
 
   <!-- ===== HEADER ===== -->
-  <header class="header bg-white shadow">
+  <header class="header">
     <div class="h-full px-4 flex justify-between items-center">
       <!-- LEFT -->
       <div class="flex items-center gap-3">
-        <button id="menuBtn" class="md:hidden text-xl">
+        <button id="menuBtn" class="md:hidden text-xl p-2 hover:bg-gray-100 rounded-lg transition">
           <i class="fa fa-bars"></i>
         </button>
-        <button id="collapseBtn" class="hidden md:block text-xl">
+        <button id="collapseBtn" class="hidden md:block text-xl p-2 hover:bg-gray-100 rounded-lg transition">
           <i class="fa fa-bars"></i>
         </button>
-        <span class="text-lg font-bold text-blue-600">
+        <a href="{% url 'exams:home' %}" class="text-lg font-bold text-blue-600 hover:text-blue-700 transition">
           {{ site_name }}
-        </span>
+        </a>
       </div>
 
       <!-- RIGHT -->
       <div class="relative">
         {% if user.is_authenticated %}
-        <!-- USER BUTTON -->
-        <button id="userMenuBtn" class="flex items-center gap-2 focus:outline-none">
+        <button id="userMenuBtn" class="flex items-center gap-2 focus:outline-none hover:bg-gray-100 px-3 py-2 rounded-lg transition">
           <i class="fa fa-user-circle text-2xl"></i>
-          <span class="font-medium">{{ user.username }}</span>
+          <span class="font-medium hidden sm:inline">{{ user.username }}</span>
           <i class="fa fa-chevron-down text-sm"></i>
         </button>
 
-        <!-- DROPDOWN -->
-        <div id="userDropdown" class="hidden absolute right-0 mt-3 w-44 bg-white rounded shadow-lg border z-50">
-          <a href="{% url 'profile' %}" class="block px-4 py-2 hover:bg-gray-100">
+        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+          <a href="{% url 'profile' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 transition">
             <i class="fa fa-user mr-2"></i> Profile
           </a>
-          <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-gray-100 text-red-500">
+          <a href="{% url 'logout' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 text-red-600 transition">
             <i class="fa fa-sign-out mr-2"></i> Logout
           </a>
         </div>
@@ -311,144 +368,120 @@
   </header>
 
   <!-- Swipe area for mobile -->
-  <div class="swipe-area md:hidden" id="swipeArea"></div>
+  <div class="swipe-area" id="swipeArea"></div>
+
+  <!-- Overlay for mobile -->
+  <div id="overlay" class="overlay"></div>
 
   <!-- ===== SIDEBAR ===== -->
   <aside id="sidebar" class="sidebar">
-    <!-- TOP MENU -->
-    <div class="sidebar-content py-4 space-y-1">
-      <ul class="space-y-1">
+    <!-- Scrollable Menu Area -->
+    <div class="sidebar-content">
+      <ul class="space-y-0">
         <!-- HOME -->
         <li>
-          <a href="{% url 'exams:home' %}" class="flex items-center px-4 py-3 hover:bg-gray-600
-       {% if request.resolver_match.url_name == 'home' %}
-           menu-active
-       {% endif %}">
+          <a href="{% url 'exams:home' %}" class="sidebar-link {% if request.resolver_match.url_name == 'home' %}menu-active{% endif %}">
             <i class="fa fa-home w-6"></i>
             <span class="label ml-3">Home</span>
           </a>
         </li>
+        
         <!-- ABOUT US -->
         <li>
-          <a href="{% url 'exams:about' %}" class="flex items-center px-4 py-3 hover:bg-gray-600
-       {% if request.resolver_match.url_name == 'about' %}
-           menu-active
-       {% endif %}">
+          <a href="{% url 'exams:about' %}" class="sidebar-link {% if request.resolver_match.url_name == 'about' %}menu-active{% endif %}">
             <i class="fa fa-book w-6"></i>
             <span class="label ml-3">About Us</span>
           </a>
         </li>
         
-        <!-- SUBJECTS DROPDOWN - UPDATED to use subject_mocktests subjects -->
-        <li class="relative">
-          <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-600 cursor-pointer"
-            id="subjectsMenuBtn">
+        <!-- SUBJECTS DROPDOWN -->
+        <li>
+          <div class="dropdown-btn" id="subjectsMenuBtn">
             <div class="flex items-center">
               <i class="fa fa-book-open w-6"></i>
               <span class="label ml-3">Subjects</span>
             </div>
-            <i class="fa fa-chevron-down text-sm transition-transform duration-300" id="subjectsChevron"></i>
+            <i class="fa fa-chevron-down text-sm transition-transform duration-200" id="subjectsChevron"></i>
           </div>
-
-          <!-- Dropdown content - Shows subjects from subject_mocktests app -->
           <div id="subjectsDropdown" class="dropdown-content">
-            <ul class="py-2 space-y-1">
+            <ul class="py-2">
               {% if subject_mocktests_subjects %}
                 {% for subject in subject_mocktests_subjects %}
                 <li>
-                  <a href="{% url 'subject_mocktests:subject_detail' subject.slug %}"
-                    class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
+                  <a href="{% url 'subject_mocktests:subject_detail' subject.slug %}" class="sidebar-link dropdown-item">
                     {% if subject.icon %}
                     <img src="{{ subject.icon.url }}" alt="{{ subject.name }}" class="w-4 h-4 mr-2 object-cover rounded">
                     {% else %}
                     <i class="fa fa-graduation-cap w-4 mr-2"></i>
                     {% endif %}
-                    <span class="truncate">{{ subject.name }}</span>
-                    <span class="ml-auto text-xs bg-indigo-500 px-1.5 py-0.5 rounded-full">{{ subject.total_mocktests }}</span>
+                    <span class="truncate flex-1">{{ subject.name }}</span>
+                    <span class="text-xs bg-indigo-600 px-1.5 py-0.5 rounded-full">{{ subject.total_mocktests }}</span>
                   </a>
                 </li>
                 {% endfor %}
               {% else %}
-                <li class="dropdown-item px-4 py-2 text-gray-300 italic">
-                  <i class="fa fa-info-circle w-4 mr-2"></i>
-                  No subjects available
+                <li class="px-4 py-2 text-gray-400 text-sm italic">No subjects available</li>
+              {% endif %}
+            </ul>
+          </div>
+        </li>
+
+        <!-- TEST DROPDOWN -->
+        <li>
+          <div class="dropdown-btn" id="testMenuBtn">
+            <div class="flex items-center">
+              <i class="fa fa-pen w-6"></i>
+              <span class="label ml-3">Test</span>
+            </div>
+            <i class="fa fa-chevron-down text-sm transition-transform duration-200" id="testChevron"></i>
+          </div>
+          <div id="testDropdown" class="dropdown-content">
+            <ul class="py-2">
+              {% if user.is_authenticated %}
+                {% if latest_mocktests %}
+                  {% for test in latest_mocktests %}
+                  <li>
+                    <a href="{% url 'exams:pretest_detail' test.id %}" class="sidebar-link dropdown-item">
+                      <i class="fa fa-file-text w-4 mr-2"></i>
+                      <span class="truncate flex-1">{{ test.title|truncatechars:25 }}</span>
+                      {% if test.is_new %}
+                      <span class="bg-green-500 text-xs px-1.5 py-0.5 rounded-full">New</span>
+                      {% endif %}
+                    </a>
+                  </li>
+                  {% endfor %}
+                {% else %}
+                  <li class="px-4 py-2 text-gray-400 text-sm italic">No tests available</li>
+                {% endif %}
+              {% else %}
+                <li>
+                  <a href="{% url 'login' %}?next={{ request.path }}" class="sidebar-link dropdown-item">
+                    <i class="fa fa-sign-in w-4 mr-2"></i>
+                    Sign in to take tests
+                  </a>
+                </li>
+                <li>
+                  <a href="{% url 'register' %}" class="sidebar-link dropdown-item">
+                    <i class="fa fa-user-plus w-4 mr-2"></i>
+                    Register now
+                  </a>
                 </li>
               {% endif %}
             </ul>
           </div>
         </li>
 
-        <!-- TEST with dropdown - FIXED -->
-        <li class="relative">
-          <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-600 cursor-pointer" id="testMenuBtn">
-            <div class="flex items-center">
-              <i class="fa fa-pen w-6"></i>
-              <span class="label ml-3">Test</span>
-            </div>
-            <i class="fa fa-chevron-down text-sm transition-transform duration-300" id="testChevron"></i>
-          </div>
-
-          <!-- Dropdown content - FIXED: Removed inline styles -->
-          <div id="testDropdown" class="dropdown-content">
-            <ul class="py-2 space-y-1">
-              {% if user.is_authenticated %}
-              {% if latest_mocktests %}
-              {% for test in latest_mocktests %}
-              <li>
-                <a href="{% url 'exams:pretest_detail' test.id %}"
-                  class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
-                  <i class="fa fa-file-text w-4 mr-2"></i>
-                  <span class="truncate">{{ test.title|truncatechars:25 }}</span>
-                  {% if test.is_new %}
-                  <span class="ml-2 bg-green-500 text-xs px-1.5 py-0.5 rounded-full">New</span>
-                  {% endif %}
-                </a>
-              </li>
-              {% endfor %}
-              {% else %}
-              <li class="dropdown-item px-4 py-2 text-gray-300 italic">
-                <i class="fa fa-info-circle w-4 mr-2"></i>
-                No tests available
-              </li>
-              {% endif %}
-              {% else %}
-              <li>
-                <a href="{% url 'login' %}?next={{ request.path }}"
-                  class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
-                  <i class="fa fa-sign-in w-4 mr-2"></i>
-                  Sign in to take tests
-                </a>
-              </li>
-              <li>
-                <a href="{% url 'register' %}"
-                  class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-600 text-white">
-                  <i class="fa fa-user-plus w-4 mr-2"></i>
-                  Register now
-                </a>
-              </li>
-              {% endif %}
-            </ul>
-          </div>
-        </li>
-
-        <!-- USER DASHBOARD - Only shown when user is logged in -->
+        <!-- USER DASHBOARD -->
         {% if user.is_authenticated %}
         <li>
-          <a href="{% url 'exams:dashboard' %}" class="flex items-center px-4 py-3 hover:bg-gray-600
-     {% if request.resolver_match.url_name == 'dashboard' %}
-         menu-active
-     {% endif %}">
+          <a href="{% url 'exams:dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}menu-active{% endif %}">
             <i class="fa fa-tachometer-alt w-6"></i>
             <span class="label ml-3">Dashboard</span>
           </a>
         </li>
         
-        <!-- SUBJECT MOCKTESTS DASHBOARD - New link for subject mocktests -->
         <li>
-          <a href="{% url 'subject_mocktests:subject_dashboard' %}" class="flex items-center px-4 py-3 hover:bg-gray-600
-     {% if request.resolver_match.url_name == 'subject_dashboard' %}
-         menu-active
-     {% endif %}">
+          <a href="{% url 'subject_mocktests:subject_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'subject_dashboard' %}menu-active{% endif %}">
             <i class="fa fa-chart-line w-6"></i>
             <span class="label ml-3">Subject Tests</span>
           </a>
@@ -457,10 +490,7 @@
 
         <!-- CURRENT AFFAIRS -->
         <li>
-          <a href="{% url 'current_affairs_list' %}" class="flex items-center px-4 py-3 hover:bg-gray-600
-       {% if request.resolver_match.url_name == 'current_affairs_list' %}
-           menu-active
-       {% endif %}">
+          <a href="{% url 'current_affairs_list' %}" class="sidebar-link">
             <i class="fa fa-newspaper w-6"></i>
             <span class="label ml-3">Current Affairs</span>
           </a>
@@ -468,10 +498,7 @@
 
         <!-- EXAM NEWS -->
         <li>
-          <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-600
-       {% if request.resolver_match.url_name == 'exam_news' %}
-           menu-active
-       {% endif %}">
+          <a href="#" class="sidebar-link">
             <i class="fa fa-newspaper w-6"></i>
             <span class="label ml-3">Exam News</span>
           </a>
@@ -479,52 +506,50 @@
       </ul>
     </div>
 
-    <!-- BOTTOM LOGIN -->
-    <div class="sidebar-bottom py-3">
+    <!-- BOTTOM SECTION - Fixed at bottom -->
+    <div class="sidebar-bottom">
       {% if user.is_authenticated %}
-      <a href="{% url 'profile' %}" class="flex items-center px-4 py-3 hover:bg-gray-600">
+      <a href="{% url 'profile' %}" class="sidebar-link">
         <i class="fa fa-user w-6"></i>
         <span class="label ml-3">{{ user.username }}</span>
       </a>
-      <a href="{% url 'logout' %}" class="flex items-center px-4 py-3 hover:bg-gray-600 text-red-300">
+      <a href="{% url 'logout' %}" class="sidebar-link text-red-300 hover:text-red-200">
         <i class="fa fa-sign-out w-6"></i>
         <span class="label ml-3">Logout</span>
       </a>
       {% else %}
-      <a href="{% url 'login' %}" class="flex items-center px-4 py-3 hover:bg-gray-600">
+      <a href="{% url 'login' %}" class="sidebar-link">
         <i class="fa fa-sign-in w-6"></i>
         <span class="label ml-3">Login</span>
+      </a>
+      <a href="{% url 'register' %}" class="sidebar-link">
+        <i class="fa fa-user-plus w-6"></i>
+        <span class="label ml-3">Register</span>
       </a>
       {% endif %}
     </div>
   </aside>
 
-  <div id="overlay" class="overlay"></div>
-
-  <!-- ===== MAIN ===== -->
+  <!-- ===== MAIN CONTENT ===== -->
   <main id="main" class="main">
-    <div class="content-wrapper">
-      {% block content %}{% endblock %}
-    </div>
+    {% block content %}{% endblock %}
   </main>
 
-  <!-- ===== BOTTOM HEADER ===== -->
-  <div id="bottomHeader"
-    class="fixed bottom-0 left-0 w-full h-16 bg-white/80 backdrop-blur-lg border-t border-white/20 shadow-lg md:hidden flex items-center justify-around px-2 z-45 transition-transform duration-300">
-    <a href="{% url 'exams:home' %}"
-      class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
+  <!-- ===== BOTTOM HEADER (Mobile Only) ===== -->
+  <div id="bottomHeader" class="bottom-header">
+    <a href="{% url 'exams:home' %}" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2">
       <i class="fa fa-home text-xl"></i>
       <span class="text-xs mt-1">Home</span>
     </a>
-    <a href="#" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600" id="mobileTestBtn">
+    <a href="#" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2" id="mobileTestBtn">
       <i class="fa fa-pen text-xl"></i>
       <span class="text-xs mt-1">Test</span>
     </a>
-    <a href="{% url 'subject_mocktests:subject_list' %}" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
+    <a href="{% url 'subject_mocktests:subject_list' %}" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2">
       <i class="fa fa-book-open text-xl"></i>
       <span class="text-xs mt-1">Subjects</span>
     </a>
-    <a href="{% url 'profile' %}" class="flex flex-col items-center justify-center text-gray-700 hover:text-blue-600">
+    <a href="{% url 'profile' %}" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2">
       <i class="fa fa-user text-xl"></i>
       <span class="text-xs mt-1">Profile</span>
     </a>
@@ -542,84 +567,121 @@
     const testChevron = document.getElementById("testChevron");
     const mobileTestBtn = document.getElementById("mobileTestBtn");
     const bottomHeader = document.getElementById('bottomHeader');
+    const body = document.body;
+    const swipeArea = document.getElementById("swipeArea");
 
     // Touch variables for swipe
     let touchStartX = 0;
     let touchEndX = 0;
+    let isTransitioning = false;
 
-    // Check localStorage for sidebar state on page load
-    document.addEventListener('DOMContentLoaded', function () {
-      // Only apply to desktop
+    // Desktop sidebar collapse with localStorage (NO VIBRATION)
+    function initDesktopSidebar() {
       if (window.innerWidth > 768) {
         const sidebarState = localStorage.getItem('sidebarCollapsed');
-
-        // If sidebar was collapsed, collapse it
         if (sidebarState === 'true') {
           sidebar.classList.add('collapsed');
           main.classList.add('collapsed');
         } else {
-          // Ensure it's expanded (remove classes if they exist)
           sidebar.classList.remove('collapsed');
           main.classList.remove('collapsed');
         }
       }
-    });
+    }
+
+    // Toggle desktop sidebar with smooth transition (NO VIBRATION)
+    function toggleDesktopSidebar() {
+      if (window.innerWidth > 768 && !isTransitioning) {
+        isTransitioning = true;
+        
+        sidebar.classList.toggle('collapsed');
+        main.classList.toggle('collapsed');
+        
+        // Save state
+        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        
+        // Reset transition flag after animation completes
+        setTimeout(() => {
+          isTransitioning = false;
+        }, 200);
+      }
+    }
 
     // Mobile menu toggle
-    if (menuBtn) {
-      menuBtn.addEventListener("click", () => {
-        sidebar.classList.toggle("open");
-        overlay.classList.toggle("show");
-        // Prevent body scroll when sidebar is open
-        if (sidebar.classList.contains('open')) {
-          document.body.style.overflow = 'hidden';
+    function toggleMobileSidebar(open) {
+      if (window.innerWidth <= 768) {
+        if (open === undefined) {
+          open = !sidebar.classList.contains('open');
+        }
+        
+        if (open) {
+          sidebar.classList.add('open');
+          overlay.classList.add('show');
+          body.classList.add('sidebar-open');
         } else {
-          document.body.style.overflow = '';
+          sidebar.classList.remove('open');
+          overlay.classList.remove('show');
+          body.classList.remove('sidebar-open');
         }
-      });
+      }
     }
 
-    // Desktop collapse with localStorage
+    // Close sidebar function
+    function closeSidebar() {
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+        body.classList.remove('sidebar-open');
+      }
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      initDesktopSidebar();
+    });
+
+    if (menuBtn) {
+      menuBtn.addEventListener("click", () => toggleMobileSidebar());
+    }
+
     if (collapseBtn) {
-      collapseBtn.addEventListener("click", () => {
-        sidebar.classList.toggle("collapsed");
-        main.classList.toggle("collapsed");
+      collapseBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        toggleDesktopSidebar();
+      });
+    }
 
-        // Save state to localStorage (only for desktop)
-        if (window.innerWidth > 768) {
-          const isCollapsed = sidebar.classList.contains('collapsed');
-          localStorage.setItem('sidebarCollapsed', isCollapsed);
+    if (overlay) {
+      overlay.addEventListener("click", closeSidebar);
+    }
+
+    // Close sidebar when clicking on main content on mobile
+    if (main) {
+      main.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+          closeSidebar();
         }
       });
     }
 
-    // Close mobile menu
-    if (overlay) {
-      overlay.addEventListener("click", () => {
-        sidebar.classList.remove("open");
-        overlay.classList.remove("show");
-        document.body.style.overflow = '';
-      });
-    }
-
-    // USER DROPDOWN
+    // User dropdown
     const userBtn = document.getElementById("userMenuBtn");
-    const dropdown = document.getElementById("userDropdown");
+    const userDropdown = document.getElementById("userDropdown");
 
-    if (userBtn && dropdown) {
+    if (userBtn && userDropdown) {
       userBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        dropdown.classList.toggle("hidden");
+        userDropdown.classList.toggle("hidden");
       });
 
       document.addEventListener("click", (e) => {
-        if (!userBtn.contains(e.target) && !dropdown.contains(e.target)) {
-          dropdown.classList.add("hidden");
+        if (!userBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+          userDropdown.classList.add("hidden");
         }
       });
     }
 
-    // SUBJECTS DROPDOWN
+    // Subjects dropdown
     const subjectsMenuBtn = document.getElementById("subjectsMenuBtn");
     const subjectsDropdown = document.getElementById("subjectsDropdown");
     const subjectsChevron = document.getElementById("subjectsChevron");
@@ -628,55 +690,39 @@
       subjectsMenuBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-
-        if (subjectsDropdown.classList.contains("show")) {
-          subjectsDropdown.classList.remove("show");
-          subjectsChevron.style.transform = "rotate(0deg)";
-        } else {
-          subjectsDropdown.classList.add("show");
-          subjectsChevron.style.transform = "rotate(180deg)";
-        }
+        
+        const isOpen = subjectsDropdown.classList.contains("show");
+        subjectsDropdown.classList.toggle("show");
+        subjectsChevron.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
       });
     }
 
-    // Close subjects dropdown when clicking outside
-    document.addEventListener("click", (e) => {
-      if (subjectsDropdown && subjectsMenuBtn &&
-        !subjectsMenuBtn.contains(e.target) &&
-        !subjectsDropdown.contains(e.target)) {
-        subjectsDropdown.classList.remove("show");
-        if (subjectsChevron) {
-          subjectsChevron.style.transform = "rotate(0deg)";
-        }
-      }
-    });
-
-    // TEST DROPDOWN - FIXED
+    // Test dropdown
     if (testMenuBtn && testDropdown && testChevron) {
       testMenuBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-
-        // Toggle dropdown
-        if (testDropdown.classList.contains("show")) {
-          testDropdown.classList.remove("show");
-          testChevron.style.transform = "rotate(0deg)";
-        } else {
-          testDropdown.classList.add("show");
-          testChevron.style.transform = "rotate(180deg)";
-        }
+        
+        const isOpen = testDropdown.classList.contains("show");
+        testDropdown.classList.toggle("show");
+        testChevron.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
       });
     }
 
-    // Close dropdown when clicking outside
+    // Close dropdowns when clicking outside
     document.addEventListener("click", (e) => {
-      if (testDropdown && testMenuBtn &&
-        !testMenuBtn.contains(e.target) &&
-        !testDropdown.contains(e.target)) {
+      if (subjectsDropdown && subjectsMenuBtn && 
+          !subjectsMenuBtn.contains(e.target) && 
+          !subjectsDropdown.contains(e.target)) {
+        subjectsDropdown.classList.remove("show");
+        if (subjectsChevron) subjectsChevron.style.transform = "rotate(0deg)";
+      }
+      
+      if (testDropdown && testMenuBtn && 
+          !testMenuBtn.contains(e.target) && 
+          !testDropdown.contains(e.target)) {
         testDropdown.classList.remove("show");
-        if (testChevron) {
-          testChevron.style.transform = "rotate(0deg)";
-        }
+        if (testChevron) testChevron.style.transform = "rotate(0deg)";
       }
     });
 
@@ -685,64 +731,78 @@
       mobileTestBtn.addEventListener("click", (e) => {
         e.preventDefault();
         if (window.innerWidth <= 768) {
-          sidebar.classList.add("open");
-          overlay.classList.add("show");
-          document.body.style.overflow = 'hidden';
-
-          // Open test dropdown in sidebar
-          if (testDropdown && !testDropdown.classList.contains("show")) {
-            setTimeout(() => {
+          toggleMobileSidebar(true);
+          setTimeout(() => {
+            if (testDropdown) {
               testDropdown.classList.add("show");
-              if (testChevron) {
-                testChevron.style.transform = "rotate(180deg)";
-              }
-            }, 300);
-          }
+              if (testChevron) testChevron.style.transform = "rotate(180deg)";
+            }
+          }, 250);
         }
       });
     }
 
     // SWIPE TO OPEN/CLOSE SIDEBAR ON MOBILE
-    document.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-    }, false);
+    if (swipeArea) {
+      swipeArea.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, false);
 
-    document.addEventListener('touchend', (e) => {
-      if (window.innerWidth <= 768) {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-      }
-    }, false);
-
-    function handleSwipe() {
-      const swipeThreshold = 50;
-      const swipeDistance = touchEndX - touchStartX;
-
-      // Swipe right to open (if starting from left edge)
-      if (swipeDistance > swipeThreshold && touchStartX < 30 && !sidebar.classList.contains('open')) {
-        sidebar.classList.add('open');
-        overlay.classList.add('show');
-        document.body.style.overflow = 'hidden';
-      }
-
-      // Swipe left to close
-      if (swipeDistance < -swipeThreshold && sidebar.classList.contains('open')) {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('show');
-        document.body.style.overflow = '';
-      }
-    }
-
-    // Close sidebar when clicking on main content on mobile
-    if (main) {
-      main.addEventListener('click', () => {
-        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-          sidebar.classList.remove('open');
-          overlay.classList.remove('show');
-          document.body.style.overflow = '';
+      swipeArea.addEventListener('touchend', (e) => {
+        if (window.innerWidth <= 768) {
+          touchEndX = e.changedTouches[0].screenX;
+          const swipeDistance = touchEndX - touchStartX;
+          
+          if (swipeDistance > 50 && !sidebar.classList.contains('open')) {
+            toggleMobileSidebar(true);
+          } else if (swipeDistance < -50 && sidebar.classList.contains('open')) {
+            closeSidebar();
+          }
         }
-      });
+      }, false);
     }
+
+    // Bottom header hide/show on scroll (mobile only)
+    let lastScroll = 0;
+    let scrollTimeout;
+
+    window.addEventListener('scroll', () => {
+      if (window.innerWidth <= 768 && bottomHeader && !sidebar.classList.contains('open')) {
+        if (scrollTimeout) clearTimeout(scrollTimeout);
+        
+        const currentScroll = window.scrollY;
+        if (currentScroll > lastScroll && currentScroll > 100) {
+          bottomHeader.style.transform = 'translateY(100%)';
+        } else if (currentScroll < lastScroll) {
+          bottomHeader.style.transform = 'translateY(0)';
+        }
+        lastScroll = currentScroll;
+        
+        scrollTimeout = setTimeout(() => {
+          if (window.scrollY <= 50) {
+            bottomHeader.style.transform = 'translateY(0)';
+          }
+        }, 100);
+      }
+    });
+
+    // Handle window resize
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (window.innerWidth > 768) {
+          // Desktop
+          closeSidebar();
+          if (bottomHeader) bottomHeader.style.transform = 'translateY(0)';
+          initDesktopSidebar();
+        } else {
+          // Mobile - ensure collapsed class doesn't interfere
+          sidebar.classList.remove('collapsed');
+          main.classList.remove('collapsed');
+        }
+      }, 150);
+    });
 
     // Login button animation
     const loginBtn = document.getElementById("loginBtn");
@@ -759,49 +819,6 @@
       }, { threshold: 0.6 });
       observer.observe(loginBtn);
     }
-
-    // Bottom header hide/show on scroll
-    let lastScroll = 0;
-
-    window.addEventListener('scroll', () => {
-      if (window.innerWidth <= 768 && bottomHeader) {
-        const currentScroll = window.scrollY;
-        if (currentScroll > lastScroll && currentScroll > 50) {
-          bottomHeader.style.transform = 'translateY(100%)';
-        } else {
-          bottomHeader.style.transform = 'translateY(0)';
-        }
-        lastScroll = currentScroll;
-      }
-    });
-
-    // Reset on resize with localStorage consideration
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 768) {
-        // Hide bottom header on desktop
-        if (bottomHeader) {
-          bottomHeader.style.transform = 'translateY(0)';
-        }
-        // Close mobile sidebar
-        sidebar.classList.remove('open');
-        overlay.classList.remove('show');
-        document.body.style.overflow = '';
-
-        // Reapply collapsed state from localStorage on resize to desktop
-        const sidebarState = localStorage.getItem('sidebarCollapsed');
-        if (sidebarState === 'true') {
-          sidebar.classList.add('collapsed');
-          main.classList.add('collapsed');
-        } else {
-          sidebar.classList.remove('collapsed');
-          main.classList.remove('collapsed');
-        }
-      } else if (window.innerWidth <= 768) {
-        // On mobile, remove collapsed classes
-        sidebar.classList.remove('collapsed');
-        main.classList.remove('collapsed');
-      }
-    });
   </script>
 
   {% block extra_js %} {% endblock %}

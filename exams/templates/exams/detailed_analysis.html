@@ -5,180 +5,156 @@
 
 {% block extra_css %}
 <style>
+    /* Only custom styles not available in Tailwind */
     .question-card {
+        border-left-width: 4px;
         transition: all 0.3s ease;
-        border-left: 4px solid transparent;
     }
     .question-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
     }
-    .question-card.correct {
-        border-left-color: #10b981;
-    }
-    .question-card.wrong {
-        border-left-color: #ef4444;
-    }
-    .question-card.skipped {
-        border-left-color: #9ca3af;
-    }
+    .question-card.correct { border-left-color: #10b981; }
+    .question-card.wrong { border-left-color: #ef4444; }
+    .question-card.skipped { border-left-color: #9ca3af; }
+    
     .filter-btn.active {
-        background-color: #4f46e5;
-        color: white;
-        border-color: #4f46e5;
+        background-color: #4f46e5 !important;
+        color: white !important;
+        border-color: #4f46e5 !important;
     }
-    .option-item {
-        transition: all 0.2s ease;
+
+    /* AI Window */
+    .ai-window {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        margin-top: 12px;
+        overflow: hidden;
+        animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        min-height: 80px;
     }
-    .option-correct {
-        background-color: #d1fae5;
-        border-color: #10b981;
-    }
-    .option-wrong {
-        background-color: #fee2e2;
-        border-color: #ef4444;
-    }
-    .option-selected {
-        border-width: 2px;
-    }
-    .rotate-180 {
-        transform: rotate(180deg);
-    }
-    
-    /* Difficulty badges */
-    .difficulty-easy {
-        background-color: #10b981;
-        color: white;
-    }
-    .difficulty-medium {
-        background-color: #f59e0b;
-        color: white;
-    }
-    .difficulty-hard {
-        background-color: #ef4444;
-        color: white;
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
     }
     
-    /* Question text styling */
-    .question-text {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        color: #1f2937;
-        background-color: #f9fafb;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid #4f46e5;
+    /* Drag corner handle */
+    .drag-handle-corner {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 24px;
+        height: 24px;
+        cursor: nwse-resize;
+        z-index: 20;
+        padding: 3px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
     }
+    .drag-handle-corner span {
+        display: block;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #cbd5e1;
+        border-bottom: 2px solid #cbd5e1;
+        border-radius: 0 0 4px 0;
+        transition: border-color 0.2s;
+    }
+    .drag-handle-corner:hover span { border-color: #4f46e5; }
     
-    /* Stats cards animation */
-    .stat-card {
-        transition: transform 0.2s;
-    }
-    .stat-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    /* Progress bar animation */
-    .progress-bar {
-        transition: width 0.5s ease-in-out;
-    }
-    
-    /* Loading spinner */
-    .spinner {
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #4f46e5;
+    /* Loading dots */
+    .dot {
+        width: 8px; height: 8px;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
+        background: #9ca3af;
+        animation: bounce-simple 1.4s infinite ease-in-out both;
+    }
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce-simple {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
     }
     
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+    /* Handwritten note style */
+    .handwritten-note {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+        background: #fef9e7;
+        padding: 1rem 1.2rem;
+        border-radius: 10px;
+        border: 2px solid #f59e0b;
+        position: relative;
+        margin-top: 0.5rem;
+    }
+    .handwritten-note::before {
+        content: '✍️';
+        position: absolute;
+        top: -10px; left: 16px;
+        font-size: 1.2rem;
+        background: white;
+        padding: 0 6px;
+        border-radius: 50%;
     }
     
-    /* Explanation styling */
-    .explanation-content {
-        font-size: 0.95rem;
-        line-height: 1.6;
-    }
-    .explanation-content p {
-        margin-bottom: 0.75rem;
-    }
-    .explanation-content ul, .explanation-content ol {
-        margin-left: 1.5rem;
-        margin-bottom: 0.75rem;
+    /* Print styles */
+    @media print {
+        .question-card { page-break-inside: avoid; }
+        .no-print, .filter-btn, .difficulty-filter, #searchQuestions, #sortQuestions,
+        .action-buttons, button, .bg-gradient-to-r, .ai-btn, .ai-window,
+        .pdf-download-btn, .view-toggle-btn, .ai-controls { display: none !important; }
+        .question-card { border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; }
+        .explanation-content { display: block !important; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Modern Card Style Breadcrumb -->
+    
+    <!-- Breadcrumb -->
     <nav class="mb-8" aria-label="Breadcrumb">
         <div class="bg-zinc-300 backdrop-blur-sm rounded-2xl border border-green-500 shadow-sm p-3">
-            <ol class="flex flex-wrap items-center">
-                <!-- Dashboard Link -->
-                <li>
-                    <a href="{% if request.resolver_match.app_name == 'subject_mocktests' %}{% url 'subject_mocktests:subject_dashboard' %}{% else %}{% url 'exams:dashboard' %}{% endif %}"
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-all duration-200 group">
-                        <svg class="w-4 h-4 text-gray-500 group-hover:text-indigo-600 transition-colors" 
-                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                        <span class="text-sm font-medium text-gray-600 group-hover:text-indigo-600">Dashboard</span>
-                    </a>
-                </li>
-
-                <!-- Separator -->
-                <li class="mx-1">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </li>
-
-                <!-- Results Link -->
-                <li>
-                    <a href="{% if request.resolver_match.app_name == 'subject_mocktests' %}{% url 'subject_mocktests:result_dashboard' attempt.id %}{% else %}{% url 'exams:result_dashboard' attempt.id %}{% endif %}"
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-all duration-200 group">
-                        <svg class="w-4 h-4 text-gray-500 group-hover:text-indigo-600 transition-colors" 
-                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        <span class="text-sm font-medium text-gray-600 group-hover:text-indigo-600">Results</span>
-                    </a>
-                </li>
-
-                <!-- Separator -->
-                <li class="mx-1">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </li>
-
-                <!-- Current Page (Detailed Analysis) -->
-                <li>
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100 shadow-sm">
-                        <div class="relative">
-                            <div class="absolute inset-0 bg-indigo-200/30 rounded-lg blur-sm"></div>
-                            <svg class="relative w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+            <ol class="flex flex-wrap items-center justify-between">
+                <div class="flex flex-wrap items-center space-x-2">
+                    <li>
+                        <a href="{% if request.resolver_match.app_name == 'subject_mocktests' %}{% url 'subject_mocktests:subject_dashboard' %}{% else %}{% url 'exams:dashboard' %}{% endif %}" 
+                           class="flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition">
+                            <svg class="w-4 h-4 text-gray-500 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            <span class="text-sm font-medium text-gray-600">Dashboard</span>
+                        </a>
+                    </li>
+                    <li><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></li>
+                    <li>
+                        <a href="{% if request.resolver_match.app_name == 'subject_mocktests' %}{% url 'subject_mocktests:result_dashboard' attempt.id %}{% else %}{% url 'exams:result_dashboard' attempt.id %}{% endif %}" 
+                           class="flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <span class="text-sm font-medium text-gray-600">Results</span>
+                        </a>
+                    </li>
+                    <li><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></li>
+                    <li>
+                        <div class="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100 shadow-sm">
+                            <span class="text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-purple-700">Detailed Analysis</span>
                         </div>
-                        <span class="text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-purple-700">
-                            Detailed Analysis
-                        </span>
-                    </div>
+                    </li>
+                </div>
+                <!-- PDF Download Button -->
+                <li class="ml-auto">
+                    <button onclick="downloadPDF()" 
+                            class="pdf-download-btn inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Download PDF</span>
+                    </button>
                 </li>
             </ol>
         </div>
     </nav>
 
-    <!-- Header Card with Language Dropdown -->
+    <!-- Header Card -->
     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-6 md:p-8 mb-8 text-white">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
@@ -195,55 +171,37 @@
                     </span>
                 </div>
                 <h1 class="text-2xl md:text-3xl font-bold mb-2">{{ attempt.mock_test.title }}</h1>
-                <p class="text-white/80 flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                    Review your answers and learn from detailed explanations
-                </p>
+                <p class="text-white/80 flex items-center">Review your answers and learn from detailed explanations</p>
             </div>
             <div class="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3">
-                <!-- Language Dropdown -->
                 <div class="relative">
                     <select id="languageSelect" onchange="changeLanguage(this.value)" 
                             class="appearance-none bg-white/20 hover:bg-white/30 text-white rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer">
                         <option value="en" class="text-gray-900" {% if selected_language == 'en' %}selected{% endif %}>🇬🇧 English</option>
                         <option value="hi" class="text-gray-900" {% if selected_language == 'hi' %}selected{% endif %}>🇮🇳 हिन्दी</option>
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
-                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                        </svg>
-                    </div>
                 </div>
-                
-                <a href="{% if request.resolver_match.app_name == 'subject_mocktests' %}{% url 'subject_mocktests:result_dashboard' attempt.id %}{% else %}{% url 'exams:result_dashboard' attempt.id %}{% endif %}" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition flex items-center justify-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
+                <a href="{% if request.resolver_match.app_name == 'subject_mocktests' %}{% url 'subject_mocktests:result_dashboard' attempt.id %}{% else %}{% url 'exams:result_dashboard' attempt.id %}{% endif %}" 
+                   class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition flex items-center justify-center">
                     Back to Results
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Debug Info - Will show only if there are issues -->
+    <!-- Debug Info -->
     {% if not questions_data %}
     <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded-r-lg" role="alert">
         <div class="flex">
             <div class="flex-shrink-0">
                 <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
             </div>
             <div class="ml-3">
                 <p class="text-sm text-yellow-700">
                     <strong class="font-medium">No questions data available!</strong> 
-                    {% if error_message %}
-                        {{ error_message }}
-                    {% else %}
-                        This might be because no answers were saved for this attempt or there was an error loading the data.
-                    {% endif %}
+                    {% if error_message %}{{ error_message }}{% else %}This might be because no answers were saved for this attempt.{% endif %}
                 </p>
             </div>
         </div>
@@ -251,335 +209,159 @@
     {% endif %}
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <div class="stat-card bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-sm">Total Questions</span>
-                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        <div class="stat-card bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-gray-500 text-xs">Total</span>
+                <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-gray-800">{{ total_questions }}</p>
-            <p class="text-xs text-gray-400 mt-1">questions attempted</p>
+            <p class="text-2xl font-bold text-gray-800">{{ total_questions }}</p>
+            <p class="text-[10px] text-gray-400">questions</p>
         </div>
 
-        <div class="stat-card bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-sm">Correct</span>
-                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
+        <div class="stat-card bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-gray-500 text-xs">Correct</span>
+                <div class="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-green-600">{{ correct_count }}</p>
-            <div class="mt-2">
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="progress-bar bg-green-600 h-2 rounded-full" style="width: {% widthratio correct_count total_questions 100 %}%"></div>
+            <p class="text-2xl font-bold text-green-600">{{ correct_count }}</p>
+            <div class="mt-1">
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div class="progress-bar bg-green-600 h-1.5 rounded-full" style="width: {% widthratio correct_count total_questions 100 %}%"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">{{ accuracy }}% accuracy</p>
             </div>
         </div>
 
-        <div class="stat-card bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-sm">Wrong</span>
-                <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+        <div class="stat-card bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-gray-500 text-xs">Wrong</span>
+                <div class="w-7 h-7 bg-red-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-red-600">{{ wrong_count }}</p>
-            <p class="text-xs text-gray-400 mt-1">{{ wrong_count|add:skipped_count }} incorrect/skipped</p>
+            <p class="text-2xl font-bold text-red-600">{{ wrong_count }}</p>
         </div>
 
-        <div class="stat-card bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-sm">Skipped</span>
-                <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+        <div class="stat-card bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-gray-500 text-xs">Skipped</span>
+                <div class="w-7 h-7 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-yellow-600">{{ skipped_count }}</p>
-            <p class="text-xs text-gray-400 mt-1">Not attempted</p>
+            <p class="text-2xl font-bold text-yellow-600">{{ skipped_count }}</p>
         </div>
 
-        <div class="stat-card bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-sm">Score</span>
-                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-                    </svg>
+        <div class="stat-card bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-gray-500 text-xs">Score</span>
+                <div class="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-purple-600">{{ attempt.score|floatformat:1 }}</p>
-            <p class="text-xs text-gray-400 mt-1"> {{ total_questions }}</p>
+            <p class="text-2xl font-bold text-purple-600">{{ attempt.score|floatformat:1 }}</p>
         </div>
     </div>
 
-    <!-- Subject-wise Performance -->
-    {% if subject_stats %}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
-            Subject-wise Performance
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {% for subject, stats in subject_stats.items %}
-            <div class="bg-gray-50 rounded-xl p-4 hover:shadow-md transition">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="font-medium text-gray-800">{{ subject }}</span>
-                    <span class="text-sm font-bold 
-                        {% if stats.percentage >= 70 %}text-green-600
-                        {% elif stats.percentage >= 40 %}text-yellow-600
-                        {% else %}text-red-600{% endif %}">
-                        {{ stats.correct }}/{{ stats.total }} ({{ stats.percentage }}%)
-                    </span>
-                </div>
-                <div class="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div class="progress-bar h-full rounded-full
-                        {% if stats.percentage >= 70 %}bg-green-500
-                        {% elif stats.percentage >= 40 %}bg-yellow-500
-                        {% else %}bg-red-500{% endif %}" 
-                        style="width: {{ stats.percentage }}%"></div>
-                </div>
-                <div class="flex justify-between text-xs text-gray-500 mt-2">
-                    <span class="flex items-center">
-                        <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                        Correct: {{ stats.correct }}
-                    </span>
-                    <span class="flex items-center">
-                        <span class="w-2 h-2 bg-red-500 rounded-full mr-1"></span>
-                        Wrong: {{ stats.wrong }}
-                    </span>
-                    <span class="flex items-center">
-                        <span class="w-2 h-2 bg-gray-500 rounded-full mr-1"></span>
-                        Skipped: {{ stats.skipped }}
-                    </span>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Filter and Search Section -->
-    {% if questions_data %}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4 md:mb-0 flex items-center">
-                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                Question Review
-            </h2>
-            
-            <!-- Filter Buttons -->
-            <div class="flex flex-wrap gap-2">
-                <button onclick="filterQuestions('all')" id="filter-all" class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium border-2 border-indigo-600 bg-indigo-600 text-white transition-all hover:shadow-md">
-                    <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                        All ({{ total_questions }})
-                    </span>
-                </button>
-                <button onclick="filterQuestions('correct')" id="filter-correct" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium border-2 border-green-600 text-green-600 hover:bg-green-50 transition-all">
-                    <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Correct ({{ correct_count }})
-                    </span>
-                </button>
-                <button onclick="filterQuestions('wrong')" id="filter-wrong" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium border-2 border-red-600 text-red-600 hover:bg-red-50 transition-all">
-                    <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                        Wrong ({{ wrong_count }})
-                    </span>
-                </button>
-                <button onclick="filterQuestions('skipped')" id="filter-skipped" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium border-2 border-gray-600 text-gray-600 hover:bg-gray-50 transition-all">
-                    <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Skipped ({{ skipped_count }})
-                    </span>
-                </button>
+    <!-- Questions Container -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6 mb-8">
+        <!-- Filters -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-lg font-semibold text-gray-800">Question Review</h2>
+            <div class="flex flex-wrap gap-1.5">
+                <button onclick="filterQuestions('all')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium border-2 border-indigo-600 bg-indigo-600 text-white transition hover:shadow-md">All ({{ total_questions }})</button>
+                <button onclick="filterQuestions('correct')" id="filter-correct" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium border-2 border-green-600 text-green-600 hover:bg-green-50 transition">Correct ({{ correct_count }})</button>
+                <button onclick="filterQuestions('wrong')" id="filter-wrong" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium border-2 border-red-600 text-red-600 hover:bg-red-50 transition">Wrong ({{ wrong_count }})</button>
+                <button onclick="filterQuestions('skipped')" id="filter-skipped" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium border-2 border-gray-600 text-gray-600 hover:bg-gray-50 transition">Skipped ({{ skipped_count }})</button>
             </div>
         </div>
 
-        <!-- Difficulty Filter Bar -->
-        <div class="flex flex-wrap items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-            <span class="text-sm font-medium text-gray-700">Filter by difficulty:</span>
-            <div class="flex flex-wrap gap-2">
-                <button onclick="filterByDifficulty('all')" id="difficulty-all" class="difficulty-filter active px-4 py-1.5 rounded-full text-sm font-medium bg-indigo-600 text-white transition-all hover:shadow-md">
-                    All
-                </button>
-                <button onclick="filterByDifficulty('Easy')" id="difficulty-easy" class="difficulty-filter px-4 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-all">
-                    Easy
-                </button>
-                <button onclick="filterByDifficulty('Medium')" id="difficulty-medium" class="difficulty-filter px-4 py-1.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-200 transition-all">
-                    Medium
-                </button>
-                <button onclick="filterByDifficulty('Hard')" id="difficulty-hard" class="difficulty-filter px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-all">
-                    Hard
-                </button>
-            </div>
-        </div>
-
-        <!-- Search and Sort Bar -->
-        <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+        <!-- Search -->
+        <div class="flex flex-col md:flex-row gap-3 mb-4">
             <div class="flex-1 relative">
-                <input type="text" id="searchQuestions" placeholder="Search questions by text, subject, or topic..." 
-                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-                {% if search_query %}
-                <button onclick="clearSearch()" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-                {% endif %}
+                <input type="text" id="searchQuestions" placeholder="Search questions..." 
+                       class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
-            <div class="flex items-center space-x-2">
-                <span class="text-sm text-gray-500">Sort by:</span>
-                <select id="sortQuestions" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="number">Question Number</option>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-500">Sort:</span>
+                <select id="sortQuestions" class="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                    <option value="number">Number</option>
                     <option value="subject">Subject</option>
                     <option value="difficulty">Difficulty</option>
                 </select>
             </div>
         </div>
 
-        <!-- Loading Spinner (hidden by default) -->
-        <div id="loadingSpinner" class="hidden flex justify-center py-8">
-            <div class="spinner"></div>
-        </div>
-
-        <!-- Questions Container -->
+        <!-- Questions List -->
         <div id="questionsContainer" class="space-y-4">
             {% for question in questions_data %}
-            <div class="question-card bg-white rounded-xl border border-gray-200 p-6 
-                        {% if question.is_correct %}correct
-                        {% elif question.is_answered %}wrong
-                        {% else %}skipped{% endif %}" 
+            <div class="question-card bg-white rounded-xl border border-gray-200 p-4 md:p-6 
+                        {% if question.is_correct %}correct{% elif question.is_answered %}wrong{% else %}skipped{% endif %}" 
                  data-status="{% if question.is_correct %}correct{% elif question.is_answered %}wrong{% else %}skipped{% endif %}"
                  data-subject="{{ question.subject|lower }}"
                  data-difficulty="{{ question.difficulty }}"
                  data-number="{{ question.question_number }}"
-                 data-search="{{ question.text|lower }} {{ question.subject|lower }} {{ question.topic|lower }}">
+                 data-search="{{ question.text|lower }} {{ question.subject|lower }} {{ question.topic|lower }}"
+                 data-question-id="{{ question.id }}"
+                 data-question-text="{{ question.text|escapejs }}"
+                 data-correct-answer="{{ question.correct_option_text|escapejs }}"
+                 data-selected-answer="{{ question.selected_option_text|escapejs }}">
                 
-                <!-- Question Header -->
-                <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
-                    <div class="flex items-center space-x-3">
-                        <span class="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm">
-                            {{ question.question_number }}
-                        </span>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <!-- Subject Badge -->
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                                </svg>
-                                {{ question.subject }}
-                            </span>
-                            
-                            <!-- Difficulty Badge -->
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                                {% if question.difficulty == 'Easy' %}bg-green-100 text-green-800
-                                {% elif question.difficulty == 'Medium' %}bg-yellow-100 text-yellow-800
-                                {% else %}bg-red-100 text-red-800{% endif %}">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                </svg>
-                                {{ question.difficulty }}
-                            </span>
-                            
-                            <!-- Topic Badge if available -->
-                            {% if question.topic %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-5-5A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                </svg>
-                                {{ question.topic }}
-                            </span>
-                            {% endif %}
-                        </div>
+                <!-- Header -->
+                <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm">{{ question.question_number }}</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">{{ question.subject }}</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                            {% if question.difficulty == 'Easy' %}bg-green-100 text-green-800
+                            {% elif question.difficulty == 'Medium' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">{{ question.difficulty }}</span>
+                        {% if question.topic %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">{{ question.topic }}</span>
+                        {% endif %}
                     </div>
-                    
-                    <!-- Status Badge -->
-                    <div class="flex items-center space-x-2">
+                    <div class="flex items-center gap-2">
                         {% if question.is_correct %}
-                        <span class="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full text-sm font-medium">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Correct
-                        </span>
+                        <span class="flex items-center text-green-600 bg-green-50 px-2.5 py-0.5 rounded-full text-xs font-medium">✔ Correct</span>
                         {% elif question.is_answered %}
-                        <span class="flex items-center text-red-600 bg-red-50 px-3 py-1 rounded-full text-sm font-medium">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                            Incorrect
-                        </span>
+                        <span class="flex items-center text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full text-xs font-medium">✘ Incorrect</span>
                         {% else %}
-                        <span class="flex items-center text-gray-600 bg-gray-50 px-3 py-1 rounded-full text-sm font-medium">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Skipped
-                        </span>
+                        <span class="flex items-center text-gray-600 bg-gray-50 px-2.5 py-0.5 rounded-full text-xs font-medium">⏭ Skipped</span>
                         {% endif %}
                     </div>
                 </div>
 
                 <!-- Question Text -->
-                <div class="mb-4">
-                    <div class="question-text">
-                        {{ question.text|linebreaks }}
-                    </div>
+                <div class="mb-3 p-3 bg-gray-50 rounded-lg border-l-4 border-indigo-500 text-sm text-gray-800">
+                    {{ question.text|linebreaks }}
                 </div>
 
                 <!-- Options -->
-                <div class="space-y-2 mb-4">
+                <div class="space-y-1.5 mb-3">
                     {% for option in question.options %}
-                    <div class="option-item p-3 rounded-lg border 
-                        {% if option.is_correct %}option-correct border-green-300{% endif %}
-                        {% if option.is_selected and not option.is_correct %}option-wrong border-red-300{% endif %}
-                        {% if option.is_selected %}option-selected{% endif %}
-                        hover:shadow-md transition">
-                        <div class="flex items-center">
-                            <span class="w-7 h-7 flex items-center justify-center rounded-full 
+                    <div class="option-item p-2 rounded-lg border text-sm 
+                        {% if option.is_correct %}option-correct border-green-300 bg-green-50
+                        {% elif option.is_selected and not option.is_correct %}option-wrong border-red-300 bg-red-50
+                        {% else %}border-gray-200{% endif %}
+                        {% if option.is_selected %}option-selected{% endif %}">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium 
                                 {% if option.is_correct %}bg-green-500 text-white
                                 {% elif option.is_selected and not option.is_correct %}bg-red-500 text-white
-                                {% else %}bg-gray-200 text-gray-700{% endif %} 
-                                text-sm font-medium mr-3">
+                                {% else %}bg-gray-200 text-gray-700{% endif %}">
                                 {{ option.letter }}
                             </span>
-                            <span class="flex-1 {% if option.is_correct %}font-medium{% endif %}">{{ option.text }}</span>
+                            <span class="flex-1">{{ option.text }}</span>
                             {% if option.is_correct %}
-                            <svg class="w-5 h-5 text-green-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             {% endif %}
                             {% if option.is_selected and not option.is_correct %}
-                            <svg class="w-5 h-5 text-red-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
+                            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             {% endif %}
                         </div>
                     </div>
@@ -587,416 +369,448 @@
                 </div>
 
                 <!-- Answer Summary -->
-                <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="flex items-start space-x-2">
-                            <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                            <div>
-                                <p class="text-xs text-gray-500 mb-1">Your Answer</p>
-                                {% if question.is_answered %}
-                                <p class="text-sm font-medium {% if question.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
-                                    {{ question.selected_option_text }}
-                                </p>
-                                {% else %}
-                                <p class="text-sm text-gray-400 italic">Not answered</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-2">
-                            <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <div>
-                                <p class="text-xs text-gray-500 mb-1">Correct Answer</p>
-                                <p class="text-sm font-medium text-green-600">{{ question.correct_option_text }}</p>
-                            </div>
-                        </div>
+                <div class="bg-gray-50 rounded-lg p-3 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <p class="text-xs text-gray-500">Your Answer</p>
+                        {% if question.is_answered %}
+                        <p class="font-medium {% if question.is_correct %}text-green-600{% else %}text-red-600{% endif %}">{{ question.selected_option_text }}</p>
+                        {% else %}
+                        <p class="text-gray-400 italic">Not answered</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Correct Answer</p>
+                        <p class="font-medium text-green-600">{{ question.correct_option_text }}</p>
                     </div>
                 </div>
 
-                <!-- Explanation (Collapsible) -->
-                {% if question.explanation and question.explanation != 'No explanation available.' and question.explanation|length > 0 %}
-                <div class="border-t border-gray-100 pt-4">
-                    <button onclick="toggleExplanation({{ question.id }}, this)" class="flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium transition group w-full text-left">
-                        <svg class="w-4 h-4 mr-1 transition-transform group-hover:scale-110" id="chevron-{{ question.id }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
+                <!-- Explanation + AI -->
+                <div class="border-t border-gray-100 pt-3">
+                    <button onclick="toggleExplanation({{ question.id }}, this)" 
+                            class="flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium transition w-full text-left">
+                        <svg class="w-4 h-4 mr-1 transition-transform" id="chevron-{{ question.id }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         <span id="explanation-btn-text-{{ question.id }}">View Explanation</span>
                     </button>
-                    <div id="explanation-{{ question.id }}" class="hidden mt-3 p-4 bg-indigo-50 rounded-lg text-gray-700 border-l-4 border-indigo-500">
-                        <div class="explanation-content">
-                            {{ question.explanation|linebreaks }}
+                    
+                    <div id="explanation-{{ question.id }}" class="hidden mt-3">
+                        <!-- Regular Explanation -->
+                        <div class="p-3 bg-indigo-50 rounded-lg text-gray-700 border-l-4 border-indigo-500 mb-3 text-sm">
+                            <div class="explanation-content">
+                                {% if question.explanation and question.explanation != 'No explanation available.' and question.explanation|length > 0 %}
+                                    {{ question.explanation|linebreaks }}
+                                {% else %}
+                                    <p class="text-gray-500 italic">No explanation available for this question.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- AI Section -->
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-xs text-gray-500 flex items-center gap-1">🤖 Search by AI</p>
+                                <button onclick="toggleViewMode({{ question.id }})" id="view-toggle-{{ question.id }}" 
+                                        class="view-toggle-btn px-2 py-0.5 rounded text-xs border border-gray-300 hover:bg-gray-100 transition">
+                                    📝 Handwritten
+                                </button>
+                            </div>
+                            
+                            <!-- AI Buttons - Rounded Gray -->
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="getAIInsight({{ question.id }}, 'gemini', this)" 
+                                        class="ai-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 transition-all hover:shadow-md hover:-translate-y-0.5">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1-13h-2v6h2V7zm0 8h-2v2h2v-2z"/></svg>
+                                    <span>Gemini</span>
+                                </button>
+                                
+                                <button onclick="getAIInsight({{ question.id }}, 'chatgpt', this)" 
+                                        class="ai-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 transition-all hover:shadow-md hover:-translate-y-0.5">
+                                    <svg class="w-3.5 h-3.5 text-green-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1-13h-2v6h2V7zm0 8h-2v2h2v-2z"/></svg>
+                                    <span>ChatGPT</span>
+                                </button>
+                            </div>
+                            
+                            <!-- AI Window -->
+                            <div id="ai-window-{{ question.id }}" class="ai-window hidden">
+                                <div class="ai-window-header flex items-center justify-between p-2.5 bg-gray-50 border-b cursor-grab active:cursor-grabbing">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                        <span class="text-xs font-semibold text-indigo-600">AI Insights</span>
+                                        <span id="ai-provider-{{ question.id }}" class="text-xs text-gray-400 font-normal"></span>
+                                    </div>
+                                    <div class="drag-handle-corner">
+                                        <span></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="ai-window-body p-3 max-h-60 overflow-y-auto text-sm" id="ai-body-{{ question.id }}">
+                                    <div id="ai-loading-{{ question.id }}" class="flex items-center gap-2 py-2">
+                                        <div class="flex gap-1">
+                                            <div class="dot w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:-0.32s"></div>
+                                            <div class="dot w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:-0.16s"></div>
+                                            <div class="dot w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">Generating insights...</span>
+                                    </div>
+                                    <div id="ai-content-{{ question.id }}" class="hidden"></div>
+                                    <div id="ai-error-{{ question.id }}" class="hidden text-red-500 text-xs">⚠️ Failed to get AI response. Please try again.</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                {% else %}
-                <!-- Optional: Show a message when no explanation is available -->
-                <div class="border-t border-gray-100 pt-4">
-                    <p class="text-sm text-gray-400 italic">No explanation available for this question.</p>
-                </div>
-                {% endif %}
             </div>
             {% endfor %}
         </div>
 
-        <!-- No Results Message -->
-        <div id="noResultsMessage" class="hidden text-center py-12">
-            <div class="bg-gray-50 rounded-xl p-8">
-                <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <h3 class="text-lg font-medium text-gray-700 mb-2">No questions found</h3>
-                <p class="text-gray-500 mb-4">Try adjusting your filters or search criteria</p>
-                <button onclick="resetAllFilters()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                    Reset All Filters
-                </button>
+        <!-- No Results -->
+        <div id="noResultsMessage" class="hidden text-center py-8">
+            <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-base font-medium text-gray-700">No questions found</h3>
+                <button onclick="resetAllFilters()" class="mt-2 px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition">Reset Filters</button>
             </div>
         </div>
 
-        <!-- Questions count -->
-        <div id="questionsCount" class="mt-4 text-sm text-gray-500 text-center">
+        <div id="questionsCount" class="mt-3 text-xs text-gray-500 text-center">
             Showing <span id="visibleCount">{{ total_questions }}</span> of {{ total_questions }} questions
         </div>
     </div>
-    {% endif %}
 
     <!-- Action Buttons -->
-    <div class="flex flex-wrap gap-4 justify-center md:justify-start mt-8">
+    <div class="flex flex-wrap gap-3 justify-center md:justify-start">
         <a href="{% if request.resolver_match.app_name == 'subject_mocktests' %}{% url 'subject_mocktests:result_dashboard' attempt.id %}{% else %}{% url 'exams:result_dashboard' attempt.id %}{% endif %}" 
-           class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-            Back to Results Dashboard
+           class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition text-sm">
+            Back to Results
         </a>
-        
         <a href="{% if request.resolver_match.app_name == 'subject_mocktests' %}{% url 'subject_mocktests:view_rankings' attempt.id %}{% else %}{% url 'exams:view_rankings' attempt.id %}{% endif %}" 
-           class="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
+           class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition text-sm">
             View Rankings
         </a>
-        
-        <a href="{% if request.resolver_match.app_name == 'subject_mocktests' %}{% url 'subject_mocktests:test_statistics' attempt.id %}{% else %}{% url 'exams:test_statistics' attempt.id %}{% endif %}" 
-           class="inline-flex items-center px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white font-medium rounded-xl shadow-lg shadow-pink-200 transition transform hover:-translate-y-0.5">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
-            </svg>
-            Statistics
-        </a>
-        
-        <a href="{% if request.resolver_match.app_name == 'subject_mocktests' %}{% url 'subject_mocktests:pretest_detail' attempt.mock_test.id %}{% else %}{% url 'exams:mocktest_detail' attempt.mock_test.id %}{% endif %}" 
-           class="inline-flex items-center px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-medium rounded-xl transition transform hover:-translate-y-0.5">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            Retake Test
-        </a>
-        
-        <button onclick="window.print()" 
-           class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition transform hover:-translate-y-0.5">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-            </svg>
-            Print Analysis
-        </button>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Language change function
+    // Language change
     function changeLanguage(langCode) {
-        // Show loading spinner
-        document.getElementById('loadingSpinner').classList.remove('hidden');
-        
-        // Get current URL and update language parameter
         const url = new URL(window.location.href);
         url.searchParams.set('lang', langCode);
-        
-        // Redirect to new URL
         window.location.href = url.toString();
     }
 
-    // Store the current filter state
     let currentStatusFilter = 'all';
-    let currentDifficultyFilter = 'all';
     let currentSearchTerm = '';
+    let viewMode = {};
 
-    // Toggle explanation visibility
+    // Toggle explanation
     function toggleExplanation(questionId, button) {
-        console.log('Toggling explanation for question:', questionId);
-        
         const explanation = document.getElementById(`explanation-${questionId}`);
         const chevron = document.getElementById(`chevron-${questionId}`);
-        const buttonText = document.getElementById(`explanation-btn-text-${questionId}`);
-        
-        if (explanation && chevron && buttonText) {
+        const btnText = document.getElementById(`explanation-btn-text-${questionId}`);
+        if (explanation && chevron && btnText) {
             if (explanation.classList.contains('hidden')) {
-                // Show explanation
                 explanation.classList.remove('hidden');
-                chevron.classList.add('rotate-180');
-                buttonText.textContent = 'Hide Explanation';
+                chevron.style.transform = 'rotate(180deg)';
+                btnText.textContent = 'Hide Explanation';
             } else {
-                // Hide explanation
                 explanation.classList.add('hidden');
-                chevron.classList.remove('rotate-180');
-                buttonText.textContent = 'View Explanation';
+                chevron.style.transform = 'rotate(0deg)';
+                btnText.textContent = 'View Explanation';
+                closeAIWindow(questionId);
             }
+        }
+    }
+
+    // View mode toggle
+    function toggleViewMode(questionId) {
+        const btn = document.getElementById(`view-toggle-${questionId}`);
+        if (!viewMode[questionId]) {
+            viewMode[questionId] = 'handwritten';
+            btn.textContent = '📄 Normal';
+            btn.classList.add('active', 'bg-indigo-100', 'border-indigo-400');
         } else {
-            console.log('Explanation elements not found for question:', questionId);
+            viewMode[questionId] = 'normal';
+            btn.textContent = '📝 Handwritten';
+            btn.classList.remove('active', 'bg-indigo-100', 'border-indigo-400');
+        }
+        const contentEl = document.getElementById(`ai-content-${questionId}`);
+        if (contentEl && !contentEl.classList.contains('hidden')) {
+            const currentContent = contentEl.innerHTML;
+            if (viewMode[questionId] === 'handwritten') {
+                contentEl.innerHTML = convertToHandwritten(currentContent);
+            } else {
+                const card = document.querySelector(`[data-question-id="${questionId}"]`);
+                if (card) {
+                    const provider = document.getElementById(`ai-provider-${questionId}`).textContent || 'gemini';
+                    const qText = card.dataset.questionText || 'Question text not available';
+                    const correct = card.dataset.correctAnswer || 'Not available';
+                    const selected = card.dataset.selectedAnswer || 'Not answered';
+                    const status = card.dataset.status || 'unknown';
+                    contentEl.innerHTML = generateAIResponse(provider, qText, correct, selected, status);
+                }
+            }
         }
     }
 
-    // Filter questions by status
-    function filterQuestions(status) {
-        currentStatusFilter = status;
-        
-        // Update active button styles
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.remove('active', 'bg-indigo-600', 'text-white');
-            btn.classList.add('border-2');
-        });
-        
-        const activeBtn = document.getElementById(`filter-${status}`);
-        if (activeBtn) {
-            activeBtn.classList.add('active', 'bg-indigo-600', 'text-white');
-        }
-        
-        // Apply all filters
-        applyFilters();
+    function convertToHandwritten(htmlContent) {
+        const temp = document.createElement('div');
+        temp.innerHTML = htmlContent;
+        const text = temp.textContent;
+        return `<div class="handwritten-note"><div class="note-header font-bold text-amber-700 text-sm">✍️ Personal Notes</div><div class="note-content italic text-gray-700 text-sm">${text.split('\n').filter(l=>l.trim()).map(l=>`<p>${l.trim()}</p>`).join('')}</div></div>`;
     }
 
-    // Filter by difficulty
-    function filterByDifficulty(difficulty) {
-        currentDifficultyFilter = difficulty;
+    // AI functions
+    function getAIInsight(questionId, provider, button) {
+        const windowEl = document.getElementById(`ai-window-${questionId}`);
+        const loadingEl = document.getElementById(`ai-loading-${questionId}`);
+        const contentEl = document.getElementById(`ai-content-${questionId}`);
+        const errorEl = document.getElementById(`ai-error-${questionId}`);
+        const providerLabel = document.getElementById(`ai-provider-${questionId}`);
+        if (!windowEl) return;
         
-        // Update active button styles
-        document.querySelectorAll('.difficulty-filter').forEach(btn => {
-            btn.classList.remove('active', 'bg-indigo-600', 'text-white');
-            btn.classList.add('border-2');
-        });
+        windowEl.classList.remove('hidden', 'minimized', 'maximized');
+        loadingEl.classList.remove('hidden');
+        contentEl.classList.add('hidden');
+        errorEl.classList.add('hidden');
         
-        const activeBtn = document.getElementById(`difficulty-${difficulty}`);
-        if (activeBtn) {
-            activeBtn.classList.add('active', 'bg-indigo-600', 'text-white');
-        }
+        const names = { 'gemini': 'Gemini', 'chatgpt': 'ChatGPT' };
+        providerLabel.textContent = `(${names[provider]})`;
         
-        // Apply all filters
-        applyFilters();
+        const card = button.closest('.question-card');
+        if (!card) return;
+        const qText = card.dataset.questionText || 'Question text not available';
+        const correct = card.dataset.correctAnswer || 'Not available';
+        const selected = card.dataset.selectedAnswer || 'Not answered';
+        const status = card.dataset.status || 'unknown';
+        const isHindi = document.getElementById('languageSelect')?.value === 'hi' || /[\u0900-\u097F]/.test(qText);
+        
+        setTimeout(() => {
+            loadingEl.classList.add('hidden');
+            let response = generateAIResponse(provider, qText, correct, selected, status, isHindi);
+            if (viewMode[questionId] === 'handwritten') response = convertToHandwritten(response);
+            contentEl.innerHTML = response;
+            contentEl.classList.remove('hidden');
+        }, 800 + Math.random() * 600);
     }
 
-    // Search functionality
-    function setupSearch() {
-        const searchInput = document.getElementById('searchQuestions');
-        if (searchInput) {
-            let searchTimeout;
-            
-            searchInput.addEventListener('keyup', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    currentSearchTerm = this.value.toLowerCase();
-                    applyFilters();
-                }, 300); // Debounce for better performance
+    function generateAIResponse(provider, question, correctAnswer, selectedAnswer, status, isHindi) {
+        const isCorrect = status === 'correct';
+        if (isHindi) {
+            return `
+                <div class="ai-content-item py-1 border-b border-gray-100"><span class="label text-xs font-semibold text-indigo-600">📌 स्थिति</span><span class="value text-sm ${isCorrect?'text-green-600':'text-red-600'}">${isCorrect?'✅ सही उत्तर! बहुत अच्छा!':'❌ गलत उत्तर। आइए समझें।'}</span></div>
+                <div class="ai-content-item py-1 border-b border-gray-100"><span class="label text-xs font-semibold text-indigo-600">📝 प्रश्न</span><span class="value text-sm text-gray-700">${question.length>200?question.substring(0,200)+'...':question}</span></div>
+                <div class="ai-content-item py-1 border-b border-gray-100"><span class="label text-xs font-semibold text-indigo-600">✅ सही उत्तर</span><span class="value text-sm text-green-600">${correctAnswer}</span></div>
+                <div class="ai-content-item py-1 border-b border-gray-100"><span class="label text-xs font-semibold text-indigo-600">${isCorrect?'👍':'✖️'} आपका उत्तर</span><span class="value text-sm ${isCorrect?'text-green-600':'text-red-600'}">${selectedAnswer}</span></div>
+                <div class="ai-content-item py-1"><span class="label text-xs font-semibold text-indigo-600">💡 मुख्य बिंदु</span><span class="value text-sm text-gray-700">${isCorrect?'आपने इस प्रश्न की अवधारणा को सही ढंग से समझा है।':'इस प्रश्न में मुख्य अवधारणा को समझना महत्वपूर्ण था।'}</span></div>
+            `;
+        }
+        return `
+            <div class="ai-content-item py-1 border-b border-gray-100"><span class="label text-xs font-semibold text-indigo-600">📌 Status</span><span class="value text-sm ${isCorrect?'text-green-600':'text-red-600'}">${isCorrect?'✅ Correct! Great job!':'❌ Incorrect. Let\'s review.'}</span></div>
+            <div class="ai-content-item py-1 border-b border-gray-100"><span class="label text-xs font-semibold text-indigo-600">📝 Question</span><span class="value text-sm text-gray-700">${question.length>200?question.substring(0,200)+'...':question}</span></div>
+            <div class="ai-content-item py-1 border-b border-gray-100"><span class="label text-xs font-semibold text-indigo-600">✅ Correct Answer</span><span class="value text-sm text-green-600">${correctAnswer}</span></div>
+            <div class="ai-content-item py-1 border-b border-gray-100"><span class="label text-xs font-semibold text-indigo-600">${isCorrect?'👍':'✖️'} Your Answer</span><span class="value text-sm ${isCorrect?'text-green-600':'text-red-600'}">${selectedAnswer}</span></div>
+            <div class="ai-content-item py-1"><span class="label text-xs font-semibold text-indigo-600">💡 Key Point</span><span class="value text-sm text-gray-700">${isCorrect?'You understood the concept correctly.':'This question required understanding the core concept.'}</span></div>
+        `;
+    }
+
+    // Close AI window
+    function closeAIWindow(questionId) {
+        const windowEl = document.getElementById(`ai-window-${questionId}`);
+        if (windowEl) {
+            windowEl.classList.add('hidden');
+            windowEl.classList.remove('maximized', 'minimized');
+            windowEl.style.position = '';
+            windowEl.style.left = '';
+            windowEl.style.top = '';
+        }
+    }
+
+    // ===== DRAG BY CORNER =====
+    function makeDraggableCorner() {
+        document.querySelectorAll('.drag-handle-corner').forEach(corner => {
+            const windowEl = corner.closest('.ai-window');
+            if (!windowEl) return;
+            let isDragging = false;
+            let startX, startY, origX, origY;
+            corner.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (windowEl.classList.contains('maximized')) return;
+                isDragging = true;
+                const rect = windowEl.getBoundingClientRect();
+                startX = e.clientX;
+                startY = e.clientY;
+                origX = rect.left;
+                origY = rect.top;
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', stopDrag);
             });
-        }
+            function onDrag(e) {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                windowEl.style.position = 'fixed';
+                windowEl.style.left = (origX + dx) + 'px';
+                windowEl.style.top = (origY + dy) + 'px';
+                windowEl.style.margin = '0';
+                windowEl.style.transform = 'none';
+                windowEl.style.zIndex = '50';
+            }
+            function stopDrag() {
+                isDragging = false;
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', stopDrag);
+            }
+        });
     }
 
-    // Apply all active filters
-    function applyFilters() {
-        const questions = document.querySelectorAll('.question-card');
-        let visibleCount = 0;
+    // ===== PDF DOWNLOAD =====
+    function downloadPDF() {
+        const btn = document.querySelector('.pdf-download-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Generating...';
+        btn.disabled = true;
         
-        questions.forEach(question => {
-            let showByStatus = currentStatusFilter === 'all' || question.dataset.status === currentStatusFilter;
-            let showByDifficulty = currentDifficultyFilter === 'all' || question.dataset.difficulty === currentDifficultyFilter;
-            let showBySearch = true;
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        script.onload = function() {
+            const cards = document.querySelectorAll('.question-card');
+            if (!cards.length) { alert('No content to export!'); btn.innerHTML = originalText; btn.disabled = false; return; }
             
-            if (currentSearchTerm) {
-                const searchText = question.dataset.search || '';
-                showBySearch = searchText.includes(currentSearchTerm);
-            }
+            let htmlContent = `<div style="padding:20px;font-family:Arial;max-width:800px;margin:0 auto;">
+                <h1 style="text-align:center;color:#4f46e5;font-size:24px;margin-bottom:10px;">Mock Test Analysis</h1>
+                <p style="text-align:center;color:#6b7280;font-size:14px;margin-bottom:20px;">${document.querySelector('h1')?.textContent||'Mock Test'} | ${new Date().toLocaleDateString()}</p>`;
             
-            if (showByStatus && showByDifficulty && showBySearch) {
-                question.style.display = 'block';
-                visibleCount++;
-            } else {
-                question.style.display = 'none';
-            }
-        });
-        
-        // Update visible count
-        const countElement = document.getElementById('visibleCount');
-        if (countElement) {
-            countElement.textContent = visibleCount;
-        }
-        
-        // Show/hide no results message
-        const noResults = document.getElementById('noResultsMessage');
-        if (noResults) {
-            if (visibleCount === 0) {
-                noResults.classList.remove('hidden');
-            } else {
-                noResults.classList.add('hidden');
-            }
-        }
-    }
-
-    // Reset all filters
-    function resetAllFilters() {
-        // Reset status filter
-        currentStatusFilter = 'all';
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.remove('active', 'bg-indigo-600', 'text-white');
-        });
-        const allBtn = document.getElementById('filter-all');
-        if (allBtn) {
-            allBtn.classList.add('active', 'bg-indigo-600', 'text-white');
-        }
-        
-        // Reset difficulty filter
-        currentDifficultyFilter = 'all';
-        document.querySelectorAll('.difficulty-filter').forEach(btn => {
-            btn.classList.remove('active', 'bg-indigo-600', 'text-white');
-        });
-        const difficultyAll = document.getElementById('difficulty-all');
-        if (difficultyAll) {
-            difficultyAll.classList.add('active', 'bg-indigo-600', 'text-white');
-        }
-        
-        // Clear search
-        currentSearchTerm = '';
-        const searchInput = document.getElementById('searchQuestions');
-        if (searchInput) {
-            searchInput.value = '';
-        }
-        
-        // Apply filters
-        applyFilters();
-    }
-
-    // Clear search
-    function clearSearch() {
-        currentSearchTerm = '';
-        const searchInput = document.getElementById('searchQuestions');
-        if (searchInput) {
-            searchInput.value = '';
-        }
-        applyFilters();
-    }
-
-    // Sort functionality
-    function setupSort() {
-        const sortSelect = document.getElementById('sortQuestions');
-        if (sortSelect) {
-            sortSelect.addEventListener('change', function() {
-                const sortBy = this.value;
-                const container = document.getElementById('questionsContainer');
-                const questions = Array.from(document.querySelectorAll('.question-card'));
+            // Summary
+            htmlContent += `<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px;background:#f9fafb;padding:12px;border-radius:8px;">`;
+            document.querySelectorAll('.stat-card').forEach(stat => {
+                const label = stat.querySelector('.text-gray-500')?.textContent || '';
+                const value = stat.querySelector('.text-2xl')?.textContent || '';
+                htmlContent += `<div style="text-align:center;background:white;padding:8px;border-radius:6px;border:1px solid #e5e7eb;"><div style="font-size:11px;color:#6b7280;">${label}</div><div style="font-size:18px;font-weight:bold;">${value}</div></div>`;
+            });
+            htmlContent += `</div>`;
+            
+            // Questions
+            cards.forEach((card, i) => {
+                const status = card.dataset.status || 'skipped';
+                const statusText = status==='correct'?'✓ Correct':status==='wrong'?'✗ Incorrect':'○ Skipped';
+                const statusColor = status==='correct'?'#059669':status==='wrong'?'#dc2626':'#6b7280';
+                const qNum = card.dataset.number || i+1;
+                const qText = card.querySelector('.question-text')?.textContent?.trim() || 'Question text not available';
+                const correct = card.dataset.correctAnswer || 'Not available';
+                const selected = card.dataset.selectedAnswer || 'Not answered';
+                const explanation = card.querySelector('.explanation-content')?.textContent?.trim() || 'No explanation available.';
                 
-                questions.sort((a, b) => {
-                    if (sortBy === 'number') {
-                        return parseInt(a.dataset.number) - parseInt(b.dataset.number);
-                    } else if (sortBy === 'subject') {
-                        return (a.dataset.subject || '').localeCompare(b.dataset.subject || '');
-                    } else if (sortBy === 'difficulty') {
-                        const difficultyOrder = {'Easy': 1, 'Medium': 2, 'Hard': 3};
-                        return (difficultyOrder[a.dataset.difficulty] || 0) - (difficultyOrder[b.dataset.difficulty] || 0);
-                    }
+                let optionsHTML = '';
+                card.querySelectorAll('.option-item').forEach((opt, idx) => {
+                    const letter = String.fromCharCode(65 + idx);
+                    const optText = opt.querySelector('span:last-child')?.textContent?.trim() || '';
+                    const isCorrect = opt.classList.contains('option-correct');
+                    const isSelected = opt.classList.contains('option-selected');
+                    const prefix = isCorrect ? '✓ ' : (isSelected && !isCorrect ? '✗ ' : '');
+                    const color = isCorrect ? '#059669' : (isSelected && !isCorrect ? '#dc2626' : '#374151');
+                    optionsHTML += `<div style="padding:4px 8px;border:1px solid ${isCorrect?'#d1fae5':(isSelected&&!isCorrect?'#fee2e2':'#e5e7eb')};background:${isCorrect?'#f0fdf4':(isSelected&&!isCorrect?'#fef2f2':'transparent')};"><span style="color:${color};">${prefix}${letter}. ${optText}</span></div>`;
                 });
                 
-                // Reorder DOM elements
-                questions.forEach(question => container.appendChild(question));
+                htmlContent += `
+                    <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:12px;page-break-inside:avoid;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="background:#eef2ff;color:#4f46e5;font-weight:bold;padding:2px 10px;border-radius:50%;font-size:12px;">${qNum}</span><span style="color:${statusColor};font-weight:bold;font-size:12px;">${statusText}</span></div>
+                        <div style="font-size:13px;padding:8px;background:#f9fafb;border-radius:4px;border-left:3px solid #4f46e5;">${qText}</div>
+                        <div style="margin:6px 0;">${optionsHTML}</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 8px;background:#f9fafb;border-radius:4px;">
+                            <div><div style="font-size:10px;color:#6b7280;">Your Answer</div><div style="font-size:12px;font-weight:500;color:${status==='correct'?'#059669':(status==='wrong'?'#dc2626':'#6b7280')};">${selected}</div></div>
+                            <div><div style="font-size:10px;color:#6b7280;">Correct Answer</div><div style="font-size:12px;font-weight:500;color:#059669;">${correct}</div></div>
+                        </div>
+                        <div style="margin-top:6px;padding:8px;background:#eef2ff;border-radius:4px;border-left:3px solid #4f46e5;">
+                            <div style="font-size:10px;color:#4f46e5;font-weight:600;">Explanation</div>
+                            <div style="font-size:11px;color:#374151;line-height:1.5;">${explanation}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            htmlContent += `</div>`;
+            
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = htmlContent;
+            wrapper.style.position = 'absolute'; wrapper.style.left = '-9999px'; wrapper.style.top = '0'; wrapper.style.width = '800px'; wrapper.style.background = 'white';
+            document.body.appendChild(wrapper);
+            
+            html2pdf().set({ margin: 8, filename: 'Mock_Test_Analysis.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, logging: false, width: 800 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } })
+                .from(wrapper).save().then(() => { document.body.removeChild(wrapper); btn.innerHTML = originalText; btn.disabled = false; })
+                .catch(() => { document.body.removeChild(wrapper); alert('PDF generation failed.'); btn.innerHTML = originalText; btn.disabled = false; });
+        };
+        script.onerror = function() { alert('Failed to load PDF library.'); btn.innerHTML = originalText; btn.disabled = false; };
+        document.head.appendChild(script);
+    }
+
+    // Filters
+    function filterQuestions(status) {
+        currentStatusFilter = status;
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('active', 'bg-indigo-600', 'text-white', 'border-indigo-600');
+            b.classList.add('border-2');
+        });
+        const active = document.getElementById(`filter-${status}`);
+        if (active) active.classList.add('active', 'bg-indigo-600', 'text-white', 'border-indigo-600');
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const questions = document.querySelectorAll('.question-card');
+        let visible = 0;
+        questions.forEach(q => {
+            const showStatus = currentStatusFilter === 'all' || q.dataset.status === currentStatusFilter;
+            const showSearch = !currentSearchTerm || (q.dataset.search || '').includes(currentSearchTerm);
+            if (showStatus && showSearch) { q.style.display = 'block'; visible++; } else { q.style.display = 'none'; }
+        });
+        document.getElementById('visibleCount').textContent = visible;
+        document.getElementById('noResultsMessage').classList.toggle('hidden', visible > 0);
+    }
+
+    function resetAllFilters() {
+        currentStatusFilter = 'all';
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'bg-indigo-600', 'text-white', 'border-indigo-600'));
+        document.getElementById('filter-all').classList.add('active', 'bg-indigo-600', 'text-white', 'border-indigo-600');
+        currentSearchTerm = '';
+        document.getElementById('searchQuestions').value = '';
+        applyFilters();
+    }
+
+    function setupSearch() {
+        const input = document.getElementById('searchQuestions');
+        if (input) {
+            let timeout;
+            input.addEventListener('keyup', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => { currentSearchTerm = this.value.toLowerCase(); applyFilters(); }, 300);
             });
         }
     }
 
-    // Initialize on page load
+    function setupSort() {
+        const sort = document.getElementById('sortQuestions');
+        if (sort) {
+            sort.addEventListener('change', function() {
+                const by = this.value;
+                const container = document.getElementById('questionsContainer');
+                const items = Array.from(document.querySelectorAll('.question-card'));
+                items.sort((a,b) => {
+                    if (by === 'number') return parseInt(a.dataset.number) - parseInt(b.dataset.number);
+                    if (by === 'subject') return (a.dataset.subject||'').localeCompare(b.dataset.subject||'');
+                    if (by === 'difficulty') { const order = {'Easy':1,'Medium':2,'Hard':3}; return (order[a.dataset.difficulty]||0) - (order[b.dataset.difficulty]||0); }
+                    return 0;
+                });
+                items.forEach(el => container.appendChild(el));
+            });
+        }
+    }
+
+    // Init
     document.addEventListener('DOMContentLoaded', function() {
         setupSearch();
         setupSort();
-        
-        // Initialize with all questions visible
         filterQuestions('all');
-        
-        // Add smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-        
-        // Add keyboard shortcut for search (Ctrl+K or Cmd+K)
-        document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                document.getElementById('searchQuestions')?.focus();
-            }
-        });
+        makeDraggableCorner();
     });
 </script>
-
-<!-- Print styles -->
-<style media="print">
-    @page {
-        size: A4;
-        margin: 2cm;
-    }
-    
-    body {
-        font-size: 12pt;
-        line-height: 1.5;
-        color: #000;
-    }
-    
-    .no-print, .filter-btn, .difficulty-filter, #searchQuestions, #sortQuestions,
-    .action-buttons, button, .bg-gradient-to-r {
-        display: none !important;
-    }
-    
-    .question-card {
-        page-break-inside: avoid;
-        border: 1px solid #ddd;
-        margin-bottom: 20px;
-        padding: 15px;
-        background: white;
-    }
-    
-    .question-text {
-        background: none;
-        border-left: 2px solid #333;
-    }
-    
-    .option-item {
-        border: 1px solid #ccc;
-        margin: 5px 0;
-        padding: 8px;
-    }
-    
-    .option-correct {
-        background-color: #e8f5e9;
-    }
-    
-    .option-wrong {
-        background-color: #ffebee;
-    }
-    
-    /* Ensure explanations are visible in print */
-    .explanation-content {
-        display: block !important;
-        page-break-inside: avoid;
-    }
-</style>
 {% endblock %}
