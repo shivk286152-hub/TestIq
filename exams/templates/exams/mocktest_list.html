@@ -62,79 +62,357 @@
         50% { box-shadow: 0 4px 30px rgba(99, 102, 241, 0.7); }
     }
 
-    /* Content Section Styles */
-    .content-section {
-        margin-bottom: 1.5rem;
+    /* ===== CONTENT SECTION STYLES - MATCHING CATEGORY PAGE ===== */
+    .content-section-wrapper {
+        animation: fadeInUp 0.6s ease-out forwards;
+        opacity: 0;
     }
-    .content-section h2 {
-        font-size: 1.5rem;
+    
+    .content-section-wrapper h1,
+    .content-section-wrapper h2,
+    .content-section-wrapper h3,
+    .content-section-wrapper h4 {
         font-weight: 700;
-        color: #1f2937;
+        line-height: 1.3;
+        margin-top: 1.5rem;
         margin-bottom: 0.75rem;
+        color: #1e293b;
     }
-    .content-section h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 0.5rem;
-        margin-top: 0.75rem;
+    
+    .content-section-wrapper h1 {
+        font-size: 2rem;
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-top: 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid #e5e7eb;
+        display: inline-block;
     }
-    .content-section p {
-        color: #4b5563;
-        line-height: 1.7;
-        margin-bottom: 0.5rem;
-    }
-    .content-section ul, .content-section ol {
-        padding-left: 1.25rem;
-        margin: 0.5rem 0;
-        color: #4b5563;
-    }
-    .content-section li {
-        margin-bottom: 0.25rem;
-    }
-    .content-section img {
-        border-radius: 12px;
-        max-width: 100%;
-        height: auto;
-        margin: 0.75rem 0;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    }
-    .content-section table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 0.75rem 0;
-        font-size: 0.875rem;
-    }
-    .content-section th {
-        background: #f3f4f6;
-        font-weight: 600;
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #e5e7eb;
-        text-align: left;
-    }
-    .content-section td {
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #e5e7eb;
-    }
-    .content-section blockquote {
-        border-left: 4px solid #6366f1;
+    
+    .content-section-wrapper h2 {
+        font-size: 1.6rem;
+        color: #1e293b;
+        position: relative;
         padding-left: 1rem;
-        margin: 0.75rem 0;
-        color: #4b5563;
-        font-style: italic;
-        background: #f8fafc;
-        padding: 0.75rem 1rem;
-        border-radius: 0 8px 8px 0;
     }
-    .content-section .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+    
+    .content-section-wrapper h2::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 4px;
+        background: linear-gradient(180deg, #6366f1, #a855f7);
+        border-radius: 4px;
+    }
+    
+    .content-section-wrapper h3 {
+        font-size: 1.3rem;
+        color: #334155;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .content-section-wrapper h3::before {
+        content: '▸';
+        color: #6366f1;
+        font-weight: 400;
+    }
+    
+    .content-section-wrapper h4 {
+        font-size: 1.1rem;
+        color: #475569;
+        font-weight: 600;
+    }
+    
+    .content-section-wrapper p {
+        color: #475569;
+        line-height: 1.8;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+    
+    .content-section-wrapper p:first-of-type {
+        font-size: 1.1rem;
+        color: #334155;
+        font-weight: 500;
     }
 
+    .content-section-wrapper ul,
+    .content-section-wrapper ol {
+        padding-left: 1.5rem;
+        margin: 0.75rem 0 1rem 0;
+        color: #475569;
+        line-height: 1.8;
+    }
+    
+    .content-section-wrapper ul {
+        list-style: none;
+    }
+    
+    .content-section-wrapper ul li {
+        position: relative;
+        padding-left: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .content-section-wrapper ul li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0.6rem;
+        width: 8px;
+        height: 8px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        border-radius: 50%;
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+    }
+    
+    .content-section-wrapper ul li:hover::before {
+        transform: scale(1.4);
+    }
+    
+    .content-section-wrapper ol {
+        counter-reset: item;
+        list-style: none;
+    }
+    
+    .content-section-wrapper ol li {
+        counter-increment: item;
+        position: relative;
+        padding-left: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .content-section-wrapper ol li::before {
+        content: counter(item);
+        position: absolute;
+        left: 0;
+        top: 0.2rem;
+        width: 1.75rem;
+        height: 1.75rem;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: white;
+        font-weight: 700;
+        font-size: 0.75rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .content-section-wrapper img {
+        border-radius: 16px;
+        max-width: 100%;
+        height: auto;
+        margin: 1.25rem 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #f1f5f9;
+    }
+    
+    .content-section-wrapper img:hover {
+        transform: scale(1.01);
+        box-shadow: 0 8px 40px rgba(99, 102, 241, 0.15);
+    }
+
+    .content-section-wrapper .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 1.25rem 0;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        border: 1px solid #f1f5f9;
+    }
+    
+    .content-section-wrapper table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        min-width: 500px;
+    }
+    
+    .content-section-wrapper th {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        font-weight: 700;
+        padding: 0.875rem 1rem;
+        border-bottom: 2px solid #e2e8f0;
+        text-align: left;
+        color: #1e293b;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+    
+    .content-section-wrapper td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #475569;
+    }
+    
+    .content-section-wrapper tr:hover td {
+        background: #f8fafc;
+    }
+    
+    .content-section-wrapper tr:last-child td {
+        border-bottom: none;
+    }
+
+    .content-section-wrapper blockquote {
+        border-left: 4px solid #6366f1;
+        padding: 1rem 1.5rem;
+        margin: 1.25rem 0;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-radius: 0 12px 12px 0;
+        color: #334155;
+        font-style: italic;
+        position: relative;
+    }
+    
+    .content-section-wrapper blockquote::before {
+        content: '"';
+        position: absolute;
+        top: -0.25rem;
+        left: 0.75rem;
+        font-size: 3rem;
+        color: #6366f1;
+        opacity: 0.3;
+        font-family: Georgia, serif;
+    }
+    
+    .content-section-wrapper blockquote p:last-child {
+        margin-bottom: 0;
+    }
+
+    .content-section-wrapper figure {
+        margin: 1.5rem 0;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    
+    .content-section-wrapper figure img {
+        margin: 0;
+        border-radius: 16px 16px 0 0;
+    }
+    
+    .content-section-wrapper figcaption {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        text-align: center;
+        padding: 0.5rem 1rem;
+        background: #f8fafc;
+        border-radius: 0 0 16px 16px;
+        font-style: italic;
+    }
+
+    .content-section-wrapper .highlighted {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        border: 2px solid #f59e0b;
+        margin: 1.5rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .content-section-wrapper .highlighted::before {
+        content: '💡';
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+    
+    .content-section-wrapper .highlighted h1,
+    .content-section-wrapper .highlighted h2,
+    .content-section-wrapper .highlighted h3,
+    .content-section-wrapper .highlighted h4 {
+        color: #78350f;
+    }
+    
+    .content-section-wrapper .highlighted p {
+        color: #78350f;
+    }
+    
+    .content-section-wrapper .info-box {
+        background: linear-gradient(135deg, #e0e7ff, #ede9fe);
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        border-left: 4px solid #6366f1;
+        margin: 1.5rem 0;
+    }
+    
+    .content-section-wrapper .info-box h1,
+    .content-section-wrapper .info-box h2,
+    .content-section-wrapper .info-box h3,
+    .content-section-wrapper .info-box h4 {
+        color: #3730a3;
+    }
+    
+    .content-section-wrapper .info-box p {
+        color: #4338ca;
+    }
+    
+    .content-section-wrapper .warning-box {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        border-left: 4px solid #f59e0b;
+        margin: 1.5rem 0;
+    }
+    
+    .content-section-wrapper .success-box {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        border-left: 4px solid #10b981;
+        margin: 1.5rem 0;
+    }
+    
+    .content-section-wrapper .success-box p {
+        color: #065f46;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes float-slow { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-15px) scale(1.05); } }
+    @keyframes float-slower { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(20px) scale(1.1); } }
+    @keyframes gradient-text { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    @keyframes fade-in-down { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fade-in-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
+    .animate-float-slower { animation: float-slower 12s ease-in-out infinite; }
+    .animate-gradient-text { background-size: 200% 200%; animation: gradient-text 8s ease infinite; }
+    .animate-fade-in-down { animation: fade-in-down 0.8s ease-out forwards; }
+    .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; opacity: 0; }
+    .animation-delay-200 { animation-delay: 200ms; }
+
     @media (max-width: 767px) {
-        .content-section h2 { font-size: 1.25rem; }
-        .content-section h3 { font-size: 1.1rem; }
-        .content-section { padding: 0 0.5rem; }
+        .content-section-wrapper h1 { font-size: 1.5rem; }
+        .content-section-wrapper h2 { font-size: 1.25rem; padding-left: 0.75rem; }
+        .content-section-wrapper h3 { font-size: 1.1rem; }
+        .content-section-wrapper p { font-size: 0.9rem; }
+        .content-section-wrapper p:first-of-type { font-size: 0.95rem; }
+        .content-section-wrapper ul,
+        .content-section-wrapper ol { padding-left: 1rem; }
+        .content-section-wrapper .highlighted,
+        .content-section-wrapper .info-box { padding: 1rem; }
+        .content-section-wrapper table { font-size: 0.75rem; min-width: 350px; }
+        .content-section-wrapper th,
+        .content-section-wrapper td { padding: 0.5rem 0.75rem; }
+    }
+    
+    @media (max-width: 480px) {
+        .content-section-wrapper .table-responsive { border-radius: 8px; }
+        .content-section-wrapper table { min-width: 280px; }
+        .content-section-wrapper th,
+        .content-section-wrapper td { padding: 0.4rem 0.5rem; font-size: 0.7rem; }
     }
 </style>
 {% endblock %}
@@ -250,15 +528,62 @@
     </div>
 </section>
 
-<!-- ===== FLEXIBLE CONTENT SECTIONS ===== -->
+<!-- ===== FLEXIBLE CONTENT SECTIONS WITH NUMBERING ===== -->
 {% if subcategory.get_content_sections %}
-{% for section_html in subcategory.get_content_sections %}
-<section class="py-6 md:py-10 {% cycle 'bg-white' 'bg-gray-50' 'bg-indigo-50' 'bg-white' 'bg-purple-50' 'bg-gray-50' as section_bg %}">
-    <div class="max-w-7xl mx-auto px-4">
-        {{ section_html|safe }}
+<section class="py-10 md:py-16 bg-gradient-to-b from-white via-indigo-50/30 to-purple-50/30 relative overflow-hidden">
+    <!-- Decorative Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-indigo-200/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-200/20 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-200/10 rounded-full blur-3xl"></div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-4 relative z-10">
+        <!-- Section Header -->
+        <div class="text-center mb-10 md:mb-14">
+            <span class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold tracking-wider uppercase mb-3">
+                📖 Study Material
+            </span>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Learn More About This Subcategory</h2>
+            <p class="text-gray-600 text-sm mt-2 max-w-2xl mx-auto">Comprehensive content to help you master this subject</p>
+        </div>
+        
+        <!-- Content Sections -->
+        <div class="space-y-8 md:space-y-12">
+            {% for section_html in subcategory.get_content_sections %}
+                <div class="content-section-wrapper bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 p-6 md:p-8 lg:p-10 border border-indigo-100/50 hover:border-indigo-300/50 animate-fade-in-up" 
+                     style="animation-delay: {{ forloop.counter|add:"1"|stringformat:"d" }}00ms;">
+                    <!-- Section Number Badge -->
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl text-white font-bold text-lg shadow-lg shadow-indigo-500/25 flex-shrink-0">
+                            {{ forloop.counter }}
+                        </div>
+                        <div class="flex-1 h-px bg-gradient-to-r from-indigo-200 to-transparent"></div>
+                    </div>
+                    
+                    <!-- Section Content -->
+                    <div class="numbered-content">
+                        {{ section_html|safe }}
+                    </div>
+                </div>
+                {% if not forloop.last %}
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t-2 border-dashed border-indigo-200/40"></div>
+                        </div>
+                        <div class="relative flex justify-center">
+                            <span class="px-4 bg-gradient-to-b from-white via-indigo-50/30 to-purple-50/30">
+                                <svg class="w-6 h-6 text-indigo-300" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11h-2v-2h2v2zm0-4h-2V6h2v3z" clip-rule="evenodd"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
     </div>
 </section>
-{% endfor %}
 {% endif %}
 
 <!-- ========== MAIN TESTS CONTENT ========== -->

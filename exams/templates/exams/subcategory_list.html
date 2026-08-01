@@ -116,7 +116,18 @@
             <div class="space-y-8 md:space-y-12">
                 {% for section_html in category.get_content_sections %}
                     <div class="content-section-wrapper bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 p-6 md:p-8 lg:p-10 border border-indigo-100/50 hover:border-indigo-300/50 animate-fade-in-up" style="animation-delay: {{ forloop.counter|add:"1"|stringformat:"d" }}00ms;">
-                        {{ section_html|safe }}
+                        <!-- Section Number Badge -->
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl text-white font-bold text-lg shadow-lg shadow-indigo-500/25 flex-shrink-0">
+                                {{ forloop.counter }}
+                            </div>
+                            <div class="flex-1 h-px bg-gradient-to-r from-indigo-200 to-transparent"></div>
+                        </div>
+                        
+                        <!-- Section Content -->
+                        <div class="numbered-content">
+                            {{ section_html|safe }}
+                        </div>
                     </div>
                     {% if not forloop.last %}
                         <div class="relative">
@@ -282,13 +293,6 @@
         </div>
     </div>
 </section>
-
-<!-- Scroll to Top Button -->
-<button onclick="scrollToTop()" id="scrollTopBtn" class="fixed bottom-8 right-6 w-12 h-12 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 transform hover:-translate-y-1 hidden items-center justify-center z-50">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-    </svg>
-</button>
 
 {% endblock %}
 
@@ -631,7 +635,7 @@
         color: #065f46;
     }
 
-    /* ===== SUB-CATEGORY STYLES (Unchanged) ===== */
+    /* ===== SUB-CATEGORY STYLES ===== */
     .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -807,18 +811,6 @@
                 });
             });
         });
-
-        // ===== SCROLL TO TOP =====
-        const scrollTopBtn = document.getElementById('scrollTopBtn');
-        window.addEventListener('scroll', function() {
-            const show = window.scrollY > 400;
-            scrollTopBtn.classList.toggle('hidden', !show);
-            scrollTopBtn.classList.toggle('flex', show);
-        });
-
-        window.scrollToTop = function() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
 
         // ===== RESET FILTERS =====
         window.resetFilters = function() {

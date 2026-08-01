@@ -6,18 +6,59 @@
 {% block content %}
 
 <style>
-    /* HEXAGON */
+    /* ===== DARK MODE OVERRIDES FOR THIS PAGE ===== */
+    [data-theme="dark"] .bg-gray-100 {
+        background: var(--bg-body) !important;
+    }
+    
+    [data-theme="dark"] .bg-white {
+        background: var(--bg-card) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] .shadow {
+        box-shadow: 0 1px 3px var(--shadow-color) !important;
+    }
+    
+    [data-theme="dark"] .text-gray-600 {
+        color: var(--text-secondary) !important;
+    }
+    
+    [data-theme="dark"] .text-gray-700 {
+        color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] .text-gray-800 {
+        color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] .text-gray-900 {
+        color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] .border {
+        border-color: var(--border-color) !important;
+    }
+    
+    [data-theme="dark"] .border-gray-200 {
+        border-color: var(--border-color) !important;
+    }
+    
+    [data-theme="dark"] .border-gray-300 {
+        border-color: var(--border-color) !important;
+    }
+    
+    [data-theme="dark"] .bg-gray-50 {
+        background: var(--bg-body) !important;
+    }
+    
+    /* ===== HEXAGON BUTTONS ===== */
     .hex-btn {
         width: 42px;
         height: 42px;
         min-width: 42px;
         min-height: 42px;
-
-        clip-path: polygon(25% 6%, 75% 6%,
-                100% 50%,
-                75% 94%, 25% 94%,
-                0% 50%);
-
+        clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0% 50%);
         background: #e5e7eb;
         display: flex;
         align-items: center;
@@ -25,30 +66,371 @@
         font-size: 12px;
         font-weight: bold;
         border: 1px solid #999;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #1f2937;
     }
-
-    /* COLORS */
+    
+    /* Light mode hover */
+    .hex-btn:hover {
+        transform: scale(1.08);
+        filter: brightness(0.9);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Dark mode hover - subtle slate/gray */
+    [data-theme="dark"] .hex-btn {
+        background: #334155 !important;
+        border-color: #475569 !important;
+        color: #e2e8f0 !important;
+    }
+    
+    [data-theme="dark"] .hex-btn:hover {
+        transform: scale(1.08);
+        filter: brightness(1.2);
+        background: #475569 !important;
+        border-color: #64748b !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Status colors with hover */
     .answered {
         background: #22c55e !important;
-        color: white;
+        color: white !important;
     }
-
+    
+    .answered:hover {
+        background: #16a34a !important;
+        filter: brightness(1.05);
+    }
+    
     .skipped {
         background: #facc15 !important;
+        color: #000000 !important;
     }
-
+    
+    .skipped:hover {
+        background: #eab308 !important;
+        filter: brightness(1.05);
+    }
+    
     .cleared {
         background: #800000 !important;
-        color: white;
+        color: white !important;
     }
-
+    
+    .cleared:hover {
+        background: #a00000 !important;
+        filter: brightness(1.05);
+    }
+    
     .active-q {
         background: #3b82f6 !important;
-        color: white;
+        color: white !important;
+    }
+    
+    .active-q:hover {
+        background: #2563eb !important;
+        filter: brightness(1.05);
+    }
+    
+    /* Dark mode status colors with hover */
+    [data-theme="dark"] .answered {
+        background: #22c55e !important;
+        color: white !important;
+    }
+    
+    [data-theme="dark"] .answered:hover {
+        background: #16a34a !important;
+        filter: brightness(1.1);
+    }
+    
+    [data-theme="dark"] .skipped {
+        background: #facc15 !important;
+        color: #000000 !important;
+    }
+    
+    [data-theme="dark"] .skipped:hover {
+        background: #eab308 !important;
+        filter: brightness(1.1);
+    }
+    
+    [data-theme="dark"] .cleared {
+        background: #800000 !important;
+        color: white !important;
+    }
+    
+    [data-theme="dark"] .cleared:hover {
+        background: #a00000 !important;
+        filter: brightness(1.1);
+    }
+    
+    [data-theme="dark"] .active-q {
+        background: #3b82f6 !important;
+        color: white !important;
+    }
+    
+    [data-theme="dark"] .active-q:hover {
+        background: #2563eb !important;
+        filter: brightness(1.1);
+    }
+    
+    /* ===== QUESTION CONTAINER ===== */
+    [data-theme="dark"] #questionContainer {
+        background: var(--bg-card) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] #questionContainer .text-gray-700 {
+        color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] #questionContainer .text-gray-600 {
+        color: var(--text-secondary) !important;
+    }
+    
+    [data-theme="dark"] #questionContainer .bg-gray-50 {
+        background: var(--bg-body) !important;
+    }
+    
+    [data-theme="dark"] #questionContainer .border-gray-200 {
+        border-color: var(--border-color) !important;
+    }
+    
+    /* ===== RADIO BUTTONS & LABELS ===== */
+    [data-theme="dark"] input[type="radio"]:not(:checked) + label {
+        color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] input[type="radio"]:checked + label {
+        color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] .form-radio {
+        background: var(--bg-body) !important;
+        border-color: var(--border-color) !important;
+    }
+    
+    /* ===== PALETTE PANEL ===== */
+    #questionPalette {
+        background: var(--bg-card);
+        color: var(--text-primary);
+        border-color: var(--border-color);
+    }
+    
+    [data-theme="dark"] #questionPalette {
+        background: var(--bg-card) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+    }
+    
+    [data-theme="dark"] #questionPalette h2 {
+        color: var(--text-primary) !important;
+    }
+    
+    /* ===== LEGEND ITEMS ===== */
+    [data-theme="dark"] .legend-text {
+        color: var(--text-primary) !important;
+    }
+    
+    /* ===== BUTTONS ===== */
+    [data-theme="dark"] .bg-blue-500 {
+        background: #3b82f6 !important;
+    }
+    
+    [data-theme="dark"] .bg-blue-500:hover {
+        background: #2563eb !important;
+    }
+    
+    [data-theme="dark"] .bg-red-500 {
+        background: #ef4444 !important;
+    }
+    
+    [data-theme="dark"] .bg-red-500:hover {
+        background: #dc2626 !important;
+    }
+    
+    [data-theme="dark"] .bg-green-500 {
+        background: #22c55e !important;
+    }
+    
+    [data-theme="dark"] .bg-green-500:hover {
+        background: #16a34a !important;
+    }
+    
+    [data-theme="dark"] .bg-purple-100 {
+        background: #1e293b !important;
+        color: #a78bfa !important;
+    }
+    
+    [data-theme="dark"] .bg-green-100 {
+        background: #1e293b !important;
+        color: #34d399 !important;
+    }
+    
+    [data-theme="dark"] .bg-purple-800 {
+        background: #4c1d95 !important;
+        color: white !important;
+    }
+    
+    [data-theme="dark"] .text-red-600 {
+        color: #f87171 !important;
+    }
+    
+    [data-theme="dark"] .text-blue-600 {
+        color: #60a5fa !important;
+    }
+    
+    /* ===== HOVER STATES FOR OTHER ELEMENTS ===== */
+    [data-theme="dark"] .hover\:bg-gray-50:hover {
+        background: var(--bg-sidebar-hover) !important;
+    }
+    
+    [data-theme="dark"] .hover\:bg-gray-100:hover {
+        background: var(--bg-sidebar-hover) !important;
+    }
+    
+    /* ===== TIMER ===== */
+    [data-theme="dark"] #timer {
+        color: #f87171 !important;
+    }
+    
+    /* ===== OPTION LABELS IN QUESTIONS ===== */
+    [data-theme="dark"] .option-label {
+        color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] .option-text {
+        color: var(--text-primary) !important;
+    }
+    
+    /* ===== ADDITIONAL ELEMENTS ===== */
+    [data-theme="dark"] .fixed {
+        background: var(--bg-card) !important;
+    }
+    
+    [data-theme="dark"] .rounded-lg {
+        border-color: var(--border-color) !important;
+    }
+    
+    [data-theme="dark"] .shadow-lg {
+        box-shadow: 0 10px 15px -3px var(--shadow-color) !important;
+    }
+    
+    /* ===== MOBILE PALETTE FIXES ===== */
+    @media (max-width: 768px) {
+        #questionPalette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            max-width: 85%;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999;
+            overflow-y: auto;
+            padding: 1.25rem;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+            border-radius: 0 !important;
+        }
+        
+        #questionPalette.open {
+            transform: translateX(0);
+        }
+        
+        /* Mobile overlay */
+        .palette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .palette-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Close button - better positioning */
+        #questionPalette .close-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        [data-theme="dark"] #questionPalette .close-btn {
+            background: #dc2626;
+        }
+        
+        #questionPalette .close-btn:hover {
+            background: #dc2626;
+        }
+        
+        [data-theme="dark"] #questionPalette .close-btn:hover {
+            background: #b91c1c;
+        }
+        
+        /* Mobile palette grid */
+        #paletteButtons {
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .hex-btn {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            font-size: 10px;
+        }
+    }
+    
+    /* Small phones */
+    @media (max-width: 480px) {
+        #paletteButtons {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+        }
+        
+        .hex-btn {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            font-size: 9px;
+        }
+        
+        #questionPalette {
+            width: 260px;
+            max-width: 90%;
+            padding: 1rem;
+        }
     }
 </style>
 
-<div class="bg-gray-100 min-h-screen">
+<!-- ===== MOBILE OVERLAY ===== -->
+<div id="paletteOverlay" class="palette-overlay" onclick="togglePalette()"></div>
+
+<div class="bg-gray-100 min-h-screen" style="background: var(--bg-body);">
 
     <div class="max-w-7xl mx-auto p-3 md:p-4 grid grid-cols-1 md:grid-cols-12 gap-4">
 
@@ -56,16 +438,21 @@
         <div class="md:col-span-9 flex flex-col gap-4">
 
             <!-- HEADER -->
-            <div class="bg-white shadow p-4 flex justify-between items-center rounded">
+            <div class="bg-white shadow p-4 flex justify-between items-center rounded" 
+                 style="background: var(--bg-card); color: var(--text-primary);">
 
                 <div class="flex items-center gap-3">
-                    <button onclick="togglePalette()" class="md:hidden text-2xl text-red-600">☰</button>
+                    <button onclick="togglePalette()" class="md:hidden text-2xl p-2 rounded-lg hover:bg-gray-100 transition" 
+                            style="color: var(--text-primary);">
+                        ☰
+                    </button>
 
                     <h1 class="text-lg md:text-2xl font-bold text-blue-600">
                         {{ mocktest.title }}
                     </h1>
                 </div>
-                <!-- In the header section, after the title -->
+
+                <!-- Language Badge -->
                 <div class="flex items-center gap-2">
                     {% if language == 'hi' %}
                     <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">हिन्दी</span>
@@ -83,48 +470,49 @@
             <!-- FORM -->
             <form id="testForm" method="POST" action="{% url 'exams:submit_test' mocktest.id %}">
                 {% csrf_token %}
-                <div id="questionContainer" class="bg-white rounded-lg shadow p-5 min-h-[300px]">
+                <div id="questionContainer" class="bg-white rounded-lg shadow p-5 min-h-[300px]"
+                     style="background: var(--bg-card); color: var(--text-primary);">
+                    <!-- Questions loaded here via AJAX -->
                 </div>
             </form>
 
         </div>
 
         <!-- PALETTE -->
-        <div id="questionPalette" class="fixed md:static top-0 left-0 h-full md:h-auto w-72 md:w-auto
-bg-white rounded-lg shadow p-4
-transform -translate-x-full md:translate-x-0
-transition-transform duration-300
-z-50 md:z-auto md:col-span-3">
-
-            <!-- CLOSE BTN -->
-            <button onclick="togglePalette()" class="md:hidden mb-3 text-red-600 font-bold">
+        <div id="questionPalette" class="md:static md:w-auto md:col-span-3">
+            
+            <!-- CLOSE BTN - Mobile only (now properly styled) -->
+            <button onclick="togglePalette()" class="close-btn md:hidden">
                 ✕ Close
             </button>
 
-            <h2 class="font-bold">Questions</h2>
+            <h2 class="font-bold text-lg mb-2" style="color: var(--text-primary);">Questions</h2>
 
             <!-- LEGEND -->
-            <div class="text-sm space-y-1 my-3">
+            <div class="text-sm space-y-1.5 my-3">
                 <div class="flex gap-2 items-center">
-                    <div class="w-4 h-4 bg-green-500"></div> Answered
+                    <div class="w-4 h-4 bg-green-500 rounded"></div>
+                    <span style="color: var(--text-primary);">Answered</span>
                 </div>
 
                 <div class="flex gap-2 items-center">
-                    <div class="w-4 h-4 bg-yellow-400"></div> Skipped
+                    <div class="w-4 h-4 bg-yellow-400 rounded"></div>
+                    <span style="color: var(--text-primary);">Skipped</span>
                 </div>
 
                 <div class="flex gap-2 items-center">
-                    <div class="w-4 h-4 bg-red-800"></div> Cleared
+                    <div class="w-4 h-4 bg-red-800 rounded"></div>
+                    <span style="color: var(--text-primary);">Cleared</span>
                 </div>
 
                 <div class="flex gap-2 items-center">
-                    <div class="w-4 h-4 bg-blue-500"></div> Current
+                    <div class="w-4 h-4 bg-blue-500 rounded"></div>
+                    <span style="color: var(--text-primary);">Current</span>
                 </div>
             </div>
 
             <!-- GRID -->
-            <div id="paletteButtons" class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-5 lg:grid-cols-6
-gap-3 justify-items-center mt-4">
+            <div id="paletteButtons" class="grid grid-cols-5 gap-2 justify-items-center mt-4">
 
                 {% for q in questions %}
                 <button type="button" onclick="loadQuestion({{ forloop.counter }})" id="palette-{{ forloop.counter }}"
@@ -140,19 +528,26 @@ gap-3 justify-items-center mt-4">
 </div>
 
 <script>
-
-    /* TOGGLE DRAWER */
+    /* ===== TOGGLE PALETTE WITH OVERLAY ===== */
     function togglePalette() {
-        document.getElementById("questionPalette")
-            .classList.toggle("-translate-x-full");
+        const palette = document.getElementById("questionPalette");
+        const overlay = document.getElementById("paletteOverlay");
+        
+        palette.classList.toggle("open");
+        overlay.classList.toggle("show");
+        
+        // Prevent body scroll when palette is open on mobile
+        if (palette.classList.contains("open")) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
     }
 
-
-    /* ✅ SERVER TIMER */
+    /* ===== SERVER TIMER ===== */
     let timeLeft = {{ remaining_seconds }};
 
     const timerInterval = setInterval(() => {
-
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             alert("Time Up!");
@@ -167,43 +562,49 @@ gap-3 justify-items-center mt-4">
             (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
 
         timeLeft--;
-
     }, 1000);
 
-
+    /* ===== LOAD QUESTION ===== */
     function loadQuestion(num) {
-
+        const container = document.getElementById("questionContainer");
+        
         fetch("{% url 'exams:ajax_question' mocktest.id %}?q=" + num)
             .then(r => r.text())
             .then(html => {
+                container.innerHTML = html;
 
-                document.getElementById("questionContainer").innerHTML = html;
+                // Re-render math for AJAX-loaded content
+                if (window.MathJax) {
+                    MathJax.typesetPromise([container]);
+                }
 
-                document.querySelectorAll(".hex-btn")
-                    .forEach(b => b.classList.remove("active-q"));
-
-                document.getElementById("palette-" + num)
-                    .classList.add("active-q");
-
+                // Update palette active state
+                document.querySelectorAll(".hex-btn").forEach(b => b.classList.remove("active-q"));
+                const activeBtn = document.getElementById("palette-" + num);
+                if (activeBtn) activeBtn.classList.add("active-q");
+                
+                // Close palette on mobile after selection
+                if (window.innerWidth <= 768) {
+                    const palette = document.getElementById("questionPalette");
+                    const overlay = document.getElementById("paletteOverlay");
+                    palette.classList.remove("open");
+                    overlay.classList.remove("show");
+                    document.body.style.overflow = "";
+                }
             });
     }
 
-
-
-    /* SAVE ANSWER */
+    /* ===== SAVE ANSWER ===== */
     function saveAnswer(qid, goNext = false, nextNum = null) {
-
         const selected = document.querySelector(`input[name="question_${qid}"]:checked`);
         const btn = document.getElementById("palette-" + qid);
         const fd = new FormData();
 
         if (selected) {
             fd.append(`question_${qid}`, selected.value);
-
             btn.classList.remove("skipped", "cleared");
             btn.classList.add("answered");
-        }
-        else {
+        } else {
             if (!btn.classList.contains("answered")) {
                 btn.classList.add("skipped");
             }
@@ -220,12 +621,9 @@ gap-3 justify-items-center mt-4">
         });
     }
 
-
-    /* CLEAR */
+    /* ===== CLEAR ANSWER ===== */
     function clearAnswer(qid) {
-
         const btn = document.getElementById("palette-" + qid);
-
         btn.classList.remove("answered", "skipped");
         btn.classList.add("cleared");
 
@@ -242,8 +640,8 @@ gap-3 justify-items-center mt-4">
         });
     }
 
+    /* ===== SUBMIT TEST ===== */
     function submitTest() {
-
         if (!confirm("Are you sure you want to submit the test?")) {
             return;
         }
@@ -256,9 +654,7 @@ gap-3 justify-items-center mt-4">
 
                 fetch("{% url 'exams:save_answer' %}", {
                     method: "POST",
-                    headers: {
-                        "X-CSRFToken": "{{ csrf_token }}"
-                    },
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
                     body: fd
                 });
             });
@@ -269,8 +665,7 @@ gap-3 justify-items-center mt-4">
         }, 500);
     }
 
-
-    /* FIRST LOAD */
+    /* ===== FIRST LOAD ===== */
     document.addEventListener("DOMContentLoaded", () => {
         loadQuestion(1);
     });
@@ -295,9 +690,24 @@ gap-3 justify-items-center mt-4">
 
                 // Update palette active state
                 document.querySelectorAll(".hex-btn").forEach(b => b.classList.remove("active-q"));
-                document.getElementById("palette-" + num).classList.add("active-q");
+                const activeBtn = document.getElementById("palette-" + num);
+                if (activeBtn) activeBtn.classList.add("active-q");
             });
     }
+
+    // Close palette when clicking outside on mobile (handled by overlay)
+    // Also close on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const palette = document.getElementById("questionPalette");
+            const overlay = document.getElementById("paletteOverlay");
+            if (palette.classList.contains("open")) {
+                palette.classList.remove("open");
+                overlay.classList.remove("show");
+                document.body.style.overflow = "";
+            }
+        }
+    });
 </script>
 
 {% endblock %}

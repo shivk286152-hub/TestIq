@@ -16,13 +16,13 @@
         <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Ready to Begin?</h1>
         <p class="text-lg text-gray-600">Review the instructions and start your test</p>
     </div>
+    
     <!-- Main Card -->
     <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <!-- Header with Test Info -->
         <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-8 text-white">
             <h1 class="text-3xl font-bold mb-2">{{ mocktest.title }}</h1>
-            <p class="text-indigo-100 mb-4">{{ mocktest.description|default:"Test your knowledge with this comprehensive
-                assessment" }}</p>
+            <p class="text-indigo-100 mb-4">{{ mocktest.description|default:"Test your knowledge with this comprehensive assessment" }}</p>
 
             <!-- Quick Info Chips -->
             <div class="flex flex-wrap gap-3 mt-4">
@@ -80,13 +80,11 @@
                         <ul class="space-y-3 text-gray-600">
                             <li class="flex items-start">
                                 <span class="text-green-500 mr-2">✓</span>
-                                Total duration of test is <span class="font-semibold">{{ mocktest.duration }}
-                                    minutes</span>
+                                Total duration of test is <span class="font-semibold">{{ mocktest.duration }} minutes</span>
                             </li>
                             <li class="flex items-start">
                                 <span class="text-green-500 mr-2">✓</span>
-                                The test contains <span class="font-semibold">{{ mocktest.questions.count }}
-                                    questions</span>
+                                The test contains <span class="font-semibold">{{ mocktest.questions.count }} questions</span>
                             </li>
                             <li class="flex items-start">
                                 <span class="text-green-500 mr-2">✓</span>
@@ -116,32 +114,92 @@
                         </h3>
 
                         <!-- Table for Marking Scheme -->
-                        <table class="min-w-full bg-white rounded-lg overflow-hidden">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Response</th>
-                                    <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Marks</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                <tr>
-                                    <td class="px-4 py-2 text-sm text-gray-600">Correct Answer</td>
-                                    <td class="px-4 py-2 text-sm font-medium text-green-600">+1</td>
-                                </tr>
-                                <tr>
-                                    <td class="px-4 py-2 text-sm text-gray-600">Incorrect Answer</td>
-                                    <td class="px-4 py-2 text-sm font-medium text-red-600">-0.25</td>
-                                </tr>
-                                <tr>
-                                    <td class="px-4 py-2 text-sm text-gray-600">Not Attempted</td>
-                                    <td class="px-4 py-2 text-sm font-medium text-gray-500">0</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="overflow-hidden rounded-lg border border-gray-200">
+                            <table class="min-w-full bg-white">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Response</th>
+                                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Marks</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-600">Correct Answer</td>
+                                        <td class="px-4 py-2 text-sm font-medium text-green-600">+1</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-600">Incorrect Answer</td>
+                                        <td class="px-4 py-2 text-sm font-medium text-red-600">-0.25</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-600">Not Attempted</td>
+                                        <td class="px-4 py-2 text-sm font-medium text-gray-500">0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
                         <p class="text-xs text-gray-500 mt-3">
                             <span class="font-semibold">Note:</span> Negative marking applies only to wrong answers.
                         </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PRO TIPS SECTION ===== -->
+            <div class="mb-8">
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                💡 Pro Tips for Success
+                                <span class="text-xs font-medium bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full">Must Read</span>
+                            </h3>
+                            <div class="grid sm:grid-cols-2 gap-3">
+                                <div class="bg-white/70 rounded-lg p-3 border border-blue-100/50">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-lg">⏱️</span>
+                                        <span class="font-semibold text-sm text-gray-700">Time Management</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">Allocate ~{{ mocktest.duration|default:30 }} minutes for the entire test. Skip tough questions and come back later.</p>
+                                </div>
+                                <div class="bg-white/70 rounded-lg p-3 border border-blue-100/50">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-lg">🎯</span>
+                                        <span class="font-semibold text-sm text-gray-700">Smart Attempting</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">Attempt all questions. Even guesses have a chance at being correct!</p>
+                                </div>
+                                <div class="bg-white/70 rounded-lg p-3 border border-blue-100/50">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-lg">📝</span>
+                                        <span class="font-semibold text-sm text-gray-700">Read Carefully</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">Read each question twice before answering. Don't miss key words like "NOT" or "EXCEPT".</p>
+                                </div>
+                                <div class="bg-white/70 rounded-lg p-3 border border-blue-100/50">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-lg">🧘</span>
+                                        <span class="font-semibold text-sm text-gray-700">Stay Calm</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">Take deep breaths if feeling anxious. Confidence is key to success!</p>
+                                </div>
+                                <div class="bg-white/70 rounded-lg p-3 border border-blue-100/50 sm:col-span-2">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-lg">📊</span>
+                                        <span class="font-semibold text-sm text-gray-700">Review Before Submit</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">Use the last 5 minutes to review flagged questions and check your answers.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -178,8 +236,7 @@
                                     Terms and Conditions
                                 </h3>
                                 <div class="text-sm text-amber-700 space-y-2">
-                                    <p>• I understand that this is a timed test and will be automatically submitted when
-                                        time expires.</p>
+                                    <p>• I understand that this is a timed test and will be automatically submitted when time expires.</p>
                                     <p>• I agree not to use any unfair means during the test.</p>
                                     <p>• I understand that my answers will be saved automatically as I progress.</p>
                                     <p>• I agree that the decision of the test administrators is final.</p>
@@ -198,9 +255,8 @@
                         </div>
                     </div>
 
-                    <!-- Language Selection Card - FIXED VERSION -->
                     <!-- Language Selection -->
-                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 mb-6">
                         <h5 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                             <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
@@ -211,24 +267,29 @@
                         </h5>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {% for lang in languages %}
-                            <label
-                                class="relative flex items-center p-4 rounded-xl border-2 {% if forloop.first %}border-indigo-500 bg-indigo-50{% else %}border-gray-200 hover:border-indigo-200{% endif %} cursor-pointer transition-all duration-200 group">
+                            <label class="language-option relative flex items-center p-4 rounded-xl border-2 {% if forloop.first %}border-indigo-500 bg-indigo-50{% else %}border-gray-200 hover:border-indigo-200{% endif %} cursor-pointer transition-all duration-200 group">
                                 <input type="radio" name="language" value="{{ lang.code }}"
-                                    class="w-4 h-4 text-indigo-600 bg-white border-gray-300 focus:ring-indigo-500 focus:ring-2"
+                                    class="hidden w-4 h-4 text-indigo-600 bg-white border-gray-300 focus:ring-indigo-500 focus:ring-2"
                                     {% if forloop.first %}checked{% endif %} required>
-                                <span class="ml-3 block">
-                                    <span
-                                        class="block text-sm font-medium {% if forloop.first %}text-indigo-900{% else %}text-gray-900{% endif %}">
-                                        {{ lang.name }}
+                                <div class="flex items-center w-full">
+                                    <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 {% if forloop.first %}border-indigo-600 bg-indigo-600{% else %}border-gray-300{% endif %} flex items-center justify-center">
+                                        {% if forloop.first %}
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {% endif %}
+                                    </div>
+                                    <span class="ml-3 block">
+                                        <span class="block text-sm font-medium {% if forloop.first %}text-indigo-900{% else %}text-gray-900{% endif %}">
+                                            {{ lang.name }}
+                                        </span>
+                                        <span class="block text-sm {% if forloop.first %}text-indigo-600{% else %}text-gray-500{% endif %}">
+                                            {{ lang.code|upper }}
+                                        </span>
                                     </span>
-                                    <span
-                                        class="block text-sm {% if forloop.first %}text-indigo-600{% else %}text-gray-500{% endif %}">
-                                        {{ lang.code|upper }}
-                                    </span>
-                                </span>
+                                </div>
                                 {% if forloop.first %}
-                                <span
-                                    class="absolute top-2 right-2 bg-indigo-500 text-white text-xs px-2 py-1 rounded-full">
+                                <span class="absolute top-2 right-2 bg-indigo-500 text-white text-xs px-2 py-1 rounded-full">
                                     Recommended
                                 </span>
                                 {% endif %}
@@ -294,55 +355,69 @@
         function checkFormValidity() {
             const termsAccepted = termsCheckbox.checked;
             const languageSelected = Array.from(languageRadios).some(radio => radio.checked);
-
             startButton.disabled = !(termsAccepted && languageSelected);
         }
 
         // Function to update language selection visual
         function updateLanguageSelection(selectedOption) {
-            // Remove selection from all options
+            // Reset all options
             languageOptions.forEach(option => {
-                const div = option.querySelector('div');
-                const dot = option.querySelector('.language-dot');
-                const text = option.querySelector('.language-text');
-
-                div.classList.remove('border-indigo-600', 'bg-indigo-50');
-                div.classList.add('border-gray-200');
-                dot.classList.remove('border-indigo-600', 'bg-indigo-600');
-                dot.classList.add('border-gray-300');
-                text.classList.remove('text-indigo-600');
+                option.classList.remove('border-indigo-500', 'bg-indigo-50');
+                option.classList.add('border-gray-200');
+                const dot = option.querySelector('.w-5.h-5');
+                if (dot) {
+                    dot.classList.remove('border-indigo-600', 'bg-indigo-600');
+                    dot.classList.add('border-gray-300');
+                    dot.innerHTML = '';
+                }
+                const textSpan = option.querySelector('.block.text-sm.font-medium');
+                if (textSpan) {
+                    textSpan.classList.remove('text-indigo-900');
+                    textSpan.classList.add('text-gray-900');
+                }
+                const codeSpan = option.querySelector('.block.text-sm:not(.font-medium)');
+                if (codeSpan) {
+                    codeSpan.classList.remove('text-indigo-600');
+                    codeSpan.classList.add('text-gray-500');
+                }
             });
 
             // Add selection to clicked option
-            const div = selectedOption.querySelector('div');
-            const dot = selectedOption.querySelector('.language-dot');
-            const text = selectedOption.querySelector('.language-text');
-
-            div.classList.remove('border-gray-200');
-            div.classList.add('border-indigo-600', 'bg-indigo-50');
-            dot.classList.remove('border-gray-300');
-            dot.classList.add('border-indigo-600', 'bg-indigo-600');
-            text.classList.add('text-indigo-600');
+            selectedOption.classList.remove('border-gray-200');
+            selectedOption.classList.add('border-indigo-500', 'bg-indigo-50');
+            const dot = selectedOption.querySelector('.w-5.h-5');
+            if (dot) {
+                dot.classList.remove('border-gray-300');
+                dot.classList.add('border-indigo-600', 'bg-indigo-600');
+                dot.innerHTML = `
+                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                `;
+            }
+            const textSpan = selectedOption.querySelector('.block.text-sm.font-medium');
+            if (textSpan) {
+                textSpan.classList.remove('text-gray-900');
+                textSpan.classList.add('text-indigo-900');
+            }
+            const codeSpan = selectedOption.querySelector('.block.text-sm:not(.font-medium)');
+            if (codeSpan) {
+                codeSpan.classList.remove('text-gray-500');
+                codeSpan.classList.add('text-indigo-600');
+            }
         }
 
         // Add click handlers to language options
         languageOptions.forEach(option => {
             option.addEventListener('click', function (e) {
-                // Prevent click if clicking on radio directly (though it's hidden)
                 e.preventDefault();
-
-                // Get the radio input
                 const radio = this.querySelector('input[type="radio"]');
-
-                // Check the radio
-                radio.checked = true;
-
-                // Update visual
-                updateLanguageSelection(this);
-
-                // Trigger change event for form validation
-                const changeEvent = new Event('change', { bubbles: true });
-                radio.dispatchEvent(changeEvent);
+                if (radio) {
+                    radio.checked = true;
+                    updateLanguageSelection(this);
+                    const changeEvent = new Event('change', { bubbles: true });
+                    radio.dispatchEvent(changeEvent);
+                }
             });
         });
 
@@ -350,8 +425,6 @@
         languageRadios.forEach(radio => {
             radio.addEventListener('change', function () {
                 checkFormValidity();
-
-                // Also update visual when radio changes programmatically
                 const parentOption = this.closest('.language-option');
                 if (parentOption && this.checked) {
                     updateLanguageSelection(parentOption);
@@ -361,14 +434,29 @@
 
         // Initial check
         checkFormValidity();
+        
+        // Initialize first selection if any
+        const firstChecked = document.querySelector('input[name="language"]:checked');
+        if (firstChecked) {
+            const parentOption = firstChecked.closest('.language-option');
+            if (parentOption) {
+                updateLanguageSelection(parentOption);
+            }
+        }
     });
 </script>
 
 <style>
     /* Additional styling for language selection */
-    .language-option input:checked+div {
-        border-color: #4f46e5;
-        background-color: #eef2ff;
+    .language-option {
+        transition: all 0.3s ease;
+    }
+    .language-option:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .language-option .w-5.h-5 {
+        transition: all 0.3s ease;
     }
 </style>
 {% endblock %}

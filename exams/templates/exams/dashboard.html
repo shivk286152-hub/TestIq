@@ -1,141 +1,423 @@
-<!-- templates/exams/dashboard.html -->
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}My Dashboard - TestIQ{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ===== CUSTOM ANIMATIONS ===== */
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    .float-animation { animation: float 6s ease-in-out infinite; }
+
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    .shimmer-bg {
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    .slide-in {
+        animation: slideIn 0.5s ease forwards;
+    }
+
+    /* ===== DASHBOARD CARDS ===== */
+    .stat-card {
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+    .stat-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* ===== HAMBURGER SECTION ===== */
+    .hamburger-section {
+        background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+    }
+    .hamburger-section::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.1), transparent 70%);
+        pointer-events: none;
+    }
+    .hamburger-item {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .hamburger-item:hover {
+        transform: translateX(8px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+    .hamburger-item.active {
+        background: rgba(99, 102, 241, 0.2);
+        border-color: rgba(99, 102, 241, 0.3);
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+    }
+
+    /* ===== TEST CARD ENHANCED ===== */
+    .test-card-dashboard {
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        cursor: pointer;
+    }
+    .test-card-dashboard:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
+    }
+    .test-card-dashboard .hover-reveal {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+    }
+    .test-card-dashboard:hover .hover-reveal {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ===== QUICK ACTION CARDS ===== */
+    .quick-action-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .quick-action-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: left 0.5s ease;
+    }
+    .quick-action-card:hover::after {
+        left: 100%;
+    }
+
+    /* ===== ACHIEVEMENT BADGES ===== */
+    .achievement-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #78350f;
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        transition: all 0.3s ease;
+    }
+    .achievement-badge:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .hamburger-section .grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    @media (max-width: 480px) {
+        .hamburger-section .grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 10px; }
+
+    /* ===== GLASS EFFECT ===== */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Welcome Header -->
-    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-6 md:p-8 mb-8 text-white">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-bold mb-2">
-                    Welcome back, {{ request.user.get_full_name|default:request.user.username }}! 👋
-                </h1>
-                <p class="text-white/80">Track your progress and continue your learning journey</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    
+    <!-- ===== HAMBURGER SECTION - QUICK NAVIGATION ===== -->
+    <div class="hamburger-section mb-8 p-6 md:p-8">
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-color-slate-900 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                        Quick Navigation
+                    </h2>
+                    <p class="text-zinc-800 text-sm">Jump to any section instantly</p>
+                </div>
+                <span class="text-xs text-indigo-400 bg-white/10 px-3 py-1 rounded-full">7 options</span>
             </div>
-            <div class="mt-4 md:mt-0">
-                <span class="inline-flex items-center px-4 py-2 bg-white/20 rounded-lg">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                        </path>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <a href="#overview" class="hamburger-item active rounded-xl p-4 text-white hover:bg-white/5 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-white">Overview</div>
+                            <div class="text-xs text-indigo-300">Dashboard</div>
+                        </div>
+                    </div>
+                </a>
+                
+                <a href="#tests" class="hamburger-item rounded-xl p-4 text-white hover:bg-white/5 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-white">Tests</div>
+                            <div class="text-xs text-indigo-300">{{ total_tests|default:0 }} completed</div>
+                        </div>
+                    </div>
+                </a>
+                
+                <a href="#analytics" class="hamburger-item rounded-xl p-4 text-white hover:bg-white/5 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-white">Analytics</div>
+                            <div class="text-xs text-indigo-300">Performance</div>
+                        </div>
+                    </div>
+                </a>
+                
+                <a href="#achievements" class="hamburger-item rounded-xl p-4 text-white hover:bg-white/5 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-white">Achievements</div>
+                            <div class="text-xs text-indigo-300">{{ achievements_count|default:0 }} unlocked</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== WELCOME HEADER ===== -->
+    <div id="overview" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-xl p-6 md:p-8 mb-8 text-white relative overflow-hidden scroll-mt-16">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -z-5"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-purple-400/20 rounded-full blur-3xl -z-5"></div>
+        
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between relative z-10">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <span class="text-2xl">👋</span>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-bold">
+                        Welcome back, {{ request.user.get_full_name|default:request.user.username }}!
+                    </h1>
+                </div>
+                <p class="text-white/80 text-sm md:text-base">Track your progress and continue your learning journey</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex flex-wrap items-center gap-3">
+                <span class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     Member since {{ request.user.date_joined|date:"F Y" }}
+                </span>
+                <span class="inline-flex items-center px-3 py-1.5 bg-green-400/20 backdrop-blur-sm rounded-full text-xs font-semibold">
+                    <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></span>
+                    Online
                 </span>
             </div>
         </div>
     </div>
 
-    <!-- Quick Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-sm">Total Tests Taken</span>
-                <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
-                        </path>
+    <!-- ===== QUICK STATS CARDS ===== -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="stat-card bg-white rounded-2xl shadow-sm hover:shadow-xl p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-500 text-sm font-medium">Total Tests</span>
+                <div class="w-11 h-11 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-gray-800">{{ total_tests }}</p>
-            <p class="text-xs text-gray-400 mt-1">{{ total_tests }} tests completed</p>
+            <p class="text-3xl font-bold text-gray-800">{{ total_tests|default:0 }}</p>
+            <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                <span class="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                {{ total_tests|default:0 }} tests completed
+            </p>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-sm">Average Score</span>
-                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+        <div class="stat-card bg-white rounded-2xl shadow-sm hover:shadow-xl p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-500 text-sm font-medium">Avg Score</span>
+                <div class="w-11 h-11 bg-gradient-to-br from-green-100 to-green-200 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-gray-800">{{ avg_score }}%</p>
-            <p class="text-xs text-gray-400 mt-1">Overall performance</p>
+            <p class="text-3xl font-bold text-gray-800">{{ avg_score|default:0 }}%</p>
+            <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                <span class="inline-block w-2 h-2 bg-yellow-500 rounded-full"></span>
+                Overall performance
+            </p>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-sm">Best Score</span>
-                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z">
-                        </path>
+        <div class="stat-card bg-white rounded-2xl shadow-sm hover:shadow-xl p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-500 text-sm font-medium">Best Score</span>
+                <div class="w-11 h-11 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-gray-800">{{ best_score }}%</p>
-            <p class="text-xs text-gray-400 mt-1">Your highest score</p>
+            <p class="text-3xl font-bold text-gray-800">{{ best_score|default:0 }}%</p>
+            <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                <span class="inline-block w-2 h-2 bg-amber-500 rounded-full"></span>
+                Your highest score
+            </p>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-sm">Study Streak</span>
-                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                        </path>
+        <div class="stat-card bg-white rounded-2xl shadow-sm hover:shadow-xl p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-500 text-sm font-medium">Study Streak</span>
+                <div class="w-11 h-11 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-gray-800">{{ streak|default:"0" }}</p>
-            <p class="text-xs text-gray-400 mt-1">Days in a row</p>
+            <p class="text-3xl font-bold text-gray-800">{{ streak|default:0 }}</p>
+            <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                <span class="inline-block w-2 h-2 bg-purple-500 rounded-full"></span>
+                Days in a row
+            </p>
         </div>
     </div>
 
-    <!-- Testimonial Section in Dashboard -->
+    <!-- ===== ACHIEVEMENTS BANNER ===== -->
+    {% if achievements_count %}
+    <div id="achievements" class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl p-4 mb-8 border border-amber-200 scroll-mt-16">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/25">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-800">🏆 Achievements Unlocked</p>
+                    <p class="text-sm text-gray-600">{{ achievements_count }} achievements earned so far!</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                {% for achievement in achievements %}
+                <span class="achievement-badge text-xs">
+                    {{ achievement.icon }} {{ achievement.name }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== TESTIMONIAL SECTION ===== -->
     {% if user_testimonial %}
-    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 mb-8">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Your Testimonial</h3>
-        <div class="bg-white rounded-xl p-6 shadow-sm">
-            <div class="flex items-start justify-between">
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-2">
-                        {% for i in "12345"|make_list %}
-                        <svg class="w-5 h-5 {% if forloop.counter <= user_testimonial.stars %}text-yellow-400{% else %}text-gray-300{% endif %}"
-                            fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        {% endfor %}
-                        <span class="text-sm text-gray-500 ml-2">
-                            {% if user_testimonial.is_active %}
-                            <span class="text-green-600">✓ Published</span>
-                            {% else %}
-                            <span class="text-yellow-600">⏳ Under Review</span>
-                            {% endif %}
-                        </span>
-                    </div>
-                    <p class="text-gray-700 italic mb-3">"{{ user_testimonial.text }}"</p>
-                    {% if user_testimonial.achievement %}
-                    <p class="text-sm text-indigo-600 font-medium">{{ user_testimonial.achievement }}</p>
+    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 mb-8 border border-indigo-100">
+        <div class="flex items-start justify-between flex-wrap gap-4">
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-sm font-semibold text-gray-700">Your Testimonial</span>
+                    {% if user_testimonial.is_active %}
+                    <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">✓ Published</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">⏳ Under Review</span>
                     {% endif %}
                 </div>
-                <div class="flex gap-2 ml-4">
-                    <a href="{% url 'exams:edit_testimonial' user_testimonial.id %}"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm">
-                        Edit
-                    </a>
-                    <a href="{% url 'exams:delete_testimonial' user_testimonial.id %}"
-                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm">
-                        Delete
-                    </a>
+                <div class="flex items-center gap-1 mb-2">
+                    {% for i in "12345"|make_list %}
+                    <svg class="w-5 h-5 {% if forloop.counter <= user_testimonial.stars %}text-yellow-400{% else %}text-gray-300{% endif %}" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    {% endfor %}
                 </div>
+                <p class="text-gray-700 italic">"{{ user_testimonial.text }}"</p>
+                {% if user_testimonial.achievement %}
+                <p class="text-sm text-indigo-600 font-medium mt-1">🎯 {{ user_testimonial.achievement }}</p>
+                {% endif %}
+            </div>
+            <div class="flex gap-2">
+                <a href="{% url 'exams:edit_testimonial' user_testimonial.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm">
+                    Edit
+                </a>
+                <a href="{% url 'exams:delete_testimonial' user_testimonial.id %}" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm">
+                    Delete
+                </a>
             </div>
         </div>
     </div>
     {% else %}
-    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 mb-8 text-center">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">Share Your Experience!</h3>
+    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 mb-8 text-center border border-indigo-100">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Share Your Experience! 🌟</h3>
         <p class="text-gray-600 mb-4">Help others by sharing how our platform helped you</p>
-        <a href="{% url 'exams:submit_testimonial' %}"
-            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition">
+        <a href="{% url 'exams:submit_testimonial' %}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition shadow-lg shadow-indigo-500/25">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
@@ -144,23 +426,29 @@
     </div>
     {% endif %}
 
-    <!-- Performance Charts Section -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-        <h2 class="font-semibold text-gray-800 mb-4 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                </path>
-            </svg>
-            Performance Overview
-        </h2>
+    <!-- ===== PERFORMANCE CHARTS SECTION ===== -->
+    <div id="analytics" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8 scroll-mt-16">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="font-bold text-xl text-gray-800 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Performance Analytics
+            </h2>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400">Last 30 days</span>
+                <span class="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            </div>
+        </div>
         
-        <!-- Two charts grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Bar chart - Subject Mastery -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Bar Chart -->
             <div>
-                <h3 class="text-sm font-medium text-gray-600 mb-2">Subject Mastery</h3>
-                <div style="position: relative; height: 250px;">
+                <h3 class="text-sm font-medium text-gray-600 mb-3 flex items-center gap-2">
+                    <span class="w-3 h-3 bg-indigo-500 rounded-full"></span>
+                    Subject Mastery
+                </h3>
+                <div style="position: relative; height: 260px;">
                     <canvas id="subjectChart"></canvas>
                 </div>
                 {% if not subject_labels_json or subject_labels_json == "[]" %}
@@ -170,10 +458,13 @@
                 {% endif %}
             </div>
             
-            <!-- Line chart - Score Trend -->
+            <!-- Line Chart -->
             <div>
-                <h3 class="text-sm font-medium text-gray-600 mb-2">Score Trend</h3>
-                <div style="position: relative; height: 250px;">
+                <h3 class="text-sm font-medium text-gray-600 mb-3 flex items-center gap-2">
+                    <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                    Score Trend
+                </h3>
+                <div style="position: relative; height: 260px;">
                     <canvas id="trendChart"></canvas>
                 </div>
                 {% if not attempts %}
@@ -185,72 +476,64 @@
         </div>
     </div>
 
-    <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Left Column - Recent Activity -->
+    <!-- ===== RECENT TESTS & QUICK ACTIONS ===== -->
+    <div id="tests" class="grid grid-cols-1 lg:grid-cols-3 gap-8 scroll-mt-16">
+        <!-- Recent Tests -->
         <div class="lg:col-span-2">
-            <!-- Recent Tests Section -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
                     <h2 class="font-semibold text-gray-800 flex items-center">
                         <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         Recent Test Attempts
                     </h2>
-                    <a href="#" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">View All</a>
+                    <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{{ attempts|length }} total</span>
                 </div>
 
                 {% if attempts %}
-                <div class="divide-y divide-gray-100">
+                <div class="divide-y divide-gray-100 max-h-[600px] overflow-y-auto">
                     {% for attempt in attempts|slice:":5" %}
-                    <div class="p-6 hover:bg-gray-50 transition">
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="test-card-dashboard p-5 hover:bg-gray-50/50 transition">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                             <div class="flex-1">
-                                <div class="flex items-center mb-2">
-                                    <h3 class="font-semibold text-gray-800">{{ attempt.mock_test.title }}</h3>
-                                    <span class="ml-3 px-2 py-0.5 text-xs rounded-full 
+                                <div class="flex items-center flex-wrap gap-2 mb-1">
+                                    <h3 class="font-semibold text-gray-800 text-sm">{{ attempt.mock_test.title }}</h3>
+                                    <span class="px-2 py-0.5 text-xs rounded-full 
                                         {% if attempt.percentage >= 70 %}bg-green-100 text-green-700
                                         {% elif attempt.percentage >= 40 %}bg-yellow-100 text-yellow-700
                                         {% else %}bg-red-100 text-red-700{% endif %}">
-                                        {{ attempt.percentage }}% Score
+                                        {{ attempt.percentage }}%
                                     </span>
                                 </div>
-                                <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500">
                                     <span class="flex items-center">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                            </path>
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                         </svg>
                                         {{ attempt.submitted_at|date:"d M Y, h:i A" }}
                                     </span>
                                     <span class="flex items-center">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                                            </path>
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
-                                        {{ attempt.total_marks }} Questions
+                                        {{ attempt.total_marks }} Qs
                                     </span>
                                 </div>
-                                <!-- Progress bar -->
-                                <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
-                                    <div class="h-2 rounded-full 
+                                <div class="mt-2 w-full bg-gray-100 rounded-full h-1.5">
+                                    <div class="h-1.5 rounded-full 
                                         {% if attempt.percentage >= 70 %}bg-green-500
                                         {% elif attempt.percentage >= 40 %}bg-yellow-500
-                                        {% else %}bg-red-500{% endif %}" style="width: {{ attempt.percentage }}%">
+                                        {% else %}bg-red-500{% endif %}" 
+                                        style="width: {{ attempt.percentage }}%; transition: width 1s ease;">
                                     </div>
                                 </div>
                             </div>
-                            <div class="mt-4 md:mt-0 flex space-x-2">
-                                <a href="{% url 'exams:result_dashboard' attempt.id %}"
-                                    class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition text-sm font-medium">
-                                    View Results
+                            <div class="flex gap-2 hover-reveal">
+                                <a href="{% url 'exams:result_dashboard' attempt.id %}" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition text-xs font-medium">
+                                    Results
                                 </a>
-                                <a href="{% url 'exams:detailed_analysis' attempt.id %}"
-                                    class="px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition text-sm font-medium">
+                                <a href="{% url 'exams:detailed_analysis' attempt.id %}" class="px-3 py-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition text-xs font-medium">
                                     Analysis
                                 </a>
                             </div>
@@ -260,19 +543,16 @@
                 </div>
                 {% else %}
                 <div class="p-12 text-center">
-                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
-                        </path>
-                    </svg>
+                    <div class="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
                     <h3 class="text-lg font-medium text-gray-700 mb-2">No tests taken yet</h3>
-                    <p class="text-gray-500 mb-4">Start your learning journey by taking your first mock test</p>
-                    <a href="{% url 'exams:home' %}"
-                        class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                    <p class="text-gray-500 text-sm mb-4">Start your learning journey by taking your first mock test</p>
+                    <a href="{% url 'exams:home' %}" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/25">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                         </svg>
                         Browse Tests
                     </a>
@@ -281,45 +561,70 @@
             </div>
         </div>
 
-        <!-- Right Column - Stats & Actions -->
-        <div class="lg:col-span-1">
+        <!-- Right Column - Quick Actions & Subject Stats -->
+        <div class="lg:col-span-1 space-y-6">
             <!-- Quick Actions -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                 <h2 class="font-semibold text-gray-800 mb-4 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                     Quick Actions
                 </h2>
                 <div class="space-y-3">
-                    <a href="{% url 'exams:home' %}"
-                        class="flex items-center p-3 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    <a href="{% url 'exams:home' %}" class="quick-action-card flex items-center p-3 bg-gradient-to-r from-indigo-50 to-indigo-100/50 text-indigo-700 rounded-xl hover:from-indigo-100 hover:to-indigo-200 transition-all group">
+                        <div class="w-10 h-10 bg-indigo-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="font-medium text-sm">Take New Test</div>
+                            <div class="text-xs text-indigo-500">Continue learning</div>
+                        </div>
+                        <svg class="w-4 h-4 ml-auto text-indigo-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
-                        <span class="font-medium">Take New Test</span>
                     </a>
-                    <a href="#"
-                        class="flex items-center p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                            </path>
+                    
+                    <a href="#" class="quick-action-card flex items-center p-3 bg-gradient-to-r from-purple-50 to-purple-100/50 text-purple-700 rounded-xl hover:from-purple-100 hover:to-purple-200 transition-all group">
+                        <div class="w-10 h-10 bg-purple-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="font-medium text-sm">Study Materials</div>
+                            <div class="text-xs text-purple-500">Review topics</div>
+                        </div>
+                        <svg class="w-4 h-4 ml-auto text-purple-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
-                        <span class="font-medium">Study Materials</span>
+                    </a>
+                    
+                    <a href="#" class="quick-action-card flex items-center p-3 bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 rounded-xl hover:from-emerald-100 hover:to-emerald-200 transition-all group">
+                        <div class="w-10 h-10 bg-emerald-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H5a2 2 0 01-2-2V7a2 2 0 012-2h11.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="font-medium text-sm">Leaderboard</div>
+                            <div class="text-xs text-emerald-500">Check ranking</div>
+                        </div>
+                        <svg class="w-4 h-4 ml-auto text-emerald-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
                     </a>
                 </div>
             </div>
 
-            <!-- Subject-wise Performance - Now with actual data -->
+            <!-- Subject-wise Performance -->
             {% if subject_stats %}
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                 <h2 class="font-semibold text-gray-800 mb-4 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
                     </svg>
                     Subject Mastery
                 </h2>
@@ -327,37 +632,42 @@
                     {% for subject in subject_stats %}
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm text-gray-600">{{ subject.name }}</span>
-                            <span class="text-sm font-medium 
+                            <span class="text-sm font-medium text-gray-600">{{ subject.name }}</span>
+                            <span class="text-sm font-bold 
                                 {% if subject.percentage >= 70 %}text-green-600
                                 {% elif subject.percentage >= 40 %}text-yellow-600
                                 {% else %}text-red-600{% endif %}">
                                 {{ subject.percentage }}%
                             </span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="h-2 rounded-full 
+                        <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                            <div class="h-2 rounded-full transition-all duration-1000 
                                 {% if subject.percentage >= 70 %}bg-green-500
                                 {% elif subject.percentage >= 40 %}bg-yellow-500
                                 {% else %}bg-red-500{% endif %}" 
-                                style="width: {{ subject.percentage }}%">
+                                style="width: {{ subject.percentage }}%;">
                             </div>
                         </div>
-                        <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <div class="flex justify-between text-xs text-gray-400 mt-0.5">
                             <span>{{ subject.correct }}/{{ subject.total }} correct</span>
                             <span>{{ subject.wrong }} wrong • {{ subject.skipped }} skipped</span>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-                <a href="#" class="mt-4 text-sm text-indigo-600 hover:text-indigo-700 font-medium block text-center">
-                    View Detailed Analysis →
-                </a>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<!-- ===== SCROLL TO TOP BUTTON ===== -->
+<button onclick="scrollToTop()" id="scrollTopBtn" 
+    class="fixed bottom-8 right-6 w-12 h-12 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 transform hover:-translate-y-1 hidden items-center justify-center z-50">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+    </svg>
+</button>
 {% endblock %}
 
 {% block extra_js %}
@@ -365,20 +675,19 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Get data from Django context
+    // ===== GET DATA FROM DJANGO CONTEXT =====
     const subjectLabels = {{ subject_labels_json|safe }};
     const subjectScores = {{ subject_scores_json|safe }};
     const attempts = {{ attempts_json|safe }};
     
-    // Function to get bar colour based on score
+    // ===== BAR CHART (Subject Mastery) =====
     function getBarColor(value) {
-        if (value < 33) return '#ef4444';      // red for below 33%
-        if (value < 50) return '#f59e0b';      // yellow/orange for 33-49%
-        if (value < 75) return '#8b5cf6';      // violet for 50-75%
-        return '#10b981';                       // green for above 75%
+        if (value < 33) return '#ef4444';
+        if (value < 50) return '#f59e0b';
+        if (value < 75) return '#8b5cf6';
+        return '#10b981';
     }
 
-    // ---------- BAR CHART (Subject Mastery) ----------
     const subjectCtx = document.getElementById('subjectChart')?.getContext('2d');
     if (subjectCtx && subjectLabels && subjectLabels.length > 0) {
         const barColors = subjectScores.map(score => getBarColor(score));
@@ -391,8 +700,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     label: 'Average Score (%)',
                     data: subjectScores,
                     backgroundColor: barColors,
-                    borderWidth: 1,
-                    borderRadius: 4,
+                    borderWidth: 0,
+                    borderRadius: 6,
                 }]
             },
             options: {
@@ -402,22 +711,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     y: {
                         beginAtZero: true,
                         max: 100,
-                        title: { 
-                            display: true, 
-                            text: 'Score (%)' 
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
+                        title: { display: true, text: 'Score (%)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
                     },
                     x: {
-                        grid: {
-
-                            display: false,
-
-                            display: false
-
-                        }
+                        grid: { display: false }
                     }
                 },
                 plugins: {
@@ -432,10 +730,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ---------- LINE CHART (Score Trend) ----------
+    // ===== LINE CHART (Score Trend) =====
     const trendCtx = document.getElementById('trendChart')?.getContext('2d');
     if (trendCtx && attempts && attempts.length > 0) {
-        // Extract data for chart
         const labels = attempts.map(a => a.date);
         const scores = attempts.map(a => a.score);
         const testNames = attempts.map(a => a.test_name);
@@ -449,10 +746,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     data: scores,
                     borderColor: '#4f46e5',
                     backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                    tension: 0.2,
+                    tension: 0.3,
                     pointBackgroundColor: '#4f46e5',
                     pointBorderColor: 'white',
-                    pointRadius: 6,
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
                     pointHoverRadius: 8,
                     fill: true,
                 }]
@@ -464,22 +762,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     y: {
                         beginAtZero: true,
                         max: 100,
-                        title: { 
-                            display: true, 
-                            text: 'Score (%)' 
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
+                        title: { display: true, text: 'Score (%)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
                     },
                     x: {
-                        title: { 
-                            display: true, 
-                            text: 'Test Date' 
-                        },
-                        grid: {
-                            display: false
-                        }
+                        title: { display: true, text: 'Test Date' },
+                        grid: { display: false }
                     }
                 },
                 plugins: {
@@ -495,25 +783,49 @@ document.addEventListener('DOMContentLoaded', function () {
                                 return [`Date: ${attempt.date}`, `Score: ${attempt.score}%`];
                             }
                         }
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top',
                     }
                 }
             }
         });
     }
+
+    // ===== HAMBURGER NAVIGATION =====
+    const hamburgerItems = document.querySelectorAll('.hamburger-item');
+    hamburgerItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            hamburgerItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                const offset = 80;
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - offset;
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            }
+        });
+    });
+
+    // ===== SCROLL TO TOP BUTTON =====
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+    window.addEventListener('scroll', function () {
+        const show = window.scrollY > 400;
+        scrollTopBtn.classList.toggle('hidden', !show);
+        scrollTopBtn.classList.toggle('flex', show);
+    });
+
+    window.scrollToTop = function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 });
 </script>
 
-<!-- Add a little CSS for better chart appearance -->
 <style>
     canvas {
         max-width: 100%;
         height: auto !important;
     }
 </style>
-
 {% endblock %}
-
