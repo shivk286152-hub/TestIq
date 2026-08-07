@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path
 from . import views
 
@@ -49,4 +51,17 @@ urlpatterns = [
     
     path('advanced-analytics/', views.advanced_analytics, name='advanced_analytics'),
     path('test-content/<int:test_id>/', views.get_test_content, name='get_test_content'),
+
+     # ... existing URLs ...
+    path('leaderboard/', views.leaderboard, name='leaderboard'),
+    path('leaderboard/<str:filter_type>/', views.leaderboard, name='leaderboard_filtered'),
+    path('dashboard/all-attempts/', views.all_attempts, name='all_attempts'),
+#     path('leaderboard/subject/<int:subject_id>/', views.subject_leaderboard, name='subject_leaderboard'),
+#     path('leaderboard/mocktest/<int:mocktest_id>/', views.mocktest_leaderboard, name='mocktest_leaderboard'),
+#     # path('leaderboard/api/data/', views.leaderboard_api, name='leaderboard_api'),
+
 ]
+
+# 👇 Yeh line sabse neeche add karein
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

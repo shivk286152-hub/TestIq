@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ part.name }} - Questions</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        /* ===== HEADER - CLEAN & PROFESSIONAL ===== */
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .header .logo-text {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: -0.5px;
+        }
+        
+        .header .logo-text span {
+            color: #4f46e5;
+        }
+        
+        .header .divider {
+            width: 60px;
+            height: 3px;
+            background: #4f46e5;
+            margin: 8px auto 10px auto;
+            border-radius: 2px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0;
+        }
+        
+        .header .subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        
+        .header .meta {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #9ca3af;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .header .meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        /* ===== QUESTION BLOCK ===== */
+        .question-block {
+            margin-bottom: 25px;
+            padding: 16px 18px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #fafafa;
+            page-break-inside: avoid;
+        }
+        
+        .question-block .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+        
+        .question-block .q-number {
+            font-weight: 700;
+            color: #4f46e5;
+            font-size: 14px;
+        }
+        
+        .question-block .difficulty {
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .difficulty.easy { background: #d1fae5; color: #065f46; }
+        .difficulty.medium { background: #fef3c7; color: #92400e; }
+        .difficulty.hard { background: #fecaca; color: #991b1b; }
+        .difficulty.expert { background: #fce4ec; color: #880e4f; }
+        
+        .question-block .q-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            margin: 10px 0;
+            line-height: 1.7;
+        }
+        
+        .question-block .q-text-hi {
+            color: #6b7280;
+            font-size: 13px;
+            font-style: italic;
+            margin: 6px 0 8px 0;
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 6px;
+        }
+        
+        .question-block .answer {
+            background: #f8fafc;
+            padding: 12px 16px;
+            border-left: 4px solid #4f46e5;
+            border-radius: 0 6px 6px 0;
+            margin-top: 10px;
+        }
+        
+        .question-block .answer-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #4f46e5;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .question-block .answer-content {
+            margin-top: 4px;
+            color: #1e293b;
+        }
+        
+        .question-block .answer-hi {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed #d1d5db;
+            color: #6b7280;
+            font-size: 12px;
+            font-style: italic;
+        }
+        
+        /* ===== IMAGES ===== */
+        .question-block .images {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .question-block .images img {
+            max-width: 45%;
+            height: auto;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .question-block .images .caption {
+            font-size: 10px;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 2px;
+        }
+        
+        /* ===== TABLES ===== */
+        .question-block .table-wrap {
+            margin-top: 12px;
+            overflow-x: auto;
+        }
+        
+        .question-block table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .question-block table th {
+            background: #f1f5f9;
+            font-weight: 700;
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            text-align: left;
+        }
+        
+        .question-block table td {
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+        }
+        
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 0;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        
+        /* ===== FOOTER ===== */
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+        
+        .footer .footer-divider {
+            width: 40px;
+            height: 2px;
+            background: #d1d5db;
+            margin: 0 auto 8px auto;
+            border-radius: 2px;
+        }
+        
+        /* ===== PAGE BREAK ===== */
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HEADER - IMPROVED ===== -->
+<div class="header">
+    <div class="logo-text">{{ site_name|default:"QA Platform" }} <span>•</span> Study Material</div>
+    <div class="divider"></div>
+    <h1>{{ part.name }}</h1>
+    <div class="subtitle">{{ topic.name }} • {{ subject.name }}</div>
+    <div class="meta">
+        <span>📝 {{ total_questions }} Questions</span>
+        <span>📅 {% now "d M Y" %}</span>
+        <span>⏰ {% now "h:i A" %}</span>
+    </div>
+</div>
+
+<!-- ===== QUESTIONS ===== -->
+{% for question in questions %}
+<div class="question-block">
+    <div class="q-header">
+        <span class="q-number">Q{{ forloop.counter }}</span>
+        <span class="difficulty {{ question.difficulty }}">
+            {{ question.get_difficulty_display }}
+        </span>
+    </div>
+    
+    <div class="q-text">{{ question.question }}</div>
+    
+    {% if question.question_hi %}
+    <div class="q-text-hi">{{ question.question_hi }}</div>
+    {% endif %}
+    
+    <div class="answer">
+        <div class="answer-label">💡 Answer</div>
+        <div class="answer-content">{{ question.answer|safe }}</div>
+        {% if question.answer_hi %}
+        <div class="answer-hi">{{ question.answer_hi|safe }}</div>
+        {% endif %}
+    </div>
+    
+    {% if question.images.all %}
+    <div class="images">
+        {% for image in question.images.all %}
+        <div>
+            <img src="{{ image.image.url }}" alt="{{ image.caption }}">
+            {% if image.caption %}
+            <div class="caption">{{ image.caption }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if question.tables.all %}
+    <div class="table-wrap">
+        {% for table in question.tables.all %}
+        {{ table.table_data|safe }}
+        {% if table.caption %}
+        <div style="font-size: 10px; color: #9ca3af; text-align: center; margin-top: 4px;">{{ table.caption }}</div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% empty %}
+<div class="empty-state">
+    No questions available for this part.
+</div>
+{% endfor %}
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+    <div class="footer-divider"></div>
+    <p>Generated from {{ site_name|default:"QA Platform" }} • {{ part.name }} - All Questions</p>
+    <p style="margin-top: 2px;">© {% now "Y" %} {{ site_name|default:"QA Platform" }}. All Rights Reserved.</p>
+</div>
+
+</body>
+</html>

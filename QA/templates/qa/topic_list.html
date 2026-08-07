@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ subject.name }} | QA Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== CONTENT SECTION STYLES - SUPER COMPACT ===== */
+    .content-section-wrapper {
+        animation: fadeInUp 0.6s ease-out forwards;
+        opacity: 0;
+        padding: 1.25rem !important;
+    }
+    
+    .content-section-wrapper h1,
+    .content-section-wrapper h2,
+    .content-section-wrapper h3,
+    .content-section-wrapper h4 {
+        font-weight: 700;
+        line-height: 1.3;
+        margin-top: 0.75rem;
+        margin-bottom: 0.5rem;
+        color: #1e293b;
+    }
+    
+    .content-section-wrapper h1 {
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-top: 0;
+        padding-bottom: 0.25rem;
+        border-bottom: 2px solid #e5e7eb;
+        display: inline-block;
+    }
+    
+    .content-section-wrapper h2 {
+        font-size: 1.3rem;
+        color: #1e293b;
+        position: relative;
+        padding-left: 0.75rem;
+    }
+    
+    .content-section-wrapper h2::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 3px;
+        background: linear-gradient(180deg, #6366f1, #a855f7);
+        border-radius: 4px;
+    }
+    
+    .content-section-wrapper h3 {
+        font-size: 1.1rem;
+        color: #334155;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .content-section-wrapper h3::before {
+        content: '▸';
+        color: #6366f1;
+        font-weight: 400;
+    }
+    
+    .content-section-wrapper h4 {
+        font-size: 1rem;
+        color: #475569;
+        font-weight: 600;
+    }
+    
+    .content-section-wrapper p {
+        color: #475569;
+        line-height: 1.6;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .content-section-wrapper p:first-of-type {
+        font-size: 1rem;
+        color: #334155;
+        font-weight: 500;
+    }
+
+    .content-section-wrapper ul,
+    .content-section-wrapper ol {
+        padding-left: 1.25rem;
+        margin: 0.5rem 0 0.75rem 0;
+        color: #475569;
+        line-height: 1.6;
+    }
+    
+    .content-section-wrapper ul {
+        list-style: none;
+    }
+    
+    .content-section-wrapper ul li {
+        position: relative;
+        padding-left: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .content-section-wrapper ul li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0.5rem;
+        width: 6px;
+        height: 6px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    
+    .content-section-wrapper ol {
+        counter-reset: item;
+        list-style: none;
+    }
+    
+    .content-section-wrapper ol li {
+        counter-increment: item;
+        position: relative;
+        padding-left: 2rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .content-section-wrapper ol li::before {
+        content: counter(item);
+        position: absolute;
+        left: 0;
+        top: 0.1rem;
+        width: 1.4rem;
+        height: 1.4rem;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: white;
+        font-weight: 700;
+        font-size: 0.65rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .content-section-wrapper img {
+        border-radius: 12px;
+        max-width: 100%;
+        height: auto;
+        margin: 0.75rem 0;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid #f1f5f9;
+    }
+
+    .content-section-wrapper .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0.75rem 0;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        border: 1px solid #f1f5f9;
+    }
+    
+    .content-section-wrapper table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+        min-width: 400px;
+    }
+    
+    .content-section-wrapper th {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        font-weight: 600;
+        padding: 0.5rem 0.75rem;
+        border-bottom: 2px solid #e2e8f0;
+        text-align: left;
+        color: #1e293b;
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+    }
+    
+    .content-section-wrapper td {
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #475569;
+    }
+    
+    .content-section-wrapper tr:hover td {
+        background: #f8fafc;
+    }
+    
+    .content-section-wrapper tr:last-child td {
+        border-bottom: none;
+    }
+
+    .content-section-wrapper blockquote {
+        border-left: 3px solid #6366f1;
+        padding: 0.5rem 1rem;
+        margin: 0.75rem 0;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-radius: 0 8px 8px 0;
+        color: #334155;
+        font-style: italic;
+        font-size: 0.9rem;
+        position: relative;
+    }
+    
+    .content-section-wrapper blockquote::before {
+        content: '"';
+        position: absolute;
+        top: -0.25rem;
+        left: 0.5rem;
+        font-size: 2rem;
+        color: #6366f1;
+        opacity: 0.2;
+        font-family: Georgia, serif;
+    }
+
+    .content-section-wrapper .highlighted {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        border: 1px solid #f59e0b;
+        margin: 0.75rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .content-section-wrapper .info-box {
+        background: linear-gradient(135deg, #e0e7ff, #ede9fe);
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        border-left: 3px solid #6366f1;
+        margin: 0.75rem 0;
+    }
+    
+    .content-section-wrapper .warning-box {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        border-left: 3px solid #f59e0b;
+        margin: 0.75rem 0;
+    }
+    
+    .content-section-wrapper .success-box {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        border-left: 3px solid #10b981;
+        margin: 0.75rem 0;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+        opacity: 0;
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* ===== SUPER COMPACT SECTIONS ===== */
+    .content-sections-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .content-sections-container .content-section-wrapper {
+        margin-bottom: 0;
+    }
+    
+    .section-divider {
+        margin: 0.25rem 0;
+        padding: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+        position: relative;
+    }
+    
+    .section-divider .divider-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #f8fafc;
+        padding: 0 0.5rem;
+        color: #c4b5fd;
+        font-size: 0.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 767px) {
+        .content-section-wrapper { padding: 1rem !important; }
+        .content-section-wrapper h1 { font-size: 1.25rem; }
+        .content-section-wrapper h2 { font-size: 1.1rem; padding-left: 0.5rem; }
+        .content-section-wrapper h3 { font-size: 1rem; }
+        .content-section-wrapper p { font-size: 0.85rem; }
+        .content-sections-container { gap: 0.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb - Compact -->
+        <nav class="text-sm text-gray-500 mb-4 bg-white/80 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm">
+            <a href="{% url 'qa:subject_list' %}" class="hover:text-indigo-600 transition-colors">
+                <i class="fa-solid fa-book-open mr-1"></i> Subjects
+            </a>
+            <span class="mx-2 text-gray-300">/</span>
+            <span class="text-gray-700 font-medium">{{ subject.name }}</span>
+        </nav>
+
+        <!-- Subject Header - Compact -->
+        <div class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+            <div class="flex items-start gap-3">
+                {% if subject.icon %}
+                <div class="text-2xl text-indigo-600 bg-indigo-50 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid {{ subject.icon }}"></i>
+                </div>
+                {% endif %}
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        {{ subject.name }}
+                    </h1>
+                    {% if subject.description %}
+                    <p class="text-gray-600 text-sm mt-1">{{ subject.description }}</p>
+                    {% endif %}
+                    <div class="mt-2 flex items-center gap-3 text-xs text-gray-500">
+                        <span class="flex items-center gap-1">
+                            <i class="fa-solid fa-layer-group text-indigo-500"></i>
+                            {{ topics|length }} Topics
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <i class="fa-regular fa-clock text-green-500"></i>
+                            {{ subject.updated_at|date:"M d, Y" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Topics Section - Compact -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-indigo-600"></i>
+                    Topics
+                </h2>
+                <span class="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+                    {{ topics|length }}
+                </span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for topic in topics %}
+                <a href="{% url 'qa:part_list' subject.slug topic.slug %}" 
+                   class="group bg-white rounded-xl shadow hover:shadow-lg p-4 transition-all duration-300 hover:-translate-y-1 border border-gray-100 hover:border-indigo-300 relative overflow-hidden">
+                    <!-- Decorative gradient line -->
+                    <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    
+                    <div class="flex items-start justify-between">
+                        <h3 class="text-base font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
+                            {{ topic.name }}
+                        </h3>
+                        <i class="fa-solid fa-arrow-right text-gray-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all duration-300 text-sm"></i>
+                    </div>
+                    
+                    {% if topic.description %}
+                    <p class="text-gray-500 text-xs mt-1 line-clamp-2">{{ topic.description|truncatechars:60 }}</p>
+                    {% endif %}
+                    
+                    <div class="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-100">
+                        <span class="text-gray-500">
+                            <i class="fa-regular fa-folder-open text-indigo-400"></i> {{ topic.parts_count }}
+                        </span>
+                        <span class="text-indigo-600 font-medium text-xs">Explore →</span>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="col-span-full">
+                    <div class="bg-white rounded-xl shadow-lg p-8 text-center border-2 border-dashed border-gray-200">
+                        <i class="fa-regular fa-folder-open text-4xl text-gray-300 mb-2"></i>
+                        <h3 class="text-base font-semibold text-gray-600 mb-1">No Topics Available</h3>
+                        <p class="text-gray-500 text-sm">Topics for this subject will be added soon.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Comprehensive Content - SUPER COMPACT -->
+        {% if comprehensive_content %}
+        <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <!-- Section Header -->
+            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 px-5 py-3 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-file-lines text-indigo-600"></i>
+                    <h2 class="text-base font-bold text-gray-800">Details About This Subject</h2>
+                    <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full ml-auto">
+                        {{ comprehensive_content|length }}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Content Sections - SUPER COMPACT -->
+            <div class="content-sections-container p-3">
+                {% for content in comprehensive_content %}
+                    <div class="content-section-wrapper bg-gray-50/50 rounded-xl hover:bg-white transition-all duration-300 border border-gray-100/50 hover:border-indigo-200 animate-fade-in-up" 
+                         style="animation-delay: {{ forloop.counter|add:"1"|stringformat:"d" }}00ms;">
+                        <!-- Section Number Badge - Mini -->
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg text-white font-bold text-xs shadow-lg shadow-indigo-500/20 flex-shrink-0">
+                                {{ forloop.counter }}
+                            </div>
+                            <div class="flex-1 h-px bg-gradient-to-r from-indigo-200 to-transparent"></div>
+                            {% if content.heading_hi %}
+                            <span class="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                                <i class="fa-regular fa-language mr-0.5"></i> हिंदी
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Heading - Small -->
+                        <h3 class="text-base font-bold text-gray-800 mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-book-open text-indigo-500 text-xs"></i>
+                            {{ content.heading }}
+                        </h3>
+                        
+                        {% if content.heading_hi %}
+                        <p class="text-[10px] text-gray-400 mb-2 border-l-2 border-indigo-200 pl-2">
+                            {{ content.heading_hi }}
+                        </p>
+                        {% endif %}
+                        
+                        <!-- Content -->
+                        <div class="numbered-content text-gray-700 leading-relaxed text-sm">
+                            {{ content.content|safe }}
+                        </div>
+                        
+                        <!-- Hindi Content -->
+                        {% if content.content_hi %}
+                        <div class="mt-3 pt-2 border-t border-dashed border-indigo-100">
+                            <span class="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                                <i class="fa-regular fa-language mr-0.5"></i> हिंदी
+                            </span>
+                            <div class="numbered-content text-gray-600 leading-relaxed text-sm mt-1">
+                                {{ content.content_hi|safe }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Mini Divider -->
+                    {% if not forloop.last %}
+                    <div class="section-divider">
+                        <span class="divider-icon">•</span>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

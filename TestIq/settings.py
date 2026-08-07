@@ -2,10 +2,9 @@ import os
 import dj_database_url
 from pathlib import Path
 
-
 # ----------------------------
 # BASE DIR
-# ----------------------------
+# # ----------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ----------------------------
@@ -37,78 +36,29 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'accounts',
+    'django.contrib.staticfiles', # Must be here
+
+    # Third Party Apps
     'ckeditor',
     'ckeditor_uploader',
     'taggit',
+
+    # Custom Apps
+    'accounts',
     'exams',
     'ExamNotification',
     'User',
-    # 'django_q',
     'CurrentAffairs',
     'subject_mocktests',
-
-   
-   
-  
-   
+    'QA',
 ]
-
-# Django-Q configuration
-# settings.py - Alternative using Django ORM (no Redis needed)
-Q_CLUSTER = {
-    'name': 'TestIQ',
-    'workers': 4,
-    'recycle': 500,
-    'timeout': 60,
-    'compress': True,
-    'save_limit': 250,
-    'queue_limit': 500,
-    'cpu_affinity': 1,
-    'label': 'Django Q',
-    'orm': 'default'  # Use database as broker
-}
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'ERROR',
-    },
-}
-# CKEditor Configuration
-# CKEditor configuration
-CKEDITOR_5_CONFIGS = {
-    'default': {
-        'toolbar': [
-            'heading', '|',
-            'bold', 'italic', 'underline', '|',
-            'link', 'bulletedList', 'numberedList', '|',
-            'insertTable', 'imageUpload', '|',
-            'undo', 'redo'
-        ],
-        'height': 300,
-        'width': '100%',
-    }
-}
-# CKEDITOR SETTINGS (IMPORTANT)
-CKEDITOR_UPLOAD_PATH = "uploads/"
-# To suppress the CKEditor warning (optional)
-import warnings
-warnings.filterwarnings('ignore', message='django-ckeditor bundles CKEditor 4.22.1')
 
 # ----------------------------
 # MIDDLEWARE
 # ----------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Must be right after SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -117,12 +67,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 # ----------------------------
-# URLS
+# URLS & WSGI
 # ----------------------------
 ROOT_URLCONF = 'TestIq.urls'
+WSGI_APPLICATION = 'TestIq.wsgi.application'
 
 # ----------------------------
 # TEMPLATES
@@ -145,23 +94,16 @@ TEMPLATES = [
                 'exams.context_processors.site_settings',
                 'exams.context_processors.latest_mocktests',
                 'exams.context_processors.subject_mocktests_subjects',
-                 # Add this line
-                
             ],
         },
     },
 ]
 
 # ----------------------------
-# WSGI
-# ----------------------------
-WSGI_APPLICATION = 'TestIq.wsgi.application'
-
-# ----------------------------
-# DATABASE (Fixed)
+# DATABASE
 # ----------------------------
 if os.environ.get("RENDER") == "TRUE":
-    # Optional: use SQLite on Render temporarily
+    # Use SQLite on Render to avoid PostgreSQL setup complexity
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -175,32 +117,66 @@ else:
             conn_max_age=600
         )
     }
+
 # ----------------------------
-# STATIC FILES
+# STATIC FILES (CRUCIAL FIX)
 # ----------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
+
+# Whitenoise for serving static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ----------------------------
-# MEDIA FILES
+# MEDIA FILES (FOR USER UPLOADS)
 # ----------------------------
-MEDIA_URL = "/media/"
-# MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ----------------------------
-# LOGIN
+# CKEDITOR CONFIGURATION
+# ----------------------------
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', '|',
+            'link', 'bulletedList', 'numberedList', '|',
+            'insertTable', 'imageUpload', '|',
+            'undo', 'redo'
+        ],
+        'height': 300,
+        'width': '100%',
+    }
+}
+
+# ----------------------------
+# LOGIN / LOGOUT SETTINGS
 # ----------------------------
 LOGIN_REDIRECT_URL = "home"
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'home'
 
+# ----------------------------
+# SECURITY SETTINGS
+# ----------------------------
+CSRF_TRUSTED_ORIGINS = [
+    "https://testiq-3.onrender.com"
+]
+
+# Only enable these in production (when DEBUG is False)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 FILE_UPLOAD_PERMISSIONS = 0o644
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
-
 
 # ----------------------------
 # DEFAULT AUTO FIELD
@@ -208,11 +184,18 @@ FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ----------------------------
-# SESSION COOKIE SECURE
+# LOGGING
 # ----------------------------
-CSRF_TRUSTED_ORIGINS = [
-    "https://testiq-3.onrender.com"
-]
-
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'ERROR',
+    },
+}

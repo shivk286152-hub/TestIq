@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ topic.name }} - Complete Study Material</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .header .logo-text {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: -0.5px;
+        }
+        
+        .header .logo-text span {
+            color: #4f46e5;
+        }
+        
+        .header .divider {
+            width: 60px;
+            height: 3px;
+            background: #4f46e5;
+            margin: 8px auto 10px auto;
+            border-radius: 2px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0;
+        }
+        
+        .header .subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        
+        .header .meta {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #9ca3af;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        /* ===== PART SECTION ===== */
+        .part-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #fafafa;
+            page-break-inside: avoid;
+        }
+        
+        .part-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4f46e5;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        
+        /* ===== QUESTION BLOCK ===== */
+        .question-block {
+            margin-bottom: 15px;
+            padding: 14px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background: white;
+            page-break-inside: avoid;
+        }
+        
+        .question-block .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+        
+        .question-block .q-number {
+            font-weight: 700;
+            color: #4f46e5;
+            font-size: 13px;
+        }
+        
+        .question-block .difficulty {
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .difficulty.easy { background: #d1fae5; color: #065f46; }
+        .difficulty.medium { background: #fef3c7; color: #92400e; }
+        .difficulty.hard { background: #fecaca; color: #991b1b; }
+        .difficulty.expert { background: #fce4ec; color: #880e4f; }
+        
+        .question-block .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1e293b;
+            margin: 8px 0;
+            line-height: 1.7;
+        }
+        
+        .question-block .q-text-hi {
+            color: #6b7280;
+            font-size: 12px;
+            font-style: italic;
+            margin: 4px 0 6px 0;
+            padding: 6px 10px;
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
+        
+        .question-block .answer {
+            background: #f8fafc;
+            padding: 10px 14px;
+            border-left: 4px solid #4f46e5;
+            border-radius: 0 6px 6px 0;
+            margin-top: 8px;
+        }
+        
+        .question-block .answer-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #4f46e5;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .question-block .answer-content {
+            margin-top: 3px;
+        }
+        
+        .question-block .answer-hi {
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px dashed #d1d5db;
+            color: #6b7280;
+            font-size: 12px;
+            font-style: italic;
+        }
+        
+        /* ===== FOOTER ===== */
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+        
+        .footer .footer-divider {
+            width: 40px;
+            height: 2px;
+            background: #d1d5db;
+            margin: 0 auto 8px auto;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+    <div class="logo-text">{{ site_name|default:"QA Platform" }} <span>•</span> Study Material</div>
+    <div class="divider"></div>
+    <h1>{{ topic.name }}</h1>
+    <div class="subtitle">{{ subject.name }}</div>
+    <div class="meta">
+        <span>📚 {{ total_parts }} Parts</span>
+        <span>📝 {{ total_questions }} Questions</span>
+        <span>📅 {% now "d M Y" %}</span>
+    </div>
+</div>
+
+<!-- ===== PARTS ===== -->
+{% for part_data in parts %}
+<div class="part-section">
+    <div class="part-title">{{ forloop.counter }}. {{ part_data.part.name }}</div>
+    <p style="color: #6b7280; font-size: 11px; margin-bottom: 12px;">
+        {{ part_data.count }} Questions
+    </p>
+    
+    {% for question in part_data.questions %}
+    <div class="question-block">
+        <div class="q-header">
+            <span class="q-number">Q{{ forloop.parentloop.counter }}.{{ forloop.counter }}</span>
+            <span class="difficulty {{ question.difficulty }}">
+                {{ question.get_difficulty_display }}
+            </span>
+        </div>
+        
+        <div class="q-text">{{ question.question }}</div>
+        
+        {% if question.question_hi %}
+        <div class="q-text-hi">{{ question.question_hi }}</div>
+        {% endif %}
+        
+        <div class="answer">
+            <div class="answer-label">💡 Answer</div>
+            <div class="answer-content">{{ question.answer|safe }}</div>
+            {% if question.answer_hi %}
+            <div class="answer-hi">{{ question.answer_hi|safe }}</div>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p style="color: #9ca3af; text-align: center; padding: 20px;">No questions in this part.</p>
+    {% endfor %}
+</div>
+{% empty %}
+<p style="text-align: center; color: #9ca3af; padding: 40px;">No parts available.</p>
+{% endfor %}
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+    <div class="footer-divider"></div>
+    <p>Generated from {{ site_name|default:"QA Platform" }} • {{ topic.name }} - Complete Study Material</p>
+    <p style="margin-top: 2px;">© {% now "Y" %} {{ site_name|default:"QA Platform" }}. All Rights Reserved.</p>
+</div>
+
+</body>
+</html>

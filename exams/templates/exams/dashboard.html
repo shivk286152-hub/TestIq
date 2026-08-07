@@ -147,6 +147,15 @@
         box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4);
     }
 
+    /* ===== VIEW ALL BUTTON ===== */
+    .view-all-btn {
+        transition: all 0.3s ease;
+    }
+    .view-all-btn:hover {
+        transform: translateX(4px);
+        color: #4f46e5;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
         .hamburger-section .grid {
@@ -171,6 +180,16 @@
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.8);
     }
+
+    /* ===== TEST COUNT BADGE ===== */
+    .test-count-badge {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+        padding: 2px 12px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
 </style>
 {% endblock %}
 
@@ -182,13 +201,13 @@
         <div class="relative z-10">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 class="text-xl font-bold text-color-slate-900 flex items-center gap-2">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
                         <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
                         Quick Navigation
                     </h2>
-                    <p class="text-zinc-800 text-sm">Jump to any section instantly</p>
+                    <p class="text-indigo-300 text-sm">Jump to any section instantly</p>
                 </div>
                 <span class="text-xs text-indigo-400 bg-white/10 px-3 py-1 rounded-full">7 options</span>
             </div>
@@ -482,13 +501,25 @@
         <div class="lg:col-span-2">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                    <h2 class="font-semibold text-gray-800 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <div class="flex items-center gap-3">
+                        <h2 class="font-semibold text-gray-800 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Recent Test Attempts
+                        </h2>
+                        <span class="test-count-badge">{{ attempts|length }} total</span>
+                    </div>
+                    
+                    <!-- ===== VIEW ALL BUTTON ===== -->
+                    {% if attempts|length > 5 %}
+                    <a href="{% url 'exams:all_attempts' %}" class="view-all-btn inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                        View All
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
-                        Recent Test Attempts
-                    </h2>
-                    <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{{ attempts|length }} total</span>
+                    </a>
+                    {% endif %}
                 </div>
 
                 {% if attempts %}
@@ -541,6 +572,19 @@
                     </div>
                     {% endfor %}
                 </div>
+                
+                <!-- ===== VIEW ALL FOOTER ===== -->
+                {% if attempts|length > 5 %}
+                <div class="px-6 py-3 bg-gray-50/50 border-t border-gray-100 text-center">
+                    <a href="{% url 'exams:all_attempts' %}" class="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">
+                        View All {{ attempts|length }} Test Attempts
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                        </svg>
+                    </a>
+                </div>
+                {% endif %}
+                
                 {% else %}
                 <div class="p-12 text-center">
                     <div class="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -572,7 +616,7 @@
                     Quick Actions
                 </h2>
                 <div class="space-y-3">
-                    <a href="{% url 'exams:home' %}" class="quick-action-card flex items-center p-3 bg-gradient-to-r from-indigo-50 to-indigo-100/50 text-indigo-700 rounded-xl hover:from-indigo-100 hover:to-indigo-200 transition-all group">
+                    <a href="{% url 'exams:subcategory_detail' subcategory_id=1 %}" class="quick-action-card flex items-center p-3 bg-gradient-to-r from-indigo-50 to-indigo-100/50 text-indigo-700 rounded-xl hover:from-indigo-100 hover:to-indigo-200 transition-all group">
                         <div class="w-10 h-10 bg-indigo-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
                             <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -587,7 +631,7 @@
                         </svg>
                     </a>
                     
-                    <a href="#" class="quick-action-card flex items-center p-3 bg-gradient-to-r from-purple-50 to-purple-100/50 text-purple-700 rounded-xl hover:from-purple-100 hover:to-purple-200 transition-all group">
+                    <a href="{% url 'qa:subject_list' %}" class="quick-action-card flex items-center p-3 bg-gradient-to-r from-purple-50 to-purple-100/50 text-purple-700 rounded-xl hover:from-purple-100 hover:to-purple-200 transition-all group">
                         <div class="w-10 h-10 bg-purple-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
                             <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
@@ -602,7 +646,7 @@
                         </svg>
                     </a>
                     
-                    <a href="#" class="quick-action-card flex items-center p-3 bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 rounded-xl hover:from-emerald-100 hover:to-emerald-200 transition-all group">
+                    <a href="{% url 'exams:leaderboard' %}" class="quick-action-card flex items-center p-3 bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 rounded-xl hover:from-emerald-100 hover:to-emerald-200 transition-all group">
                         <div class="w-10 h-10 bg-emerald-200 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
                             <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H5a2 2 0 01-2-2V7a2 2 0 012-2h11.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>

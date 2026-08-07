@@ -4,13 +4,89 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Breadcrumb -->
-    <nav class="flex mb-8 text-sm text-gray-500">
-        <a href="{% url 'exams:dashboard' %}" class="hover:text-indigo-600 transition">Dashboard</a>
-        <span class="mx-2">/</span>
-        <a href="{% url 'exams:subcategory_detail' attempt.mock_test.subcategory.id %}"
-            class="hover:text-indigo-600 transition">{{ attempt.mock_test.subcategory.name }}</a>
-        <span class="mx-2">/</span>
-        <span class="text-gray-900 font-medium">Results</span>
+    <nav class="mb-8" aria-label="Breadcrumb">
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-sm p-3">
+            <ol class="flex flex-wrap items-center gap-2">
+                <!-- Dashboard -->
+                <li>
+                    <a href="{% url 'exams:dashboard' %}"
+                        class="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-indigo-50 transition-all duration-300 group">
+                        <svg class="w-4 h-4 text-gray-500 group-hover:text-indigo-600 transition-colors" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span
+                            class="text-sm font-medium text-gray-600 group-hover:text-indigo-600 transition-colors">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Separator -->
+                <li>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </li>
+
+                <!-- Subcategory -->
+                <li>
+                    <a href="{% url 'exams:subcategory_detail' attempt.mock_test.subcategory.id %}"
+                        class="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-indigo-50 transition-all duration-300 group">
+                        <svg class="w-4 h-4 text-gray-500 group-hover:text-indigo-600 transition-colors" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                        </svg>
+                        <span
+                            class="text-sm font-medium text-gray-600 group-hover:text-indigo-600 transition-colors max-w-[120px] truncate">
+                            {{ attempt.mock_test.subcategory.name }}
+                        </span>
+                    </a>
+                </li>
+
+                <!-- Separator -->
+                <li>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </li>
+
+                <!-- Results (Current Page) -->
+                <li>
+                    <div
+                        class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-xl border border-indigo-200">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span
+                            class="text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                            Results
+                        </span>
+                        {% if attempt.score %}
+                        <span
+                            class="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-2 py-0.5 rounded-full ml-1">
+                            {{ attempt.score }}%
+                        </span>
+                        {% endif %}
+                    </div>
+                </li>
+
+                <!-- Optional: Add attempt date on the right -->
+                {% if attempt.completed_at %}
+                <li class="ml-auto hidden sm:block">
+                    <span
+                        class="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {{ attempt.completed_at|date:"M d, Y" }}
+                    </span>
+                </li>
+                {% endif %}
+            </ol>
+        </div>
     </nav>
 
     <!-- ===== COMPLETE SCORECARD TOGGLE BUTTON ===== -->
@@ -19,24 +95,25 @@
             <h1 class="text-2xl md:text-3xl font-bold text-gray-800">{{ attempt.mock_test.title }}</h1>
             <p class="text-sm text-gray-500">Completed on {{ attempt.submitted_at|date:"d M Y, h:i A" }}</p>
         </div>
-        <button onclick="toggleScorecard()" 
-                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition transform hover:-translate-y-0.5">
+        <button onclick="toggleScorecard()"
+            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition transform hover:-translate-y-0.5">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span id="scorecardBtnText">📊 View Complete Scorecard</span>
         </button>
     </div>
 
-    <!-- ===== COMPLETE SCORECARD SECTION (Hidden by default) ===== -->
+    <!-- ===== COMPLETE SCORECARD SECTION ===== -->
     <div id="scorecardContainer" class="hidden mb-8 transition-all duration-500">
         <div class="relative">
-            <!-- Background Blur Effect -->
-            <div class="absolute inset-0 bg-gradient-to-r from-indigo-100/50 via-purple-100/50 to-pink-100/50 blur-xl -z-10"></div>
-            
-            <!-- Main Scorecard Card -->
+            <div
+                class="absolute inset-0 bg-gradient-to-r from-indigo-100/50 via-purple-100/50 to-pink-100/50 blur-xl -z-10">
+            </div>
+
             <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
-                <!-- Scorecard Header with Gradient -->
+                <!-- Scorecard Header -->
                 <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-6 md:px-8 py-6">
                     <div class="flex items-center justify-between">
                         <div>
@@ -44,12 +121,14 @@
                             <p class="text-indigo-100 text-sm mt-1">{{ attempt.mock_test.title }}</p>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <span class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white font-medium">
+                            <span
+                                class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white font-medium">
                                 {{ attempt.submitted_at|date:"d M Y" }}
                             </span>
                             <button onclick="toggleScorecard()" class="text-white/80 hover:text-white transition">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
@@ -58,141 +137,146 @@
 
                 <!-- Scorecard Body -->
                 <div class="p-6 md:p-8">
-                    <!-- Student Profile Section -->
-                    <div class="flex flex-col md:flex-row items-center md:items-start gap-6 mb-8 pb-8 border-b border-gray-200">
-                        <!-- Profile Image -->
+                    <!-- Student Profile -->
+                    <div
+                        class="flex flex-col md:flex-row items-center md:items-start gap-6 mb-8 pb-8 border-b border-gray-200">
                         <div class="flex-shrink-0">
                             {% if attempt.user.profile_picture %}
-                            <img src="{{ attempt.user.profile_picture.url }}" 
-                                 alt="{{ attempt.user.get_full_name|default:attempt.user.username }}"
-                                 class="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-indigo-100 shadow-lg">
+                            <img src="{{ attempt.user.profile_picture.url }}"
+                                alt="{{ attempt.user.get_full_name|default:attempt.user.username }}"
+                                class="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-indigo-100 shadow-lg">
                             {% else %}
-                            <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-3xl font-bold shadow-lg border-4 border-indigo-100">
+                            <div
+                                class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-3xl font-bold shadow-lg border-4 border-indigo-100">
                                 {{ attempt.user.username|first|upper }}
                             </div>
                             {% endif %}
                         </div>
 
-                        <!-- Student Info -->
                         <div class="flex-1 text-center md:text-left">
                             <h3 class="text-2xl font-bold text-gray-800">
                                 {{ attempt.user.get_full_name|default:attempt.user.username }}
                             </h3>
                             <p class="text-gray-500 text-sm">@{{ attempt.user.username }}</p>
-                            
+
                             <div class="flex flex-wrap gap-4 mt-3 justify-center md:justify-start">
                                 <div class="flex items-center gap-2 text-sm text-gray-600">
-                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                     <span>{{ attempt.user.email }}</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-sm text-gray-600">
-                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <span>Attempted: {{ attempt.submitted_at|date:"d M Y, h:i A" }}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Score Badge -->
                         <div class="flex-shrink-0 text-center">
-                            <div class="inline-block bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl px-6 py-3">
+                            <div
+                                class="inline-block bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl px-6 py-3">
                                 <p class="text-xs text-gray-500 font-medium">FINAL SCORE</p>
                                 <p class="text-3xl font-bold 
                                     {% if percentage_with_negative >= 60 %}text-green-600
                                     {% elif percentage_with_negative >= 45 %}text-amber-600
                                     {% else %}text-red-600{% endif %}">
-                                    {{ percentage_with_negative }}%
+                                    {{ percentage_with_negative|default:"0" }}%
                                 </p>
-                                <p class="text-xs text-gray-400">{{ score_with_negative|floatformat:1 }} / {{ total_possible|floatformat:0 }}</p>
+                                <p class="text-xs text-gray-400">{{ score_with_negative|default:"0"|floatformat:1 }} / {{
+                                    total_possible|default:"0"|floatformat:0 }}</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Stats Grid - Scorecard Style -->
+                    <!-- Stats Grid -->
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-                        <!-- Total Questions -->
                         <div class="bg-gray-50 rounded-xl p-4 text-center hover:shadow-md transition">
                             <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Total</p>
-                            <p class="text-2xl font-bold text-gray-800">{{ total_questions }}</p>
+                            <p class="text-2xl font-bold text-gray-800">{{ total_questions|default:"0" }}</p>
                             <p class="text-xs text-gray-400 mt-1">Questions</p>
                         </div>
 
-                        <!-- Attempted -->
                         <div class="bg-blue-50 rounded-xl p-4 text-center hover:shadow-md transition">
                             <p class="text-xs text-blue-600 font-medium uppercase tracking-wider">Attempted</p>
-                            <p class="text-2xl font-bold text-blue-600">{{ correct|add:wrong }}</p>
-                            <p class="text-xs text-blue-400 mt-1">{{ correct|add:wrong|add:0 }} / {{ total_questions }}</p>
+                            <p class="text-2xl font-bold text-blue-600">{{ correct|add:wrong|default:"0" }}</p>
+                            <p class="text-xs text-blue-400 mt-1">{{ correct|add:wrong|default:"0" }} / {{
+                                total_questions|default:"0" }}</p>
                         </div>
 
-                        <!-- Correct -->
                         <div class="bg-green-50 rounded-xl p-4 text-center hover:shadow-md transition">
                             <p class="text-xs text-green-600 font-medium uppercase tracking-wider">Correct</p>
-                            <p class="text-2xl font-bold text-green-600">{{ correct }}</p>
-                            <p class="text-xs text-green-400 mt-1">+{{ raw_score|floatformat:1 }} marks</p>
+                            <p class="text-2xl font-bold text-green-600">{{ correct|default:"0" }}</p>
+                            <p class="text-xs text-green-400 mt-1">+{{ raw_score|default:"0"|floatformat:1 }} marks</p>
                         </div>
 
-                        <!-- Wrong -->
                         <div class="bg-red-50 rounded-xl p-4 text-center hover:shadow-md transition">
                             <p class="text-xs text-red-600 font-medium uppercase tracking-wider">Wrong</p>
-                            <p class="text-2xl font-bold text-red-600">{{ wrong }}</p>
-                            <p class="text-xs text-red-400 mt-1">-{{ negative_applied|floatformat:1 }} marks</p>
+                            <p class="text-2xl font-bold text-red-600">{{ wrong|default:"0" }}</p>
+                            <p class="text-xs text-red-400 mt-1">-{{ negative_applied|default:"0"|floatformat:1 }} marks</p>
                         </div>
 
-                        <!-- Skipped -->
                         <div class="bg-yellow-50 rounded-xl p-4 text-center hover:shadow-md transition">
                             <p class="text-xs text-yellow-600 font-medium uppercase tracking-wider">Skipped</p>
                             <p class="text-2xl font-bold text-yellow-600">{{ skipped|default:"0" }}</p>
                             <p class="text-xs text-yellow-400 mt-1">Not attempted</p>
                         </div>
 
-                        <!-- Accuracy -->
                         <div class="bg-purple-50 rounded-xl p-4 text-center hover:shadow-md transition">
                             <p class="text-xs text-purple-600 font-medium uppercase tracking-wider">Accuracy</p>
                             <p class="text-2xl font-bold text-purple-600">
                                 {% if correct|add:wrong > 0 %}
-                                    {% widthratio correct correct|add:wrong 100 %}%
+                                {% widthratio correct correct|add:wrong 100 %}%
                                 {% else %}
-                                    0%
+                                0%
                                 {% endif %}
                             </p>
-                            <p class="text-xs text-purple-400 mt-1">{{ correct }}/{{ correct|add:wrong }}</p>
+                            <p class="text-xs text-purple-400 mt-1">{{ correct|default:"0" }}/{{ correct|add:wrong|default:"0" }}</p>
                         </div>
                     </div>
 
                     <!-- Marks Summary -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-100">
+                        <div
+                            class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-100">
                             <p class="text-xs text-green-700 font-medium uppercase tracking-wider">Raw Score</p>
-                            <p class="text-2xl font-bold text-green-700">{{ raw_score|floatformat:1 }}</p>
+                            <p class="text-2xl font-bold text-green-700">{{ raw_score|default:"0"|floatformat:1 }}</p>
                             <p class="text-xs text-green-600 mt-1">Without negative marking</p>
                         </div>
                         <div class="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl p-4 border border-red-100">
                             <p class="text-xs text-red-700 font-medium uppercase tracking-wider">Negative Marks</p>
-                            <p class="text-2xl font-bold text-red-700">-{{ negative_applied|floatformat:1 }}</p>
+                            <p class="text-2xl font-bold text-red-700">-{{ negative_applied|default:"0"|floatformat:1 }}</p>
                             <p class="text-xs text-red-600 mt-1">Applied on wrong answers</p>
                         </div>
-                        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-100">
+                        <div
+                            class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-100">
                             <p class="text-xs text-indigo-700 font-medium uppercase tracking-wider">Final Score</p>
                             <p class="text-2xl font-bold 
                                 {% if percentage_with_negative >= 60 %}text-green-600
                                 {% elif percentage_with_negative >= 45 %}text-amber-600
                                 {% else %}text-red-600{% endif %}">
-                                {{ score_with_negative|floatformat:1 }}
+                                {{ score_with_negative|default:"0"|floatformat:1 }}
                             </p>
-                            <p class="text-xs text-indigo-600 mt-1">Out of {{ total_possible|floatformat:0 }}</p>
+                            <p class="text-xs text-indigo-600 mt-1">Out of {{ total_possible|default:"0"|floatformat:0 }}</p>
                         </div>
                     </div>
 
-                    <!-- Rank & Percentile Section -->
+                    <!-- Rank & Percentile -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                        <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100">
+                        <div
+                            class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100">
                             <div class="flex items-center gap-3">
                                 <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
                                 <div>
@@ -205,14 +289,17 @@
                         <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100">
                             <div class="flex items-center gap-3">
                                 <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                     </svg>
                                 </div>
                                 <div>
                                     <p class="text-xs text-blue-600 font-medium uppercase tracking-wider">Percentile</p>
                                     <p class="text-2xl font-bold text-blue-700">{{ percentile|default:"0" }}th</p>
-                                    <p class="text-xs text-blue-600 mt-1">You scored better than {{ percentile|default:"0" }}%</p>
+                                    <p class="text-xs text-blue-600 mt-1">You scored better than {{
+                                        percentile|default:"0" }}%</p>
                                 </div>
                             </div>
                         </div>
@@ -240,22 +327,24 @@
                                 </p>
                                 <p class="text-sm text-gray-600">
                                     {% if percentage_with_negative >= 60 %}
-                                        You're in the top tier. Maintain this consistency!
+                                    You're in the top tier. Maintain this consistency!
                                     {% elif percentage_with_negative >= 45 %}
-                                        Focus on weak areas to cross the 60% mark.
+                                    Focus on weak areas to cross the 60% mark.
                                     {% else %}
-                                        Review your mistakes and practice more!
+                                    Review your mistakes and practice more!
                                     {% endif %}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Print/Download Button inside Scorecard -->
+                    <!-- Print Button -->
                     <div class="mt-6 flex justify-end">
-                        <button onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition text-sm">
+                        <button onclick="window.print()"
+                            class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition text-sm">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
                             Print Scorecard
                         </button>
@@ -265,8 +354,8 @@
         </div>
     </div>
 
-    <!-- ===== EXISTING HEADER CARD (Now stays as is) ===== -->
-    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-6 md:p-8 mb-8 text-white">
+    <!-- ===== EXISTING HEADER CARD ===== -->
+    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-xl p-6 md:p-8 mb-8 text-white">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
                 <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium mb-3">
@@ -299,9 +388,8 @@
         </div>
     </div>
 
-    <!-- ===== EXISTING METRICS GRID (Unchanged) ===== -->
+    <!-- ===== EXISTING METRICS GRID ===== -->
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <!-- Total Questions -->
         <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Total Questions</span>
@@ -313,10 +401,9 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-gray-800">{{ total_questions }}</p>
+            <p class="text-3xl font-bold text-gray-800">{{ total_questions|default:"0" }}</p>
         </div>
 
-        <!-- Attempted -->
         <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Attempted</span>
@@ -330,11 +417,16 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-gray-800">{{ correct|add:wrong }}</p>
-            <p class="text-xs text-gray-400 mt-1">{% widthratio correct|add:wrong total_questions 100 %}% of total</p>
+            <p class="text-3xl font-bold text-gray-800">{{ correct|add:wrong|default:"0" }}</p>
+            <p class="text-xs text-gray-400 mt-1">
+                {% if total_questions %}
+                {% widthratio correct|add:wrong total_questions 100 %}% of total
+                {% else %}
+                0% of total
+                {% endif %}
+            </p>
         </div>
 
-        <!-- Correct -->
         <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Correct</span>
@@ -344,11 +436,10 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-green-600">{{ correct }}</p>
-            <p class="text-xs text-gray-400 mt-1">Raw: +{{ raw_score|floatformat:1 }} marks</p>
+            <p class="text-3xl font-bold text-green-600">{{ correct|default:"0" }}</p>
+            <p class="text-xs text-gray-400 mt-1">Raw: +{{ raw_score|default:"0"|floatformat:1 }} marks</p>
         </div>
 
-        <!-- Wrong -->
         <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Wrong</span>
@@ -359,11 +450,10 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-bold text-red-600">{{ wrong }}</p>
-            <p class="text-xs text-gray-400 mt-1">Negative: -{{ negative_applied|floatformat:1 }} marks</p>
+            <p class="text-3xl font-bold text-red-600">{{ wrong|default:"0" }}</p>
+            <p class="text-xs text-gray-400 mt-1">Negative: -{{ negative_applied|default:"0"|floatformat:1 }} marks</p>
         </div>
 
-        <!-- Skipped -->
         <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-gray-500 text-sm">Skipped</span>
@@ -379,7 +469,7 @@
         </div>
     </div>
 
-    <!-- ===== EXISTING SCORE OVERVIEW CARDS (Unchanged) ===== -->
+    <!-- ===== EXISTING SCORE OVERVIEW CARDS ===== -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Score Card -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -391,25 +481,26 @@
                         <circle cx="50" cy="50" r="45" fill="none"
                             stroke="{% if percentage_with_negative >= 80 %}#10b981{% elif percentage_with_negative >= 35 %}#f59e0b{% else %}#ef4444{% endif %}"
                             stroke-width="8" stroke-linecap="round" stroke-dasharray="283"
-                            stroke-dashoffset="{{ 283|add:percentage_with_negative|floatformat:0 }}" transform="rotate(-90 50 50)" />
+                            stroke-dashoffset="{{ 283|add:percentage_with_negative|floatformat:0|default:'283' }}"
+                            transform="rotate(-90 50 50)" />
                     </svg>
                     <div class="absolute inset-0 flex items-center justify-center">
-                        <span class="text-3xl font-bold text-gray-800">{{ percentage_with_negative }}%</span>
+                        <span class="text-3xl font-bold text-gray-800">{{ percentage_with_negative|default:"0" }}%</span>
                     </div>
                 </div>
                 <div class="flex-1">
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">Raw Score</span>
-                            <span class="font-semibold">{{ raw_score|floatformat:1 }} / {{ total_possible|floatformat:0 }}</span>
+                            <span class="font-semibold">{{ raw_score|default:"0"|floatformat:1 }} / {{ total_possible|default:"0"|floatformat:0 }}</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">Final Score</span>
-                            <span class="font-semibold text-indigo-600">{{ score_with_negative|floatformat:1 }} / {{ total_possible|floatformat:0 }}</span>
+                            <span class="font-semibold text-indigo-600">{{ score_with_negative|default:"0"|floatformat:1 }} / {{ total_possible|default:"0"|floatformat:0 }}</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">Negative Applied</span>
-                            <span class="font-semibold text-red-600">-{{ negative_applied|floatformat:1 }}</span>
+                            <span class="font-semibold text-red-600">-{{ negative_applied|default:"0"|floatformat:1 }}</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">Rank</span>
@@ -424,7 +515,7 @@
             </div>
             <div class="mt-4 pt-4 border-t border-gray-100">
                 <p class="text-sm text-gray-500 text-center">
-                    Raw: {{ percentage_raw }}% | With Negative: {{ percentage_with_negative }}%
+                    Raw: {{ percentage_raw|default:"0" }}% | With Negative: {{ percentage_with_negative|default:"0" }}%
                 </p>
             </div>
         </div>
@@ -455,25 +546,25 @@
                             {% else %}Need more practice. Don't give up! 💪
                             {% endif %}
                         </p>
-                        <p class="text-sm text-gray-500">You scored higher than {{ percentile|default:"0" }}% of test takers</p>
+                        <p class="text-sm text-gray-500">You scored higher than {{ percentile|default:"0" }}% of test
+                            takers</p>
                     </div>
                 </div>
-                
-                <!-- Score Breakdown -->
+
                 <div class="bg-gray-50 rounded-lg p-4">
                     <h4 class="text-sm font-medium text-gray-700 mb-2">Score Breakdown</h4>
                     <div class="space-y-2">
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Correct ({{ correct }} × 1 mark):</span>
-                            <span class="text-green-600 font-medium">+{{ correct|floatformat:1 }}</span>
+                            <span class="text-gray-600">Correct ({{ correct|default:"0" }} × 1 mark):</span>
+                            <span class="text-green-600 font-medium">+{{ correct|default:"0"|floatformat:1 }}</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Wrong ({{ wrong }} × negative):</span>
-                            <span class="text-red-600 font-medium">-{{ negative_applied|floatformat:1 }}</span>
+                            <span class="text-gray-600">Wrong ({{ wrong|default:"0" }} × negative):</span>
+                            <span class="text-red-600 font-medium">-{{ negative_applied|default:"0"|floatformat:1 }}</span>
                         </div>
                         <div class="flex justify-between text-sm font-medium pt-2 border-t border-gray-200">
                             <span class="text-gray-800">Final Score:</span>
-                            <span class="text-indigo-600">{{ score_with_negative|floatformat:1 }}</span>
+                            <span class="text-indigo-600">{{ score_with_negative|default:"0"|floatformat:1 }}</span>
                         </div>
                     </div>
                 </div>
@@ -481,7 +572,7 @@
         </div>
     </div>
 
-    <!-- ===== EXISTING SUBJECT-WISE PERFORMANCE (Unchanged) ===== -->
+    <!-- ===== SUBJECT-WISE PERFORMANCE ===== -->
     {% if subject_stats %}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
         <div class="flex items-center justify-between mb-6">
@@ -506,32 +597,31 @@
                 </div>
                 <div class="relative">
                     <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-                        {% widthratio s.correct s.total 100 as accuracy_percent %}
-                        <div class="h-full rounded-full transition-all duration-500 bg-green-500" 
-                             style="width: {% widthratio s.correct s.total 100 %}%">
+                        <div class="h-full rounded-full transition-all duration-500 bg-green-500"
+                            style="width: {% widthratio s.correct s.total 100 %}%">
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">Raw: {{ s.raw_score|floatformat:1 }} marks | With Negative: {{ s.score_with_negative|floatformat:1 }} marks</p>
+                    <p class="text-xs text-gray-500 mt-1">Raw: {{ s.raw_score|floatformat:1 }} marks | With Negative: {{
+                        s.score_with_negative|floatformat:1 }} marks</p>
                 </div>
             </div>
             {% endfor %}
         </div>
 
-        <!-- Weak Areas -->
         <div class="mt-8 pt-6 border-t border-gray-100">
             <h3 class="text-sm font-medium text-gray-700 mb-3">Recommended Focus Areas</h3>
             <div class="flex flex-wrap gap-2">
                 {% for s in subject_stats %}
-                {% if s.score_with_negative|floatformat:1|add:0 < 60 %} 
-                <span class="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm">{{ s.subject }}</span>
-                {% endif %}
-                {% endfor %}
+                {% if s.score_with_negative|floatformat:1|add:0 < 60 %} <span
+                    class="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm">{{ s.subject }}</span>
+                    {% endif %}
+                    {% endfor %}
             </div>
         </div>
     </div>
     {% endif %}
 
-    <!-- ===== EXISTING ACTION BUTTONS (Unchanged) ===== -->
+    <!-- ===== ACTION BUTTONS ===== -->
     <div class="flex flex-wrap gap-4 justify-center md:justify-start mb-8">
         <a href="{% url 'exams:detailed_analysis' attempt.id %}"
             class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
@@ -574,7 +664,7 @@
         </a>
     </div>
 
-    <!-- ===== EXISTING RECOMMENDATIONS (Unchanged) ===== -->
+    <!-- ===== RECOMMENDATIONS ===== -->
     <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Recommended for You</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -591,24 +681,24 @@
             <div class="bg-white rounded-xl p-4 hover:shadow-md transition">
                 <h4 class="font-medium text-gray-800 mb-1">Study Material</h4>
                 <p class="text-sm text-gray-500 mb-3">Topic-wise notes & videos</p>
-                <a href="#" class="text-indigo-600 text-sm font-medium hover:text-indigo-700">Access →</a>
+                <a href="{% url 'qa:subject_list' %}"
+                    class="text-indigo-600 text-sm font-medium hover:text-indigo-700">Access →</a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ===== JAVASCRIPT FOR TOGGLE ===== -->
+<!-- ===== JAVASCRIPT ===== -->
 <script>
     function toggleScorecard() {
         const container = document.getElementById('scorecardContainer');
         const btnText = document.getElementById('scorecardBtnText');
-        
+
         if (container.classList.contains('hidden')) {
             container.classList.remove('hidden');
             container.style.animation = 'slideDown 0.5s ease-out';
             btnText.textContent = '📊 Hide Complete Scorecard';
-            
-            // Scroll to scorecard
+
             setTimeout(() => {
                 container.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);

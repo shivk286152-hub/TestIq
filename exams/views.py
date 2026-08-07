@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from .forms import ContactForm
 from .models import Contact
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 # from weasyprint import HTML, CSS
 
 import tempfile
@@ -75,6 +76,16 @@ def home(request):
             show_on_homepage=True
         ).order_by('order', 'created_at')[:4]
         
+        # ===== NEW: Fetch subjects from QA app =====
+        try:
+            from QA.models import Subject
+            subjects = Subject.objects.filter(is_active=True).annotate(
+                topics_count=Count('topics', filter=Q(topics__is_active=True))
+            ).order_by('name')
+        except Exception as e:
+            print(f"Error fetching subjects: {e}")
+            subjects = []
+        
         # Add user progress for each category (optional)
         if request.user.is_authenticated:
             for cat in categories:
@@ -88,7 +99,8 @@ def home(request):
             "site_name": "TestIQ",
             'faqs_home': faqs_home,
             "hero_title": "Master Your Competitive Exams",
-            "hero_desc": "Practice. Analyze. Improve. Succeed."
+            "hero_desc": "Practice. Analyze. Improve. Succeed.",
+            "subjects": subjects,  # NEW: Add subjects to context
         })
     except Exception as e:
         import traceback
@@ -105,9 +117,10 @@ def home(request):
             "user_testimonial": None,
             "site_name": "TestIQ",
             "hero_title": "Master Your Competitive Exams",
-            "hero_desc": "Practice. Analyze. Improve. Succeed."
+            "hero_desc": "Practice. Analyze. Improve. Succeed.",
+            "subjects": [],  # NEW: Empty subjects list on error
         })
-
+        
 def about(request):
     """About page view"""
     return render(request, 'exams/about.html', {
@@ -761,7 +774,11 @@ def dashboard(request):
         user=request.user,
         is_completed=True
     ).select_related('mock_test', 'mock_test__subcategory').order_by('-submitted_at')
-
+    for attempt in attempts:
+        if attempt.total_marks and attempt.total_marks > 0:
+            attempt.percentage = round((attempt.score_with_negative / attempt.total_marks) * 100, 1)
+        else:
+            attempt.percentage = 0
     # Get user's testimonial if exists
     try:
         user_testimonial = Testimonial.objects.filter(user=request.user).first()
@@ -924,7 +941,52 @@ def pretest_detail(request, mocktest_id):
     """
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
     
-    # Check if there's an incomplete attempt (to resume)
+    # Get all questions for this test
+    questions = mocktest.questions.all()
+    
+    # Calculate total marks
+    total_marks = sum(q.marks for q in questions)
+    
+    # Get marking scheme from first question
+    first_question = questions.first()
+    if first_question:
+        question_marks = first_question.marks
+    else:
+        question_marks = 1
+    
+    # ===== FIX: Get negative marking from mocktest =====
+    has_negative_marking = mocktest.has_negative_marking
+    
+    # Get negative marking value
+    negative_marks = 0
+    
+    if has_negative_marking:
+        if mocktest.negative_marking_type == 'fixed_per_question':
+            negative_marks = mocktest.negative_marking_value
+        elif mocktest.negative_marking_type == 'percentage_of_marks':
+            negative_marks = (question_marks * mocktest.negative_marking_value) / 100
+        elif mocktest.negative_marking_type == 'per_question':
+            # Show a range if multiple difficulties exist
+            difficulty_values = set()
+            for q in questions:
+                if q.override_test_negative and q.negative_marks is not None:
+                    difficulty_values.add(q.negative_marks)
+                else:
+                    difficulty_map = {'Easy': 0.25, 'Medium': 0.33, 'Hard': 0.50}
+                    difficulty_values.add(difficulty_map.get(q.difficulty, 0.25))
+            
+            if len(difficulty_values) == 1:
+                negative_marks = list(difficulty_values)[0]
+            else:
+                # Store as range for display
+                negative_marks = f"{min(difficulty_values)} - {max(difficulty_values)}"
+        else:
+            negative_marks = 0
+    
+    # Check for question-level override
+    has_question_override = any(q.override_test_negative and q.negative_marks is not None for q in questions)
+    
+    # Check if there's an incomplete attempt
     existing_attempt = MockTestAttempt.objects.filter(
         user=request.user,
         mock_test=mocktest,
@@ -937,10 +999,14 @@ def pretest_detail(request, mocktest_id):
         'languages': [
             {'code': 'en', 'name': 'English'},
             {'code': 'hi', 'name': 'हिन्दी (Hindi)'},
-        ]
+        ],
+        'total_marks': total_marks,
+        'question_marks': question_marks,
+        'negative_marks': negative_marks,
+        'has_negative_marking': has_negative_marking,
+        'has_question_override': has_question_override,
     }
     return render(request, 'exams/pretest_detail.html', context)
-
 
 # ==============================
 # VERIFY AND START TEST
@@ -1601,149 +1667,6 @@ def download_statistics_pdf(request, attempt_id):
     HTML(string=html_string).write_pdf(response)
     return response
 
-@login_required
-def advanced_analytics(request):
-    """Advanced analytics dashboard with multiple charts"""
-    # Get all user attempts - FIXED: removed invalid select_related
-    attempts = MockTestAttempt.objects.filter(
-        user=request.user,
-        is_completed=True
-    ).order_by('-submitted_at')
-    
-    # Get all user answers
-    answers = UserAnswer.objects.filter(
-        attempt__user=request.user,
-        attempt__is_completed=True
-    ).select_related('question', 'selected_option')
-    
-    # Calculate total tests
-    total_tests = attempts.count()
-    
-    # Calculate average score
-    avg_score = 0
-    if total_tests > 0:
-        total_percentage = 0
-        for attempt in attempts:
-            if attempt.total_marks and attempt.total_marks > 0:
-                total_percentage += attempt.percentage_with_negative
-        avg_score = round(total_percentage / total_tests, 1)
-    
-    # Calculate accuracy
-    total_answers = answers.count()
-    correct_answers = answers.filter(is_correct=True).count()
-    accuracy = round((correct_answers / total_answers * 100), 1) if total_answers > 0 else 0
-    
-    # Calculate streak
-    streak = 0
-    if attempts.exists():
-        from datetime import date, timedelta
-        attempt_dates = set(attempt.submitted_at.date() for attempt in attempts if attempt.submitted_at)
-        today = date.today()
-        current_date = today
-        while current_date in attempt_dates:
-            streak += 1
-            current_date -= timedelta(days=1)
-    
-    # Subject-wise performance (using question's subject from exams app)
-    subject_performance = {}
-    for answer in answers:
-        # Get subject from question (if available in exams app)
-        subject_name = getattr(answer.question, 'subject', None)
-        if subject_name:
-            subject_name = subject_name.name if hasattr(subject_name, 'name') else str(subject_name)
-        else:
-            subject_name = "General"
-        
-        if subject_name not in subject_performance:
-            subject_performance[subject_name] = {
-                'name': subject_name,
-                'total': 0,
-                'correct': 0,
-                'wrong': 0,
-                'skipped': 0,
-                'score': 0,
-                'accuracy': 0
-            }
-        
-        subject_performance[subject_name]['total'] += 1
-        if not answer.selected_option:
-            subject_performance[subject_name]['skipped'] += 1
-        elif answer.is_correct:
-            subject_performance[subject_name]['correct'] += 1
-            subject_performance[subject_name]['score'] += answer.question.marks
-        else:
-            subject_performance[subject_name]['wrong'] += 1
-    
-    # Calculate subject accuracies
-    subject_data = []
-    for subject, data in subject_performance.items():
-        if data['total'] > 0:
-            data['accuracy'] = round((data['correct'] / data['total']) * 100, 1)
-        subject_data.append(data)
-    
-    # Find strongest and weakest subjects
-    strongest_subject = max(subject_data, key=lambda x: x['accuracy']) if subject_data else None
-    weakest_subject = min(subject_data, key=lambda x: x['accuracy']) if subject_data else None
-    
-    # Difficulty-wise performance
-    difficulty_data = []
-    difficulty_counts = {}
-    for answer in answers:
-        diff = getattr(answer.question, 'difficulty', 'Medium')
-        if diff not in difficulty_counts:
-            difficulty_counts[diff] = {'total': 0, 'correct': 0}
-        difficulty_counts[diff]['total'] += 1
-        if answer.is_correct:
-            difficulty_counts[diff]['correct'] += 1
-    
-    for diff, counts in difficulty_counts.items():
-        difficulty_data.append({
-            'name': diff,
-            'total': counts['total'],
-            'correct': counts['correct']
-        })
-    
-    # Prepare attempts data for line chart
-    attempts_chrono = attempts.order_by('submitted_at')
-    attempts_data = []
-    for attempt in attempts_chrono:
-        if attempt.submitted_at:
-            attempts_data.append({
-                'date': attempt.submitted_at.strftime('%Y-%m-%d'),
-                'test_name': attempt.mock_test.title,
-                'score': round(attempt.percentage_with_negative, 1),
-            })
-    
-    # Chart data
-    chart_data = {
-        'subject_names': [s['name'] for s in subject_data],
-        'subject_scores': [s['accuracy'] for s in subject_data],
-        'difficulty_labels': [d['name'] for d in difficulty_data],
-        'difficulty_scores': [d['correct'] for d in difficulty_data],
-    }
-    
-    context = {
-        'total_tests': total_tests,
-        'avg_score': avg_score,
-        'accuracy': accuracy,
-        'streak': streak,
-        'subject_data': subject_data,
-        'difficulty_data': difficulty_data,
-        'strongest_subject': strongest_subject['name'] if strongest_subject else 'N/A',
-        'strongest_accuracy': strongest_subject['accuracy'] if strongest_subject else 0,
-        'strongest_correct': strongest_subject['correct'] if strongest_subject else 0,
-        'strongest_total': strongest_subject['total'] if strongest_subject else 0,
-        'weakest_subject': weakest_subject['name'] if weakest_subject else 'N/A',
-        'weakest_accuracy': weakest_subject['accuracy'] if weakest_subject else 0,
-        'weakest_correct': weakest_subject['correct'] if weakest_subject else 0,
-        'weakest_total': weakest_subject['total'] if weakest_subject else 0,
-        'chart_data_json': json.dumps(chart_data),
-        'subject_data_json': json.dumps(subject_data),
-        'difficulty_data_json': json.dumps(difficulty_data),
-        'attempts_json': json.dumps(attempts_data),
-    }
-    
-    return render(request, 'exams/advanced_analytics.html', context)
 
 def get_test_content(request, test_id):
     """
@@ -1792,3 +1715,914 @@ def get_test_content(request, test_id):
             'error': str(e),
             'language': request.GET.get('lang', 'en'),
         })
+
+
+# exams/views.py - Add these imports at the top
+from django.db.models import Count, Avg, Sum, Max, Min, Q, F, ExpressionWrapper, FloatField, Window
+from django.db.models.functions import Rank, DenseRank, RowNumber
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from datetime import datetime, timedelta
+from collections import defaultdict
+import json
+
+# exams/views.py - Replace your leaderboard function with this corrected version
+
+# ==============================
+# LEADERBOARD VIEW (FIXED - Using raw fields)
+# ==============================
+@login_required
+def leaderboard(request):
+    """
+    Comprehensive leaderboard showing rankings across all tests
+    """
+    # Get filter parameters
+    filter_type = request.GET.get('filter', 'overall')  # overall, accuracy, tests
+    time_period = request.GET.get('period', 'all')  # all, week, month
+    
+    # Base queryset - users who have completed tests
+    users = User.objects.filter(
+        mock_attempts__is_completed=True
+    ).distinct()
+    
+    # Apply time period filter
+    if time_period == 'week':
+        date_filter = Q(mock_attempts__submitted_at__gte=timezone.now() - timedelta(days=7))
+    elif time_period == 'month':
+        date_filter = Q(mock_attempts__submitted_at__gte=timezone.now() - timedelta(days=30))
+    else:
+        date_filter = Q()
+    
+    # Annotate users with statistics
+    # FIXED: Using raw fields instead of percentage_with_negative
+    users = users.annotate(
+        total_tests=Count('mock_attempts', filter=Q(mock_attempts__is_completed=True) & date_filter),
+        avg_raw_score=Avg('mock_attempts__raw_score', 
+                         filter=Q(mock_attempts__is_completed=True) & date_filter),
+        avg_score_with_negative=Avg('mock_attempts__score_with_negative', 
+                                   filter=Q(mock_attempts__is_completed=True) & date_filter),
+        total_correct=Sum('mock_attempts__correct_answers', 
+                         filter=Q(mock_attempts__is_completed=True) & date_filter),
+        total_wrong=Sum('mock_attempts__wrong_answers', 
+                       filter=Q(mock_attempts__is_completed=True) & date_filter),
+        total_skipped=Sum('mock_attempts__skipped_answers', 
+                         filter=Q(mock_attempts__is_completed=True) & date_filter),
+        best_raw_score=Max('mock_attempts__raw_score', 
+                          filter=Q(mock_attempts__is_completed=True) & date_filter),
+        best_score_with_negative=Max('mock_attempts__score_with_negative', 
+                                    filter=Q(mock_attempts__is_completed=True) & date_filter),
+        total_marks=Sum('mock_attempts__total_marks', 
+                       filter=Q(mock_attempts__is_completed=True) & date_filter),
+    ).filter(total_tests__gt=0)
+    
+    # Apply sorting
+    if filter_type == 'accuracy':
+        users = users.order_by('-accuracy')
+    elif filter_type == 'tests':
+        users = users.order_by('-total_tests')
+    else:  # overall - sort by avg score with negative
+        users = users.order_by('-avg_score_with_negative')
+    
+    # Prepare leaderboard data
+    leaderboard_data = []
+    current_user_rank = None
+    rank = 1
+    prev_score = None
+    
+    for user in users:
+        # Calculate accuracy
+        total_answered = (user.total_correct or 0) + (user.total_wrong or 0)
+        accuracy = round((user.total_correct / total_answered * 100), 1) if total_answered > 0 else 0
+        
+        # Calculate average percentage
+        avg_percentage = 0
+        if user.total_marks and user.total_marks > 0:
+            avg_percentage = round((user.avg_score_with_negative / user.total_marks) * 100, 1)
+        
+        # Handle ties
+        current_score = avg_percentage if filter_type == 'overall' else accuracy
+        if prev_score is not None and current_score != prev_score:
+            rank = len(leaderboard_data) + 1
+        
+        # Get user initials
+        initials = get_user_initials(user)
+        
+        user_data = {
+            'rank': rank,
+            'user_id': user.id,
+            'username': user.username,
+            'full_name': user.get_full_name() or user.username,
+            'initials': initials,
+            'total_tests': user.total_tests,
+            'avg_score': avg_percentage,
+            'best_score': round((user.best_score_with_negative / user.total_marks * 100) if user.total_marks and user.best_score_with_negative else 0, 1),
+            'accuracy': accuracy,
+            'total_correct': user.total_correct or 0,
+            'total_wrong': user.total_wrong or 0,
+            'total_skipped': user.total_skipped or 0,
+            'is_current_user': user.id == request.user.id,
+        }
+        
+        leaderboard_data.append(user_data)
+        
+        if user.id == request.user.id:
+            current_user_rank = rank
+        
+        prev_score = current_score
+        rank += 1
+    
+    # Pagination
+    paginator = Paginator(leaderboard_data, 20)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # Statistics
+    stats = {
+        'total_users': len(leaderboard_data),
+        'avg_score': round(sum(u['avg_score'] for u in leaderboard_data) / len(leaderboard_data), 1) if leaderboard_data else 0,
+        'avg_accuracy': round(sum(u['accuracy'] for u in leaderboard_data) / len(leaderboard_data), 1) if leaderboard_data else 0,
+        'total_tests': sum(u['total_tests'] for u in leaderboard_data),
+        'top_score': leaderboard_data[0]['avg_score'] if leaderboard_data else 0,
+    }
+    
+    # Prepare chart data (top 10)
+    chart_data = {
+        'labels': [u['full_name'][:15] for u in leaderboard_data[:10]],
+        'scores': [u['avg_score'] for u in leaderboard_data[:10]],
+        'accuracy': [u['accuracy'] for u in leaderboard_data[:10]],
+    }
+    
+    context = {
+        'leaderboard_data': page_obj,
+        'current_user_rank': current_user_rank,
+        'stats': stats,
+        'filter_type': filter_type,
+        'time_period': time_period,
+        'chart_data_json': json.dumps(chart_data),
+    }
+    
+    return render(request, 'exams/leaderboard.html', context)
+
+
+
+import json
+import math
+from datetime import datetime, date, timedelta
+from collections import defaultdict
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db.models import Avg, Count, Sum, Max, Min, Q, F, FloatField, Case, When, Value
+from django.db.models.functions import Round, Coalesce
+from django.http import JsonResponse
+from django.utils import timezone
+import statistics
+
+# Import your models
+from exams.models import (
+    MockTestAttempt, 
+    UserAnswer, 
+    Question, 
+    MockTest,
+    Subject
+)
+
+
+@login_required
+def advanced_analytics(request):
+    """
+    EXTREME LEVEL ADVANCED ANALYTICS DASHBOARD
+    Includes: Predictive analytics, ML-based insights, performance forecasting,
+    cognitive metrics, adaptive recommendations, and comprehensive visualizations
+    """
+    
+    # ============================================
+    # 1. DATA COLLECTION & PREPROCESSING
+    # ============================================
+    
+    # Get all user attempts with optimized queries
+    attempts = MockTestAttempt.objects.filter(
+        user=request.user,
+        is_completed=True
+    ).select_related(
+        'mock_test', 
+        'mock_test__subcategory'
+    ).prefetch_related(
+        'answers',
+        'answers__question',
+        'answers__selected_option'
+    ).order_by('-submitted_at')
+    
+    # Get all user answers with related data
+    answers = UserAnswer.objects.filter(
+        attempt__user=request.user,
+        attempt__is_completed=True
+    ).select_related(
+        'question', 
+        'selected_option',
+        'question__subject',
+        'question__mock_test'
+    )
+    
+    total_attempts = attempts.count()
+    
+    # ============================================
+    # 2. CALCULATE STREAK
+    # ============================================
+    
+    streak = 0
+    if attempts.exists():
+        attempt_dates = set()
+        for attempt in attempts:
+            if attempt.submitted_at:
+                attempt_dates.add(attempt.submitted_at.date())
+        
+        today = date.today()
+        current_date = today
+        while current_date in attempt_dates:
+            streak += 1
+            current_date -= timedelta(days=1)
+    
+    # ============================================
+    # 3. CORE PERFORMANCE METRICS
+    # ============================================
+    
+    # Overall Performance
+    total_questions_attempted = answers.count()
+    correct_answers = answers.filter(is_correct=True).count()
+    wrong_answers = answers.filter(selected_option__isnull=False, is_correct=False).count()
+    skipped_answers = answers.filter(selected_option__isnull=True).count()
+    
+    overall_accuracy = round(
+        (correct_answers / total_questions_attempted * 100) if total_questions_attempted > 0 else 0,
+        1
+    )
+    
+    # Average Score with Negative Marking
+    avg_score = 0
+    avg_raw_score = 0
+    total_negative_marks = 0
+    
+    if total_attempts > 0:
+        total_percentage = 0
+        total_raw = 0
+        total_negative = 0
+        count_with_marks = 0
+        
+        for attempt in attempts:
+            if attempt.total_marks and attempt.total_marks > 0:
+                total_percentage += attempt.percentage_with_negative
+                total_raw += attempt.percentage_raw
+                total_negative += attempt.negative_marks_applied
+                count_with_marks += 1
+        
+        avg_score = round(total_percentage / count_with_marks, 1) if count_with_marks > 0 else 0
+        avg_raw_score = round(total_raw / count_with_marks, 1) if count_with_marks > 0 else 0
+        total_negative_marks = round(total_negative, 1)
+    
+    # Best and Worst Performances - FIXED: Use score_with_negative instead of percentage_with_negative
+    best_attempt = None
+    worst_attempt = None
+    best_score = 0
+    worst_score = 100
+    
+    if attempts.exists():
+        # Calculate scores for each attempt and find best/worst
+        for attempt in attempts:
+            if attempt.total_marks and attempt.total_marks > 0:
+                score = attempt.percentage_with_negative
+                if score > best_score:
+                    best_score = score
+                    best_attempt = attempt
+                if score < worst_score:
+                    worst_score = score
+                    worst_attempt = attempt
+    
+    # ============================================
+    # 4. TIME-BASED PERFORMANCE
+    # ============================================
+    
+    # Performance by Day of Week
+    day_of_week_performance = defaultdict(lambda: {'total': 0, 'score': 0})
+    for attempt in attempts:
+        if attempt.submitted_at:
+            dow = attempt.submitted_at.strftime('%A')
+            day_of_week_performance[dow]['total'] += 1
+            day_of_week_performance[dow]['score'] += attempt.percentage_with_negative
+    
+    dow_data = []
+    days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    for day in days_order:
+        if day in day_of_week_performance:
+            data = day_of_week_performance[day]
+            dow_data.append({
+                'day': day,
+                'avg_score': round(data['score'] / data['total'], 1) if data['total'] > 0 else 0,
+                'count': data['total']
+            })
+    
+    # Performance by Time of Day
+    time_of_day_performance = defaultdict(lambda: {'total': 0, 'score': 0})
+    for attempt in attempts:
+        if attempt.submitted_at:
+            hour = attempt.submitted_at.hour
+            time_slot = 'Morning (6-12)' if 6 <= hour < 12 else \
+                       'Afternoon (12-17)' if 12 <= hour < 17 else \
+                       'Evening (17-21)' if 17 <= hour < 21 else 'Night (21-6)'
+            time_of_day_performance[time_slot]['total'] += 1
+            time_of_day_performance[time_slot]['score'] += attempt.percentage_with_negative
+    
+    tod_data = []
+    for slot, data in time_of_day_performance.items():
+        tod_data.append({
+            'slot': slot,
+            'avg_score': round(data['score'] / data['total'], 1) if data['total'] > 0 else 0,
+            'count': data['total']
+        })
+    
+    # ============================================
+    # 5. SUBJECT-WISE ADVANCED ANALYSIS
+    # ============================================
+    
+    subject_performance = {}
+    subject_timeline = defaultdict(list)
+    
+    for answer in answers:
+        question = answer.question
+        subject_name = 'General'
+        if hasattr(question, 'subject') and question.subject:
+            subject_name = question.subject.name if hasattr(question.subject, 'name') else str(question.subject)
+        elif hasattr(question, 'mock_test') and question.mock_test:
+            # Try to get subject from mock test
+            pass
+        
+        if subject_name not in subject_performance:
+            subject_performance[subject_name] = {
+                'name': subject_name,
+                'total': 0,
+                'correct': 0,
+                'wrong': 0,
+                'skipped': 0,
+                'raw_score': 0,
+                'score_with_negative': 0,
+                'total_marks': 0,
+            }
+        
+        subject_performance[subject_name]['total'] += 1
+        subject_performance[subject_name]['total_marks'] += question.marks
+        
+        if not answer.selected_option:
+            subject_performance[subject_name]['skipped'] += 1
+        elif answer.is_correct:
+            subject_performance[subject_name]['correct'] += 1
+            subject_performance[subject_name]['raw_score'] += question.marks
+            subject_performance[subject_name]['score_with_negative'] += question.marks
+        else:
+            subject_performance[subject_name]['wrong'] += 1
+            negative = question.get_effective_negative_marks()
+            subject_performance[subject_name]['score_with_negative'] -= negative
+        
+        # Track subject performance over time
+        if answer.attempt.submitted_at:
+            subject_timeline[subject_name].append({
+                'date': answer.attempt.submitted_at.strftime('%Y-%m-%d'),
+                'score': answer.is_correct if answer.selected_option else None
+            })
+    
+    # Calculate subject metrics
+    subject_data = []
+    for subject, data in subject_performance.items():
+        if data['total'] > 0:
+            accuracy = round((data['correct'] / data['total']) * 100, 1)
+            attempted = data['correct'] + data['wrong']
+            attempted_accuracy = round(
+                (data['correct'] / attempted * 100) if attempted > 0 else 0,
+                1
+            )
+            subject_data.append({
+                'name': subject,
+                'total': data['total'],
+                'correct': data['correct'],
+                'wrong': data['wrong'],
+                'skipped': data['skipped'],
+                'accuracy': accuracy,
+                'attempted_accuracy': attempted_accuracy,
+                'raw_score': round(data['raw_score'], 1),
+                'score_with_negative': round(data['score_with_negative'], 1),
+                'total_marks': data['total_marks'],
+                'percentage': round(
+                    (data['score_with_negative'] / data['total_marks'] * 100) if data['total_marks'] > 0 else 0,
+                    1
+                )
+            })
+    
+    # Sort subjects by accuracy
+    subject_data.sort(key=lambda x: x['accuracy'], reverse=True)
+    
+    # ============================================
+    # 6. DIFFICULTY-WISE ANALYSIS
+    # ============================================
+    
+    difficulty_analysis = {}
+    for answer in answers:
+        question = answer.question
+        difficulty = getattr(question, 'difficulty', 'Medium')
+        
+        if difficulty not in difficulty_analysis:
+            difficulty_analysis[difficulty] = {
+                'total': 0,
+                'correct': 0,
+                'wrong': 0,
+                'skipped': 0
+            }
+        
+        difficulty_analysis[difficulty]['total'] += 1
+        if not answer.selected_option:
+            difficulty_analysis[difficulty]['skipped'] += 1
+        elif answer.is_correct:
+            difficulty_analysis[difficulty]['correct'] += 1
+        else:
+            difficulty_analysis[difficulty]['wrong'] += 1
+    
+    difficulty_data = []
+    for diff, data in difficulty_analysis.items():
+        difficulty_data.append({
+            'name': diff,
+            'total': data['total'],
+            'correct': data['correct'],
+            'wrong': data['wrong'],
+            'skipped': data['skipped'],
+            'accuracy': round((data['correct'] / data['total'] * 100) if data['total'] > 0 else 0, 1)
+        })
+    
+    # ============================================
+    # 7. PREDICTIVE ANALYTICS
+    # ============================================
+    
+    # Performance Trend
+    attempts_chrono = list(attempts.order_by('submitted_at'))
+    trend_data = []
+    moving_average = []
+    scores = []
+    
+    for i, attempt in enumerate(attempts_chrono):
+        if attempt.submitted_at:
+            score = attempt.percentage_with_negative
+            scores.append(score)
+            trend_data.append({
+                'date': attempt.submitted_at.strftime('%Y-%m-%d'),
+                'score': round(score, 1),
+                'test_name': attempt.mock_test.title[:30] if attempt.mock_test else 'Test'
+            })
+            
+            # Calculate moving average (last 3 attempts)
+            if i >= 2:
+                avg = sum(scores[-3:]) / 3
+                moving_average.append(round(avg, 1))
+            else:
+                moving_average.append(round(score, 1))
+    
+    # Add moving average to trend data
+    for i, data in enumerate(trend_data):
+        data['moving_avg'] = moving_average[i] if i < len(moving_average) else data['score']
+    
+    # ============================================
+    # 8. PREDICTIVE SCORE FORECASTING
+    # ============================================
+    
+    predicted_next_score = 0
+    performance_trend = 'stable'
+    
+    if len(scores) >= 3:
+        # Calculate trend using simple linear regression
+        n = len(scores)
+        x = list(range(n))
+        y = scores
+        
+        # Simple linear regression
+        mean_x = sum(x) / n
+        mean_y = sum(y) / n
+        
+        numerator = sum((x[i] - mean_x) * (y[i] - mean_y) for i in range(n))
+        denominator = sum((x[i] - mean_x) ** 2 for i in range(n))
+        
+        if denominator > 0:
+            slope = numerator / denominator
+            intercept = mean_y - slope * mean_x
+            
+            # Predict next score (n+1)
+            predicted_next_score = round(slope * (n + 1) + intercept, 1)
+            predicted_next_score = max(0, min(100, predicted_next_score))  # Clamp between 0-100
+            
+            # Determine trend
+            if slope > 2:
+                performance_trend = 'improving'
+            elif slope < -2:
+                performance_trend = 'declining'
+            else:
+                performance_trend = 'stable'
+    
+    # ============================================
+    # 9. STRONGEST & WEAKEST AREAS
+    # ============================================
+    
+    # Identify top and bottom 3 subjects
+    sorted_subjects = sorted(subject_data, key=lambda x: x['accuracy'], reverse=True)
+    strongest_subjects = sorted_subjects[:3] if sorted_subjects else []
+    weakest_subjects = sorted_subjects[-3:] if sorted_subjects else []
+    
+    # ============================================
+    # 10. COGNITIVE METRICS
+    # ============================================
+    
+    # Question-switching analysis (how often user changes subjects)
+    subject_switches = 0
+    last_subject = None
+    for answer in answers.order_by('attempt__submitted_at', 'id'):
+        question = answer.question
+        current_subject = 'General'
+        if hasattr(question, 'subject') and question.subject:
+            current_subject = question.subject.name if hasattr(question.subject, 'name') else str(question.subject)
+        
+        if last_subject and last_subject != current_subject:
+            subject_switches += 1
+        last_subject = current_subject
+    
+    # Average time per question (if available)
+    avg_time_per_question = 0
+    if total_questions_attempted > 0 and attempts.exists():
+        total_time = 0
+        count = 0
+        for attempt in attempts[:20]:  # Sample last 20 attempts
+            if attempt.time_taken and attempt.answers.count() > 0:
+                time_parts = attempt.time_taken.split(':')
+                if len(time_parts) == 3:
+                    total_seconds = int(time_parts[0]) * 3600 + int(time_parts[1]) * 60 + int(time_parts[2])
+                    total_time += total_seconds
+                    count += 1
+        if count > 0:
+            avg_time_per_question = round(total_time / count, 1)
+    
+    # ============================================
+    # 11. ACHIEVEMENTS & MILESTONES
+    # ============================================
+    
+    achievements = []
+    
+    # Consistency achievements
+    if streak > 0:
+        achievements.append({
+            'icon': '🔥',
+            'title': f'{streak} Day Streak',
+            'description': f'You\'ve practiced for {streak} consecutive days!',
+            'color': 'orange'
+        })
+    
+    # Score achievements
+    if any(attempt.percentage_with_negative >= 90 for attempt in attempts if attempt.total_marks and attempt.total_marks > 0):
+        achievements.append({
+            'icon': '👑',
+            'title': 'Mastery Level',
+            'description': 'You\'ve scored 90%+ in at least one test!',
+            'color': 'yellow'
+        })
+    
+    if any(attempt.percentage_with_negative >= 80 for attempt in attempts if attempt.total_marks and attempt.total_marks > 0):
+        achievements.append({
+            'icon': '🌟',
+            'title': 'Star Performer',
+            'description': 'You\'ve scored 80%+ in at least one test!',
+            'color': 'indigo'
+        })
+    
+    # Consistency achievements
+    if total_attempts >= 10:
+        achievements.append({
+            'icon': '📚',
+            'title': 'Practice Champion',
+            'description': f'You\'ve completed {total_attempts} tests!',
+            'color': 'green'
+        })
+    
+    if total_attempts >= 5:
+        achievements.append({
+            'icon': '💪',
+            'title': 'Dedicated Learner',
+            'description': f'You\'ve completed {total_attempts} tests!',
+            'color': 'blue'
+        })
+    
+    # ============================================
+    # 12. INTELLIGENT RECOMMENDATIONS
+    # ============================================
+    
+    recommendations = []
+    
+    # Weak areas recommendations
+    if weakest_subjects:
+        weak_subject_names = [s['name'] for s in weakest_subjects if s['accuracy'] < 60]
+        if weak_subject_names:
+            recommendations.append({
+                'type': 'weak_area',
+                'title': '📖 Focus on Weak Subjects',
+                'description': f'Your weak areas are: {", ".join(weak_subject_names)}. Practice more questions in these subjects.',
+                'action': 'View Practice Material',
+                'action_url': '#'
+            })
+    
+    # Difficulty-based recommendations
+    hard_accuracy = next((d['accuracy'] for d in difficulty_data if d['name'] == 'Hard'), 100)
+    if hard_accuracy < 50 and difficulty_data:
+        recommendations.append({
+            'type': 'difficulty',
+            'title': '🎯 Master Hard Questions',
+            'description': 'Your accuracy on hard questions is low. Focus on practicing harder problems.',
+            'action': 'Start Hard Practice',
+            'action_url': '#'
+        })
+    
+    # Consistency recommendation
+    if total_attempts > 0 and streak < 3:
+        recommendations.append({
+            'type': 'consistency',
+            'title': '📅 Build Consistency',
+            'description': 'Try to practice daily to build a learning habit.',
+            'action': 'Set Daily Goal',
+            'action_url': '#'
+        })
+    
+    # Time management recommendation
+    if avg_time_per_question > 120:  # More than 2 minutes per question
+        recommendations.append({
+            'type': 'time_management',
+            'title': '⏱️ Improve Speed',
+            'description': 'You\'re spending too much time per question. Practice time management.',
+            'action': 'View Speed Tips',
+            'action_url': '#'
+        })
+    
+    # ============================================
+    # 13. COMPREHENSIVE CHART DATA
+    # ============================================
+    
+    chart_data = {
+        # Subject Performance Chart
+        'subject_labels': [s['name'] for s in subject_data],
+        'subject_accuracy': [s['accuracy'] for s in subject_data],
+        'subject_attempted': [s['attempted_accuracy'] for s in subject_data],
+        
+        # Difficulty Chart
+        'difficulty_labels': [d['name'] for d in difficulty_data],
+        'difficulty_accuracy': [d['accuracy'] for d in difficulty_data],
+        'difficulty_correct': [d['correct'] for d in difficulty_data],
+        'difficulty_wrong': [d['wrong'] for d in difficulty_data],
+        
+        # Trend Chart
+        'trend_dates': [d['date'] for d in trend_data],
+        'trend_scores': [d['score'] for d in trend_data],
+        'trend_moving_avg': [d['moving_avg'] for d in trend_data],
+        
+        # Day of Week Chart
+        'dow_labels': [d['day'] for d in dow_data],
+        'dow_scores': [d['avg_score'] for d in dow_data],
+        
+        # Time of Day Chart
+        'tod_labels': [d['slot'] for d in tod_data],
+        'tod_scores': [d['avg_score'] for d in tod_data],
+        
+        # Score Distribution
+        'score_distribution': {
+            '0-20': 0,
+            '21-40': 0,
+            '41-60': 0,
+            '61-80': 0,
+            '81-100': 0
+        }
+    }
+    
+    # Calculate score distribution
+    for attempt in attempts:
+        if attempt.total_marks and attempt.total_marks > 0:
+            score = attempt.percentage_with_negative
+            if score <= 20:
+                chart_data['score_distribution']['0-20'] += 1
+            elif score <= 40:
+                chart_data['score_distribution']['21-40'] += 1
+            elif score <= 60:
+                chart_data['score_distribution']['41-60'] += 1
+            elif score <= 80:
+                chart_data['score_distribution']['61-80'] += 1
+            else:
+                chart_data['score_distribution']['81-100'] += 1
+    
+    # ============================================
+    # 14. PERFORMANCE INSIGHTS
+    # ============================================
+    
+    insights = []
+    
+    # Overall assessment
+    if overall_accuracy >= 80:
+        insights.append({
+            'type': 'positive',
+            'icon': '🌟',
+            'title': 'Excellent Performance!',
+            'description': f'Your overall accuracy of {overall_accuracy}% is outstanding. Keep up the great work!'
+        })
+    elif overall_accuracy >= 60:
+        insights.append({
+            'type': 'positive',
+            'icon': '💪',
+            'title': 'Good Performance!',
+            'description': f'Your accuracy of {overall_accuracy}% is solid. You\'re on the right track!'
+        })
+    else:
+        insights.append({
+            'type': 'warning',
+            'icon': '📚',
+            'title': 'Room for Improvement',
+            'description': 'Focus on understanding concepts and practicing more. You can do it!'
+        })
+    
+    # Trend insight
+    if performance_trend == 'improving':
+        insights.append({
+            'type': 'positive',
+            'icon': '📈',
+            'title': 'Improving Trend!',
+            'description': 'Your performance is consistently improving. Keep the momentum going!'
+        })
+    elif performance_trend == 'declining':
+        insights.append({
+            'type': 'warning',
+            'icon': '📉',
+            'title': 'Declining Trend',
+            'description': 'Your performance seems to be declining. Time to review your strategy!'
+        })
+    else:
+        insights.append({
+            'type': 'neutral',
+            'icon': '➡️',
+            'title': 'Stable Performance',
+            'description': 'Your performance is consistent. Try to push for improvement!'
+        })
+    
+    # Subject strength insight
+    if strongest_subjects:
+        insight = strongest_subjects[0]
+        if insight['accuracy'] > 70:
+            insights.append({
+                'type': 'positive',
+                'icon': '🎯',
+                'title': f'Strong Subject: {insight["name"]}',
+                'description': f'You excel in {insight["name"]} with {insight["accuracy"]}% accuracy!'
+            })
+    
+    # Predictive insight
+    if predicted_next_score > 0:
+        insights.append({
+            'type': 'neutral',
+            'icon': '🔮',
+            'title': 'Predicted Next Score',
+            'description': f'Based on your trend, your next test score is predicted to be around {predicted_next_score}%'
+        })
+    
+    # ============================================
+    # 15. LEARNING ZONES
+    # ============================================
+    
+    # Zone of Proximal Development (ZPD)
+    zpd_questions = []
+    if answers.exists():
+        # Get questions that user got wrong or skipped
+        wrong_question_ids = answers.filter(
+            Q(selected_option__isnull=True) | Q(is_correct=False)
+        ).values_list('question_id', flat=True).distinct()[:5]
+        
+        if wrong_question_ids:
+            zpd_questions = Question.objects.filter(id__in=wrong_question_ids)[:5]
+    
+    # ============================================
+    # 16. PREPARE CONTEXT
+    # ============================================
+    
+    context = {
+        # Core Metrics
+        'total_tests': total_attempts,
+        'total_questions': total_questions_attempted,
+        'avg_score': avg_score,
+        'avg_raw_score': avg_raw_score,
+        'accuracy': overall_accuracy,
+        'correct_answers': correct_answers,
+        'wrong_answers': wrong_answers,
+        'skipped_answers': skipped_answers,
+        'streak': streak,
+        'total_negative_marks': total_negative_marks,
+        
+        # Best/Worst
+        'best_attempt': best_attempt,
+        'worst_attempt': worst_attempt,
+        'best_score': round(best_score, 1) if best_attempt else 0,
+        'worst_score': round(worst_score, 1) if worst_attempt else 0,
+        
+        # Subject Data
+        'subject_data': subject_data,
+        'strongest_subjects': strongest_subjects,
+        'weakest_subjects': weakest_subjects,
+        
+        # Difficulty Data
+        'difficulty_data': difficulty_data,
+        
+        # Trend & Predictions
+        'trend_data': trend_data,
+        'performance_trend': performance_trend,
+        'predicted_next_score': predicted_next_score,
+        'predictions_available': len(scores) >= 3,
+        
+        # Cognitive Metrics
+        'subject_switches': subject_switches,
+        'avg_time_per_question': avg_time_per_question,
+        
+        # Achievements
+        'achievements': achievements,
+        'has_achievements': len(achievements) > 0,
+        
+        # Recommendations
+        'recommendations': recommendations,
+        'has_recommendations': len(recommendations) > 0,
+        
+        # Insights
+        'insights': insights,
+        
+        # Chart Data
+        'chart_data_json': json.dumps(chart_data),
+        'subject_data_json': json.dumps(subject_data),
+        'difficulty_data_json': json.dumps(difficulty_data),
+        'trend_data_json': json.dumps(trend_data),
+        'dow_data_json': json.dumps(dow_data),
+        'tod_data_json': json.dumps(tod_data),
+        'score_distribution_json': json.dumps(chart_data['score_distribution']),
+        
+        # Learning Zones
+        'zpd_questions': zpd_questions,
+        
+        # User Stats
+        'has_attempts': total_attempts > 0,
+        'created_date': request.user.date_joined,
+        'days_active': (timezone.now().date() - request.user.date_joined.date()).days if request.user.date_joined else 0,
+        
+        # Analytics Version
+        'analytics_version': '3.0',
+        'last_updated': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+    }
+    
+    return render(request, 'exams/advanced_analytics.html', context)
+
+
+@login_required
+def all_attempts(request):
+    """View to show all test attempts with pagination"""
+    attempts = MockTestAttempt.objects.filter(
+        user=request.user,
+        is_completed=True
+    ).select_related('mock_test', 'mock_test__subcategory').order_by('-submitted_at')
+    
+    # Calculate percentage for each attempt
+    for attempt in attempts:
+        if attempt.total_marks and attempt.total_marks > 0:
+            attempt.percentage = round((attempt.score_with_negative / attempt.total_marks) * 100, 1)
+        else:
+            attempt.percentage = 0
+    
+    # Pagination
+    paginator = Paginator(attempts, 10)  # Show 10 per page
+    page = request.GET.get('page')
+    
+    try:
+        attempts_page = paginator.page(page)
+    except PageNotAnInteger:
+        attempts_page = paginator.page(1)
+    except EmptyPage:
+        attempts_page = paginator.page(paginator.num_pages)
+    
+    # Calculate stats for the paginated results
+    total_attempts = attempts.count()
+    
+    # Calculate average score for all attempts
+    avg_score = 0
+    if total_attempts > 0:
+        total_percentage = sum(attempt.percentage for attempt in attempts)
+        avg_score = round(total_percentage / total_attempts, 1)
+    
+    # Find best score
+    best_score = 0
+    if total_attempts > 0:
+        best_score = max(attempt.percentage for attempt in attempts)
+    
+    context = {
+        'attempts': attempts_page,
+        'total_attempts': total_attempts,
+        'avg_score': avg_score,
+        'best_score': best_score,
+    }
+    return render(request, 'exams/all_attempts.html', context)

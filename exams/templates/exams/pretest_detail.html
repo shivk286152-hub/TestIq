@@ -46,8 +46,26 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    Maximum Marks: {{ mocktest.questions.count }}
+                    Total Marks: {{ total_marks }}
                 </span>
+                {% if mocktest.has_negative_marking %}
+                <span class="inline-flex items-center px-3 py-1 bg-yellow-400/30 rounded-full text-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                    Negative Marking: Yes
+                </span>
+                {% else %}
+                <span class="inline-flex items-center px-3 py-1 bg-green-400/30 rounded-full text-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Negative Marking: No
+                </span>
+                {% endif %}
             </div>
         </div>
 
@@ -88,7 +106,7 @@
                             </li>
                             <li class="flex items-start">
                                 <span class="text-green-500 mr-2">✓</span>
-                                Each question carries <span class="font-semibold">1 mark</span>
+                                Total marks: <span class="font-semibold">{{ total_marks }}</span>
                             </li>
                             <li class="flex items-start">
                                 <span class="text-green-500 mr-2">✓</span>
@@ -113,7 +131,7 @@
                             Marking Scheme
                         </h3>
 
-                        <!-- Table for Marking Scheme -->
+                        <!-- Table for Marking Scheme - Dynamic from Model -->
                         <div class="overflow-hidden rounded-lg border border-gray-200">
                             <table class="min-w-full bg-white">
                                 <thead class="bg-gray-100">
@@ -125,11 +143,17 @@
                                 <tbody class="divide-y divide-gray-200">
                                     <tr>
                                         <td class="px-4 py-2 text-sm text-gray-600">Correct Answer</td>
-                                        <td class="px-4 py-2 text-sm font-medium text-green-600">+1</td>
+                                        <td class="px-4 py-2 text-sm font-medium text-green-600">+{{ question_marks }}</td>
                                     </tr>
                                     <tr>
                                         <td class="px-4 py-2 text-sm text-gray-600">Incorrect Answer</td>
-                                        <td class="px-4 py-2 text-sm font-medium text-red-600">-0.25</td>
+                                        <td class="px-4 py-2 text-sm font-medium {% if mocktest.has_negative_marking %}text-red-600{% else %}text-gray-500{% endif %}">
+                                            {% if mocktest.has_negative_marking %}
+                                                -{{ negative_marks }}
+                                            {% else %}
+                                                0
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td class="px-4 py-2 text-sm text-gray-600">Not Attempted</td>
@@ -139,9 +163,22 @@
                             </table>
                         </div>
 
-                        <p class="text-xs text-gray-500 mt-3">
-                            <span class="font-semibold">Note:</span> Negative marking applies only to wrong answers.
-                        </p>
+                        <div class="mt-3 text-xs text-gray-500 space-y-1">
+                            {% if mocktest.has_negative_marking %}
+                            <p>
+                                <span class="font-semibold">⚠️ Note:</span> 
+                                Negative marking applies with <span class="font-semibold text-red-600">-{{ negative_marks }}</span> marks for each wrong answer.
+                            </p>
+                            {% else %}
+                            <p>
+                                <span class="font-semibold">✅ Note:</span> 
+                                No negative marking. You get <span class="font-semibold text-green-600">+{{ question_marks }}</span> marks for correct answers and 0 for wrong answers.
+                            </p>
+                            {% endif %}
+                            <p class="text-gray-400">
+                                Each question carries <span class="font-semibold">{{ question_marks }}</span> mark(s)
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -175,7 +212,13 @@
                                         <span class="text-lg">🎯</span>
                                         <span class="font-semibold text-sm text-gray-700">Smart Attempting</span>
                                     </div>
-                                    <p class="text-xs text-gray-600">Attempt all questions. Even guesses have a chance at being correct!</p>
+                                    <p class="text-xs text-gray-600">
+                                        {% if mocktest.has_negative_marking %}
+                                        Be cautious with guesses as there's negative marking. Only attempt if you're reasonably sure.
+                                        {% else %}
+                                        Attempt all questions. Even guesses can earn you marks!
+                                        {% endif %}
+                                    </p>
                                 </div>
                                 <div class="bg-white/70 rounded-lg p-3 border border-blue-100/50">
                                     <div class="flex items-center gap-2 mb-1">
