@@ -178,6 +178,8 @@ def check_content_access_and_redirect(request, content_obj, content_type, redire
 # HOME
 # ==============================
 
+# exams/views.py - home view (FULLY CORRECTED)
+
 def home(request):
     try:
         # Get categories
@@ -189,6 +191,17 @@ def home(request):
         except:
             mock_tests = MockTest.objects.all().order_by('-created_at')[:6]
         
+        # ✅ GET SUBJECTS FROM QA APP
+        subjects = []
+        try:
+            from QA.models import Subject
+            subjects = Subject.objects.filter(is_active=True).order_by('order', 'name')[:10]
+            print(f"✅ Loaded {subjects.count()} subjects from QA app")
+        except ImportError:
+            print("❌ QA app not installed or not available")
+        except Exception as e:
+            print(f"❌ Error loading subjects: {e}")
+        
         # Get testimonials
         try:
             testimonials = Testimonial.objects.filter(
@@ -196,7 +209,7 @@ def home(request):
                 is_active=True
             ).order_by('-is_featured', '-created_at')[:10]
         except Exception as e:
-            print(f"Error loading testimonials: {e}")
+            print(f"❌ Error loading testimonials: {e}")
             testimonials = []
         
         # Get FAQs
@@ -217,21 +230,26 @@ def home(request):
                     user=request.user
                 ).exclude(status='rejected').first()
             except Exception as e:
-                print(f"Error getting user testimonial: {e}")
+                print(f"❌ Error getting user testimonial: {e}")
         
         # Check if user is subscribed
         is_subscribed = False
         if request.user.is_authenticated:
-            subscriptions = Subscription.objects.filter(
-                user=request.user,
-                status='active',
-                expiry_date__gt=timezone.now()
-            )
-            is_subscribed = subscriptions.exists()
+            try:
+                from payments.models import Subscription
+                subscriptions = Subscription.objects.filter(
+                    user=request.user,
+                    status='active',
+                    expiry_date__gt=timezone.now()
+                )
+                is_subscribed = subscriptions.exists()
+            except:
+                is_subscribed = False
         
         context = {
             'categories': categories,
             'mock_tests': mock_tests,
+            'subjects': subjects,  # ✅ ADDED - This was missing!
             'testimonials': testimonials,
             'faqs_home': faqs_home,
             'user_testimonial': user_testimonial,
@@ -250,13 +268,14 @@ def home(request):
     except Exception as e:
         import traceback
         print("="*50)
-        print("ERROR in home view:")
+        print("❌ ERROR in home view:")
         print(traceback.format_exc())
         print("="*50)
         
         return render(request, "exams/home.html", {
             'categories': [],
             'mock_tests': [],
+            'subjects': [],  # ✅ ADDED - Empty fallback
             'testimonials': [],
             'faqs_home': [],
             'user_testimonial': None,
@@ -269,7 +288,6 @@ def home(request):
             'success_rate': '0%',
             'is_subscribed': False,
         })
-
 
 def about(request):
     """About page view"""

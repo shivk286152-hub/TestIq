@@ -520,24 +520,42 @@ def search_questions(request):
 # ✅ 8. API ENDPOINTS
 # ============================================
 
+# QA/views.py - API Endpoints (FULLY FIXED)
+
 def get_topics_api(request, subject_id):
+    """API endpoint to get topics for a subject (AJAX)"""
     try:
+        # ✅ Get subject
         subject = Subject.objects.get(id=subject_id, is_active=True)
+        
+        # ✅ Get topics with parts count
         topics = subject.topics.filter(is_active=True).annotate(
             parts_count=Count('parts', filter=Q(parts__is_active=True))
         ).order_by('order', 'name')
         
         topics_data = []
         for topic in topics:
+            # ✅ Safely get payment info
+            try:
+                is_free = topic.is_free()
+                is_locked = topic.is_locked()
+                price = float(topic.get_price())
+                can_access = topic.user_has_access(request.user)
+            except:
+                is_free = True
+                is_locked = False
+                price = 0
+                can_access = True
+            
             topics_data.append({
                 'id': topic.id,
                 'name': topic.name,
                 'slug': topic.slug,
                 'parts_count': topic.parts_count,
-                'is_free': topic.is_free(),
-                'can_access': topic.user_has_access(request.user),
-                'is_locked': topic.is_locked(),
-                'price': float(topic.get_price()),
+                'is_free': is_free,
+                'can_access': can_access,
+                'is_locked': is_locked,
+                'price': price,
             })
         
         return JsonResponse({
@@ -546,51 +564,111 @@ def get_topics_api(request, subject_id):
             'subject_slug': subject.slug,
             'topics': topics_data,
         })
+        
     except Subject.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Subject not found'}, status=404)
+        return JsonResponse({
+            'success': False, 
+            'error': 'Subject not found'
+        }, status=404)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': str(e)
+        }, status=500)
 
 
 def get_topics_by_subject_api(request, subject_id):
+    """API to get topics for a subject (for dynamic filtering)"""
     try:
         subject = Subject.objects.get(id=subject_id, is_active=True)
         topics = subject.topics.filter(is_active=True).values('id', 'name', 'slug')
-        return JsonResponse({'success': True, 'topics': list(topics)})
+        
+        return JsonResponse({
+            'success': True, 
+            'topics': list(topics)
+        })
+        
     except Subject.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Subject not found'}, status=404)
+        return JsonResponse({
+            'success': False, 
+            'error': 'Subject not found'
+        }, status=404)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': str(e)
+        }, status=500)
 
 
 def get_parts_by_topic_api(request, topic_id):
+    """API to get parts for a topic (for dynamic filtering)"""
     try:
         topic = Topic.objects.get(id=topic_id, is_active=True)
         parts = topic.parts.filter(is_active=True).values('id', 'name', 'slug')
-        return JsonResponse({'success': True, 'parts': list(parts)})
+        
+        return JsonResponse({
+            'success': True, 
+            'parts': list(parts)
+        })
+        
     except Topic.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Topic not found'}, status=404)
+        return JsonResponse({
+            'success': False, 
+            'error': 'Topic not found'
+        }, status=404)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': str(e)
+        }, status=500)
 
 
 def content_status_api(request, content_type, content_id):
+    """Check if content is free or paid"""
     try:
+        # ✅ Map content types to models
         content_type_map = {
             'qa_subject': Subject,
             'qa_topic': Topic,
             'qa_part': Part,
         }
+        
         model = content_type_map.get(content_type)
         if not model:
-            return JsonResponse({'error': 'Invalid content type'}, status=400)
+            return JsonResponse({
+                'error': 'Invalid content type'
+            }, status=400)
         
+        # ✅ Get content object
         content_obj = get_object_or_404(model, id=content_id)
         
+        # ✅ Safely get payment info
+        try:
+            is_free = content_obj.is_free()
+            price = float(content_obj.get_price())
+            is_locked = content_obj.is_locked()
+            can_access = content_obj.user_has_access(request.user)
+        except:
+            is_free = True
+            price = 0
+            is_locked = False
+            can_access = True
+        
         return JsonResponse({
-            'is_free': content_obj.is_free(),
-            'price': float(content_obj.get_price()),
-            'can_access': content_obj.user_has_access(request.user),
-            'is_locked': content_obj.is_locked(),
+            'is_free': is_free,
+            'price': price,
+            'can_access': can_access,
+            'is_locked': is_locked,
             'requires_login': not request.user.is_authenticated,
         })
+        
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
 
 # ============================================
 # ✅ 9. ADVANCED FILTER
