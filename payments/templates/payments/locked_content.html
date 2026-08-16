@@ -1,0 +1,96 @@
+<!-- payments/templates/payments/locked_content.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Content Locked | Payments{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-2xl">
+    <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+        
+        <!-- ✅ IF USER ALREADY HAS ACCESS -->
+        {% if has_access %}
+            <div class="text-5xl mb-4">✅</div>
+            <h1 class="text-2xl font-bold text-green-600">You Already Have Access!</h1>
+            <p class="text-gray-600 mt-2">You can view "{{ content_name }}" anytime.</p>
+            
+            <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+                {% if redirect_url %}
+                    <a href="{{ redirect_url }}" 
+                       class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all">
+                        📖 View {{ content_type_display }}
+                    </a>
+                {% else %}
+                    <a href="{% url 'qa:subject_list' %}" 
+                       class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all">
+                        📖 Go to Subjects
+                    </a>
+                {% endif %}
+                <a href="{% url 'qa:subject_list' %}" 
+                   class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl transition-all">
+                    ← Go Back to Subjects
+                </a>
+            </div>
+            
+        <!-- ✅ IF USER HAS SUBSCRIPTION -->
+        {% elif is_subscribed %}
+            <div class="text-5xl mb-4">🌟</div>
+            <h1 class="text-2xl font-bold text-indigo-600">You Have an Active Subscription!</h1>
+            <p class="text-gray-600 mt-2">You have access to all locked content including "{{ content_name }}".</p>
+            
+            <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+                {% if redirect_url %}
+                    <a href="{{ redirect_url }}" 
+                       class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all">
+                        📖 View {{ content_type_display }}
+                    </a>
+                {% else %}
+                    <a href="{% url 'qa:subject_list' %}" 
+                       class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all">
+                        📖 Go to Subjects
+                    </a>
+                {% endif %}
+                <a href="{% url 'payments:subscription_status' %}" 
+                   class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl transition-all">
+                    📋 View Subscription
+                </a>
+            </div>
+            
+        <!-- ✅ IF CONTENT IS LOCKED AND USER NEEDS TO PAY -->
+        {% else %}
+            <div class="text-6xl mb-4">🔒</div>
+            <h1 class="text-2xl font-bold text-gray-800">Content Locked</h1>
+            <p class="text-gray-500 mt-1">{{ content_type_display }}: {{ content_name }}</p>
+            
+            <div class="bg-gray-50 rounded-xl p-6 mt-6 inline-block">
+                <p class="text-sm text-gray-500">Price</p>
+                <p class="text-3xl font-bold text-indigo-600">₹{{ price }}</p>
+                <p class="text-xs text-gray-400 mt-1">One-time payment • Lifetime access</p>
+            </div>
+            
+            {% if user.is_authenticated %}
+                <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+                    <a href="{% url 'payments:purchase_content' content_type content_id %}" 
+                       class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-indigo-500/25">
+                        💳 Purchase Now - ₹{{ price }}
+                    </a>
+                    <a href="{% url 'payments:subscription_plans' %}" 
+                       class="px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-emerald-500/25">
+                        🚀 Subscribe & Save
+                    </a>
+                </div>
+                <p class="text-xs text-gray-400 mt-4">Subscription gives you access to ALL locked content</p>
+            {% else %}
+                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mt-6">
+                    <p class="text-yellow-700">Please login to purchase or access this content.</p>
+                </div>
+                <a href="{% url 'account_login' %}?next={{ request.path }}" 
+                   class="inline-block mt-4 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all">
+                    Login to Continue
+                </a>
+            {% endif %}
+        {% endif %}
+        
+    </div>
+</div>
+{% endblock %}

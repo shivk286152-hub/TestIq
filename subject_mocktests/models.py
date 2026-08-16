@@ -3,6 +3,7 @@ from django.utils.text import slugify
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.db.models import Sum, Count
 
 # ============================================
 # SUBJECT MODEL - Main subject category
@@ -82,6 +83,7 @@ class MockTest(models.Model):
         ('Easy', 'Easy'),
         ('Medium', 'Medium'),
         ('Hard', 'Hard'),
+        ('Expert', 'Expert'),
     ]
     
     title = models.CharField(max_length=255)
@@ -113,6 +115,7 @@ class MockTest(models.Model):
         indexes = [
             models.Index(fields=['subject', 'is_active']),
             models.Index(fields=['topic', 'is_active']),
+            models.Index(fields=['slug']),
         ]
     
     def __str__(self):
@@ -136,8 +139,10 @@ class MockTest(models.Model):
     def update_totals(self):
         """Update total questions and marks"""
         self.total_questions = self.questions.count()
-        self.total_marks = sum(q.marks for q in self.questions.all())
+        total_marks = self.questions.aggregate(Sum('marks'))['marks__sum']
+        self.total_marks = total_marks if total_marks else 0
         self.save(update_fields=['total_questions', 'total_marks'])
+        return self.total_questions, self.total_marks
 
 
 # ============================================
@@ -151,13 +156,15 @@ class Question(models.Model):
         ('Easy', 'Easy'),
         ('Medium', 'Medium'),
         ('Hard', 'Hard'),
+        ('Expert', 'Expert'),
     ]
     
-    # Default negative marks by difficulty (for compatibility with first app)
+    # Default negative marks by difficulty
     DIFFICULTY_NEGATIVE_MARKS = {
         'Easy': 0.25,
         'Medium': 0.33,
         'Hard': 0.50,
+        'Expert': 0.75,
     }
     
     mock_test = models.ForeignKey(MockTest, on_delete=models.CASCADE, related_name="questions")
@@ -180,16 +187,18 @@ class Question(models.Model):
     
     class Meta:
         ordering = ['order', 'id']
+        indexes = [
+            models.Index(fields=['mock_test', 'order']),
+            models.Index(fields=['difficulty']),
+        ]
     
     def __str__(self):
-        return self.question_en[:50]
+        return self.question_en[:50] if self.question_en else f"Question {self.id}"
     
     def get_effective_negative_marks(self):
-        """Get effective negative marks (compatible with first app)"""
+        """Get effective negative marks"""
         if self.negative_marks_override is not None:
             return self.negative_marks_override
-        
-        # Use difficulty-based default
         return self.DIFFICULTY_NEGATIVE_MARKS.get(self.difficulty, 0.25)
     
     def get_question_text(self, language='en'):
@@ -222,7 +231,7 @@ class Option(models.Model):
         ordering = ['order']
     
     def __str__(self):
-        return self.text_en[:30]
+        return self.text_en[:30] if self.text_en else f"Option {self.id}"
     
     def get_text(self, language='en'):
         if language == 'hi' and self.text_hi:
@@ -231,12 +240,12 @@ class Option(models.Model):
 
 
 # ============================================
-# MOCK TEST ATTEMPT - Updated to match first app's fields
+# MOCK TEST ATTEMPT
 # ============================================
 
 class MockTestAttempt(models.Model):
     """
-    Subject mock test attempt with fields matching first app's expectations
+    Subject mock test attempt with comprehensive tracking
     """
     
     LANGUAGE_CHOICES = [
@@ -244,7 +253,7 @@ class MockTestAttempt(models.Model):
         ('hi', 'हिन्दी (Hindi)'),
     ]
     
-    # Link to exams app attempt (optional - created after submission)
+    # Link to exams app attempt
     exams_attempt = models.OneToOneField(
         'exams.MockTestAttempt',
         on_delete=models.SET_NULL,
@@ -253,7 +262,7 @@ class MockTestAttempt(models.Model):
         related_name='subject_attempt'
     )
     
-    # Subject-specific relationships
+    # Relationships
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -273,7 +282,7 @@ class MockTestAttempt(models.Model):
         default='en'
     )
     
-    # Scoring Results - ADDED FIELDS to match first app
+    # Scoring Results
     raw_score = models.FloatField(default=0, help_text="Score without negative marking")
     score_with_negative = models.FloatField(default=0, help_text="Score with negative marking applied")
     total_marks = models.FloatField(default=0)
@@ -303,6 +312,7 @@ class MockTestAttempt(models.Model):
         indexes = [
             models.Index(fields=['user', 'mock_test', 'is_completed']),
             models.Index(fields=['started_at']),
+            models.Index(fields=['user', 'is_completed']),
         ]
     
     def __str__(self):
@@ -310,24 +320,25 @@ class MockTestAttempt(models.Model):
     
     @property
     def percentage(self):
-        """Calculate percentage score (for compatibility)"""
-        if not self.total_marks or self.total_marks == 0:
-            return 0
-        return round((self.score / self.total_marks) * 100, 2)
-    
-    @property
-    def percentage_with_negative(self):
-        """Calculate percentage score with negative marking"""
+        """Calculate percentage score"""
         if not self.total_marks or self.total_marks == 0:
             return 0
         return round((self.score_with_negative / self.total_marks) * 100, 2)
     
     @property
-    def percentage_raw(self):
+    def raw_percentage(self):
         """Calculate raw percentage (without negative)"""
         if not self.total_marks or self.total_marks == 0:
             return 0
         return round((self.raw_score / self.total_marks) * 100, 2)
+    
+    @property
+    def accuracy(self):
+        """Calculate accuracy percentage"""
+        total_answered = self.correct_answers + self.wrong_answers
+        if total_answered == 0:
+            return 0
+        return round((self.correct_answers / total_answered) * 100, 2)
     
     @property
     def time_taken(self):
@@ -344,7 +355,7 @@ class MockTestAttempt(models.Model):
         return None
     
     def calculate_scores(self):
-        """Calculate all scores for this attempt (compatible with first app)"""
+        """Calculate all scores for this attempt"""
         answers = UserAnswer.objects.filter(attempt=self)
         
         correct = 0
@@ -377,7 +388,7 @@ class MockTestAttempt(models.Model):
         self.raw_score = raw_total
         self.score_with_negative = max(0, score_with_negative)
         self.negative_marks_applied = negative_total
-        self.score = self.score_with_negative  # Keep score field in sync
+        self.score = self.score_with_negative
         self.total_marks = sum(q.marks for q in self.mock_test.questions.all())
         
         self.save()
@@ -385,28 +396,32 @@ class MockTestAttempt(models.Model):
     
     def create_exams_attempt(self):
         """Create a corresponding exams app attempt"""
-        from exams.models import MockTestAttempt as ExamsMockTestAttempt
-        
-        exams_attempt = ExamsMockTestAttempt.objects.create(
-            user=self.user,
-            mock_test_id=self.mock_test_id,
-            language=self.language,
-            raw_score=self.raw_score,
-            score_with_negative=self.score_with_negative,
-            total_marks=self.total_marks,
-            correct_answers=self.correct_answers,
-            wrong_answers=self.wrong_answers,
-            skipped_answers=self.skipped_answers,
-            negative_marks_applied=self.negative_marks_applied,
-            started_at=self.started_at,
-            submitted_at=self.submitted_at,
-            is_completed=self.is_completed,
-            has_detailed_data=self.has_detailed_data
-        )
-        
-        self.exams_attempt = exams_attempt
-        self.save()
-        return exams_attempt
+        try:
+            from exams.models import MockTestAttempt as ExamsMockTestAttempt
+            
+            exams_attempt = ExamsMockTestAttempt.objects.create(
+                user=self.user,
+                mock_test_id=self.mock_test_id,
+                language=self.language,
+                raw_score=self.raw_score,
+                score_with_negative=self.score_with_negative,
+                total_marks=self.total_marks,
+                correct_answers=self.correct_answers,
+                wrong_answers=self.wrong_answers,
+                skipped_answers=self.skipped_answers,
+                negative_marks_applied=self.negative_marks_applied,
+                started_at=self.started_at,
+                submitted_at=self.submitted_at,
+                is_completed=self.is_completed,
+                has_detailed_data=self.has_detailed_data
+            )
+            
+            self.exams_attempt = exams_attempt
+            self.save()
+            return exams_attempt
+        except ImportError:
+            # Exams app not installed
+            return None
 
 
 # ============================================
@@ -462,22 +477,25 @@ class UserAnswer(models.Model):
         ordering = ['created_at']
         indexes = [
             models.Index(fields=['attempt', 'question']),
+            models.Index(fields=['attempt', 'is_correct']),
         ]
         unique_together = ['attempt', 'question']
     
     def __str__(self):
-        status = "✓" if self.is_correct else "✗"
+        status = "✓" if self.is_correct else "✗" if self.selected_option else "⊘"
         return f"{self.attempt.user.username} - Q{self.question.id} {status}"
     
     def save(self, *args, **kwargs):
         """Auto-set is_correct based on selected option"""
-        if self.selected_option and not self.is_correct:
+        if self.selected_option:
             self.is_correct = self.selected_option.is_correct
+        else:
+            self.is_correct = False
         super().save(*args, **kwargs)
     
     @property
     def marks_obtained(self):
-        """Calculate marks obtained for this answer (with negative marking)"""
+        """Calculate marks obtained for this answer"""
         if not self.selected_option:
             return 0
         if self.is_correct:
@@ -494,16 +512,19 @@ class UserAnswer(models.Model):
     
     def create_exams_answer(self, exams_attempt):
         """Create a corresponding exams app answer"""
-        from exams.models import UserAnswer as ExamsUserAnswer
-        
-        exams_answer = ExamsUserAnswer.objects.create(
-            attempt=exams_attempt,
-            question_id=self.question_id,
-            selected_option_id=self.selected_option_id if self.selected_option else None,
-            is_correct=self.is_correct,
-            time_taken=self.time_taken
-        )
-        
-        self.exams_answer = exams_answer
-        self.save()
-        return exams_answer
+        try:
+            from exams.models import UserAnswer as ExamsUserAnswer
+            
+            exams_answer = ExamsUserAnswer.objects.create(
+                attempt=exams_attempt,
+                question_id=self.question_id,
+                selected_option_id=self.selected_option_id if self.selected_option else None,
+                is_correct=self.is_correct,
+                time_taken=self.time_taken
+            )
+            
+            self.exams_answer = exams_answer
+            self.save()
+            return exams_answer
+        except ImportError:
+            return None

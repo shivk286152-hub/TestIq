@@ -6,9 +6,10 @@ from . import views
 app_name = "exams"
 
 urlpatterns = [
-
-    # Home
+    # Home - COMMENTED OUT (handled by main urls.py)
     path("", views.home, name="home"),
+    
+    # About
     path('about/', views.about, name='about'),
 
     # Category → Subcategory → Tests
@@ -35,33 +36,31 @@ urlpatterns = [
     path('testimonial/<int:testimonial_id>/edit/', views.edit_testimonial, name='edit_testimonial'),
     path('testimonial/<int:testimonial_id>/delete/', views.delete_testimonial, name='delete_testimonial'),
 
+    # Statistics
     path('statistics/<int:attempt_id>/', views.test_statistics, name='test_statistics'),
     path('statistics/<int:attempt_id>/pdf/', views.download_statistics_pdf, name='download_statistics_pdf'),
+    
+    # FAQ
     path('faq/', views.faq_page, name='faq_page'),
     
-    # Contact URLs
+    # Contact
     path('contact/', views.contact_page, name='contact_page'),
     path('contact/success/', views.contact_success, name='contact_success'),
     
-    # Legal URLs - ADD THESE
+    # Legal
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
 
-    # path('analytics/', views.advanced_analytics, name='advanced_analytics'),
-    
+    # Analytics
     path('advanced-analytics/', views.advanced_analytics, name='advanced_analytics'),
     path('test-content/<int:test_id>/', views.get_test_content, name='get_test_content'),
 
-     # ... existing URLs ...
+    # Leaderboard
     path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('leaderboard/<str:filter_type>/', views.leaderboard, name='leaderboard_filtered'),
-    path('dashboard/all-attempts/', views.all_attempts, name='all_attempts'),
-#     path('leaderboard/subject/<int:subject_id>/', views.subject_leaderboard, name='subject_leaderboard'),
-#     path('leaderboard/mocktest/<int:mocktest_id>/', views.mocktest_leaderboard, name='mocktest_leaderboard'),
-#     # path('leaderboard/api/data/', views.leaderboard_api, name='leaderboard_api'),
-
+    path('dashboard/all-attempts/', views.all_attempts_unified, name='all_attempts'),
 ]
 
-# 👇 Yeh line sabse neeche add karein
+# Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -300,6 +300,57 @@
         font-size: 0.5rem;
     }
 
+    /* Topic Card Styles */
+    .topic-card {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .topic-card .card-gradient {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2.5px;
+        background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .topic-card:hover .card-gradient {
+        opacity: 1;
+    }
+    
+    .topic-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px -8px rgba(99, 102, 241, 0.12);
+        border-color: #c7d2fe;
+    }
+
+    /* Status Badges */
+    .badge-free {
+        background: #dcfce7;
+        color: #16a34a;
+        padding: 0.1rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.6rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+
+    .badge-locked {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 0.1rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.6rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+
     /* Responsive */
     @media (max-width: 767px) {
         .content-section-wrapper { padding: 1rem !important; }
@@ -348,6 +399,15 @@
                             <i class="fa-regular fa-clock text-green-500"></i>
                             {{ subject.updated_at|date:"M d, Y" }}
                         </span>
+                        {% if not is_subject_free %}
+                        <span class="badge-locked">
+                            <i class="fa-solid fa-lock"></i> Paid
+                        </span>
+                        {% else %}
+                        <span class="badge-free">
+                            <i class="fa-solid fa-unlock"></i> Free
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -366,30 +426,47 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {% for topic in topics %}
-                <a href="{% url 'qa:part_list' subject.slug topic.slug %}" 
-                   class="group bg-white rounded-xl shadow hover:shadow-lg p-4 transition-all duration-300 hover:-translate-y-1 border border-gray-100 hover:border-indigo-300 relative overflow-hidden">
-                    <!-- Decorative gradient line -->
-                    <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                {% for item in topics %}
+                <div class="topic-card bg-white rounded-xl shadow hover:shadow-lg p-4 transition-all duration-300 border border-gray-100 hover:border-indigo-300 relative">
+                    <div class="card-gradient"></div>
                     
                     <div class="flex items-start justify-between">
-                        <h3 class="text-base font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
-                            {{ topic.name }}
+                        <h3 class="text-base font-semibold text-gray-800">
+                            {{ item.topic.name }}
                         </h3>
-                        <i class="fa-solid fa-arrow-right text-gray-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all duration-300 text-sm"></i>
+                        <!-- ✅ Access Status Badge -->
+                        {% if item.is_locked %}
+                        <span class="badge-locked">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        {% else %}
+                        <span class="badge-free">
+                            <i class="fa-solid fa-unlock"></i>
+                        </span>
+                        {% endif %}
                     </div>
                     
-                    {% if topic.description %}
-                    <p class="text-gray-500 text-xs mt-1 line-clamp-2">{{ topic.description|truncatechars:60 }}</p>
+                    {% if item.topic.description %}
+                    <p class="text-gray-500 text-xs mt-1 line-clamp-2">{{ item.topic.description|truncatechars:60 }}</p>
                     {% endif %}
                     
                     <div class="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-100">
                         <span class="text-gray-500">
-                            <i class="fa-regular fa-folder-open text-indigo-400"></i> {{ topic.parts_count }}
+                            <i class="fa-regular fa-folder-open text-indigo-400"></i> {{ item.parts_count }}
                         </span>
-                        <span class="text-indigo-600 font-medium text-xs">Explore →</span>
+                        {% if item.is_locked %}
+                        <a href="{% url 'payments:locked_content' content_type='topic' content_id=item.topic.id %}" 
+                           class="text-yellow-600 font-medium text-xs hover:text-yellow-700 transition">
+                            <i class="fa-solid fa-crown mr-1"></i> Unlock
+                        </a>
+                        {% else %}
+                        <a href="{% url 'qa:part_list' subject.slug item.topic.slug %}" 
+                           class="text-indigo-600 font-medium text-xs hover:text-indigo-700 transition group">
+                            Explore <i class="fa-solid fa-arrow-right ml-1 group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        {% endif %}
                     </div>
-                </a>
+                </div>
                 {% empty %}
                 <div class="col-span-full">
                     <div class="bg-white rounded-xl shadow-lg p-8 text-center border-2 border-dashed border-gray-200">

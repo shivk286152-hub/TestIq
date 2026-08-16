@@ -1,0 +1,240 @@
+<!-- payments/templates/payments/user_dashboard.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Payment Dashboard | Payments{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">💰 My Payment Dashboard</h1>
+            <p class="text-gray-500 text-sm">Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+        </div>
+        <div class="text-right">
+            <span class="text-sm text-gray-500">Member since</span>
+            <p class="font-semibold text-gray-700">{{ user.date_joined|date:"M d, Y" }}</p>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
+            <p class="text-sm text-gray-500">Total Purchases</p>
+            <p class="text-2xl font-bold text-gray-800">{{ total_purchases }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-green-500">
+            <p class="text-sm text-gray-500">Free Access</p>
+            <p class="text-2xl font-bold text-gray-800">{{ total_free_access }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-purple-500">
+            <p class="text-sm text-gray-500">Total Spent</p>
+            <p class="text-2xl font-bold text-indigo-600">₹{{ total_spent }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-yellow-500">
+            <p class="text-sm text-gray-500">Subscription Status</p>
+            {% if has_subscription %}
+                <p class="text-2xl font-bold text-green-600">✅ Active</p>
+            {% else %}
+                <p class="text-2xl font-bold text-gray-400">❌ Inactive</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Current Subscription -->
+    {% if current_subscription %}
+    <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl shadow p-6 mb-6 border border-green-200">
+        <div class="flex items-start justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-800">🌟 Active Subscription</h2>
+                <p class="text-xl font-semibold text-gray-900">{{ current_subscription.plan.name }}</p>
+                <div class="mt-2 flex items-center gap-4 text-sm">
+                    <span class="text-gray-600">Started: {{ current_subscription.start_date|date:"M d, Y" }}</span>
+                    <span class="text-gray-600">Expires: {{ current_subscription.expiry_date|date:"M d, Y" }}</span>
+                </div>
+                <div class="mt-2">
+                    <span class="text-sm font-semibold text-green-600">
+                        {{ current_subscription.days_remaining }} days remaining
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">
+                    <i class="fa-solid fa-check-circle text-green-500"></i>
+                    Access to all locked content
+                </p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-gray-500">Price</p>
+                <p class="text-2xl font-bold text-indigo-600">₹{{ current_subscription.plan.price }}</p>
+                <p class="text-xs text-gray-500">per {{ current_subscription.plan.duration }}</p>
+                <a href="{% url 'payments:subscription_status' %}" 
+                   class="inline-block mt-2 text-sm text-indigo-600 hover:text-indigo-800">
+                    Manage →
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-yellow-50 rounded-xl shadow p-4 mb-6 border border-yellow-200 flex items-center justify-between">
+        <div>
+            <p class="text-yellow-700 font-semibold">⚠️ No Active Subscription</p>
+            <p class="text-sm text-yellow-600">Subscribe to get access to ALL locked content.</p>
+        </div>
+        <a href="{% url 'payments:subscription_plans' %}" 
+           class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-semibold">
+            View Plans →
+        </a>
+    </div>
+    {% endif %}
+    
+    <!-- Purchased Content -->
+    <div class="bg-white rounded-xl shadow mb-6 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-gray-800">📚 My Purchased Content</h2>
+            <span class="text-sm text-gray-500">{{ purchases|length }} items</span>
+        </div>
+        
+        {% if purchases %}
+            <div class="divide-y divide-gray-200">
+                {% for purchase in purchases %}
+                <div class="px-6 py-4 hover:bg-gray-50 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="font-semibold text-gray-800">
+                                {{ purchase.content_name|default:purchase.content_type }}
+                            </p>
+                            <div class="flex items-center gap-3 mt-1 text-sm">
+                                <span class="text-gray-500">{{ purchase.get_access_type_display }}</span>
+                                <span class="text-gray-400">•</span>
+                                <span class="text-gray-500">{{ purchase.content_app|title }}</span>
+                                <span class="text-gray-400">•</span>
+                                <span class="{% if purchase.status == 'active' %}text-green-600{% else %}text-red-500{% endif %}">
+                                    {{ purchase.get_status_display }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">
+                                Purchased: {{ purchase.created_at|date:"M d, Y" }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            {% if purchase.expiry_date %}
+                            <p class="text-xs text-gray-400">Expires: {{ purchase.expiry_date|date:"M d, Y" }}</p>
+                            {% endif %}
+                            {% if purchase.status == 'active' %}
+                            <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full mt-1">
+                                ✅ Active
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="px-6 py-8 text-center">
+                <div class="text-4xl mb-3">🛒</div>
+                <p class="text-gray-500">You haven't purchased any content yet.</p>
+                <a href="{% url 'qa:subject_list' %}" 
+                   class="inline-block mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">
+                    Browse Content
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Payment History -->
+    <div class="bg-white rounded-xl shadow mb-6 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-gray-800">💳 Payment History</h2>
+            <span class="text-sm text-gray-500">{{ payments|length }} transactions</span>
+        </div>
+        
+        {% if payments %}
+            <div class="divide-y divide-gray-200">
+                {% for payment in payments %}
+                <div class="px-6 py-4 hover:bg-gray-50 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="font-semibold text-gray-800">₹{{ payment.total_amount }}</p>
+                            <div class="flex items-center gap-3 mt-1 text-sm">
+                                <span class="text-gray-500">Payment ID: {{ payment.payment_id }}</span>
+                                <span class="text-gray-400">•</span>
+                                <span class="text-gray-500">{{ payment.payment_method|title }}</span>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">
+                                {{ payment.created_at|date:"M d, Y H:i" }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-block px-2 py-1 rounded-full text-xs 
+                                {% if payment.status == 'completed' %}bg-green-100 text-green-700
+                                {% elif payment.status == 'pending' %}bg-yellow-100 text-yellow-700
+                                {% elif payment.status == 'failed' %}bg-red-100 text-red-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ payment.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="px-6 py-8 text-center">
+                <p class="text-gray-500">No payment history found.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Subscription History -->
+    {% if subscription_history %}
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-gray-800">📋 Subscription History</h2>
+            <span class="text-sm text-gray-500">{{ subscription_history|length }} subscriptions</span>
+        </div>
+        <div class="divide-y divide-gray-200">
+            {% for sub in subscription_history %}
+            <div class="px-6 py-4 hover:bg-gray-50 transition-all">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="font-semibold text-gray-800">{{ sub.plan.name }}</p>
+                        <div class="flex items-center gap-3 mt-1 text-sm">
+                            <span class="text-gray-500">{{ sub.start_date|date:"M d, Y" }} - {{ sub.expiry_date|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-block px-2 py-1 rounded-full text-xs 
+                            {% if sub.status == 'active' %}bg-green-100 text-green-700
+                            {% elif sub.status == 'expired' %}bg-gray-100 text-gray-700
+                            {% elif sub.status == 'cancelled' %}bg-red-100 text-red-700
+                            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                            {{ sub.get_status_display }}
+                        </span>
+                        <p class="text-xs text-gray-400 mt-1">₹{{ sub.plan.price }}/{{ sub.plan.duration }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quick Actions -->
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <a href="{% url 'qa:subject_list' %}" 
+           class="bg-indigo-600 hover:bg-indigo-700 text-white text-center py-2 rounded-lg transition-all">
+            📚 Browse Content
+        </a>
+        <a href="{% url 'payments:subscription_plans' %}" 
+           class="bg-green-600 hover:bg-green-700 text-white text-center py-2 rounded-lg transition-all">
+            🚀 View Subscription Plans
+        </a>
+        <a href="{% url 'payments:purchase_history' %}" 
+           class="bg-gray-600 hover:bg-gray-700 text-white text-center py-2 rounded-lg transition-all">
+            📋 View All Purchases
+        </a>
+    </div>
+    
+</div>
+{% endblock %}

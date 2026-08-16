@@ -1,0 +1,206 @@
+<!-- payments/templates/payments/manage_pricing.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">💰 Manage Pricing - Full Control</h1>
+        <div class="text-sm text-gray-500">
+            Total: {{ total_content }} | 🔒 Locked: {{ locked_count }} | 🔓 Free: {{ free_count }}
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+            <p class="text-sm text-gray-500">Total Content</p>
+            <p class="text-2xl font-bold">{{ total_content }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+            <p class="text-sm text-gray-500">🔒 Locked</p>
+            <p class="text-2xl font-bold text-red-600">{{ locked_count }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+            <p class="text-sm text-gray-500">🔓 Free</p>
+            <p class="text-2xl font-bold text-green-600">{{ free_count }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+            <p class="text-sm text-gray-500">Revenue Potential</p>
+            <p class="text-2xl font-bold text-blue-600">₹{{ locked_count|default:0|add:99 }}</p>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <form method="GET" class="flex flex-wrap gap-4 items-end">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">App</label>
+                <select name="app" class="border rounded px-3 py-2">
+                    <option value="">All Apps</option>
+                    {% for app in apps %}
+                    <option value="{{ app }}" {% if app_filter == app %}selected{% endif %}>
+                        {{ app|title }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Type</label>
+                <select name="type" class="border rounded px-3 py-2">
+                    <option value="">All Types</option>
+                    {% for type in types %}
+                    <option value="{{ type }}" {% if type_filter == type %}selected{% endif %}>
+                        {{ type|title }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Status</label>
+                <select name="status" class="border rounded px-3 py-2">
+                    <option value="">All</option>
+                    <option value="locked" {% if status_filter == 'locked' %}selected{% endif %}>🔒 Locked</option>
+                    <option value="free" {% if status_filter == 'free' %}selected{% endif %}>🔓 Free</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Search</label>
+                <input type="text" name="search" value="{{ search_query }}" 
+                       placeholder="Search content..." 
+                       class="border rounded px-3 py-2 w-48">
+            </div>
+            
+            <div class="flex gap-2">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                    Filter
+                </button>
+                <a href="{% url 'payments:manage_pricing' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+                    Clear
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Content List -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">App</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Parent</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for item in all_content %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm font-medium">{{ item.name }}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <span class="px-2 py-1 rounded text-xs 
+                                {% if item.app == 'exams' %}bg-blue-100 text-blue-800
+                                {% else %}bg-purple-100 text-purple-800{% endif %}">
+                                {{ item.app|title }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-500">{{ item.type_display }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-500">{{ item.parent|default:"-" }}</td>
+                        <td class="px-4 py-3 text-sm">
+                            {% if item.is_locked %}
+                                <span class="px-2 py-1 rounded text-xs bg-red-100 text-red-800">🔒 Locked</span>
+                            {% else %}
+                                <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-800">🔓 Free</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-sm font-semibold">₹{{ item.price }}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <button onclick="openModal('{{ item.type }}', '{{ item.id }}', '{{ item.name }}', {{ item.is_locked|lower }}, '{{ item.price }}')" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
+                                Manage
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                            No content found matching filters.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="pricingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        <h2 class="text-xl font-bold mb-4">Manage Pricing</h2>
+        <form method="POST" action="{% url 'payments:manage_pricing' %}">
+            {% csrf_token %}
+            <input type="hidden" name="content_type" id="modalContentType">
+            <input type="hidden" name="content_id" id="modalContentId">
+            
+            <div class="mb-4">
+                <p class="text-sm text-gray-600">Content: <span id="modalNameDisplay" class="font-semibold"></span></p>
+                <p class="text-sm text-gray-600">Status: <span id="modalStatusDisplay"></span></p>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Price (₹)</label>
+                <input type="number" name="price" id="modalPrice" step="0.01" min="0"
+                       class="w-full border rounded px-3 py-2 mt-1">
+            </div>
+            
+            <div class="flex gap-3">
+                <button type="submit" name="action" value="lock" 
+                        class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition">
+                    🔒 Lock
+                </button>
+                <button type="submit" name="action" value="unlock" 
+                        class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition">
+                    🔓 Unlock
+                </button>
+                <button type="submit" name="action" value="update_price" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition">
+                    💰 Update
+                </button>
+            </div>
+        </form>
+        <button onclick="closeModal()" class="mt-4 w-full bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded transition">
+            Close
+        </button>
+    </div>
+</div>
+
+<script>
+function openModal(contentType, contentId, contentName, isLocked, price) {
+    document.getElementById('modalContentType').value = contentType;
+    document.getElementById('modalContentId').value = contentId;
+    document.getElementById('modalNameDisplay').textContent = contentName;
+    document.getElementById('modalStatusDisplay').textContent = isLocked ? '🔒 Locked' : '🔓 Free';
+    document.getElementById('modalStatusDisplay').className = isLocked ? 'text-red-600 font-semibold' : 'text-green-600 font-semibold';
+    document.getElementById('modalPrice').value = price || 0;
+    document.getElementById('pricingModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('pricingModal').classList.add('hidden');
+}
+
+// Close modal on outside click
+document.getElementById('pricingModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}

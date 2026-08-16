@@ -6,6 +6,477 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 import json
 import re
+from decimal import Decimal
+
+
+# ============================================
+# PAYMENT & PRICING MODELS (COMPLETE)
+# ============================================
+
+class PricingConfig(models.Model):
+    """
+    Configuration for pricing of content (Category, SubCategory, MockTest)
+    """
+    
+    CONTENT_TYPES = [
+        ('subject', 'Exam Category'),
+        ('topic', 'Sub Category'),
+        ('mocktest', 'Mock Test'),
+    ]
+    
+    PRICING_TYPES = [
+        ('free', 'Free'),
+        ('paid', 'Paid (One-time)'),
+        ('subscription', 'Subscription'),
+        ('trial', 'Trial'),
+    ]
+    
+    content_type = models.CharField(max_length=20, choices=CONTENT_TYPES)
+    content_id = models.PositiveIntegerField()
+    content_name = models.CharField(max_length=200, blank=True, help_text="Content name for reference")
+    
+    pricing_type = models.CharField(max_length=20, choices=PRICING_TYPES, default='free')
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+    subscription_duration_days = models.PositiveIntegerField(
+        null=True, 
+        blank=True,
+        help_text="For subscription: duration in days (e.g., 30 for 1 month)"
+    )
+    
+    trial_duration_days = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Trial duration in days (e.g., 7 for 7-day trial)"
+    )
+    
+    discount_percentage = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=0,
+        help_text="Discount percentage (0-100)"
+    )
+    discount_start_date = models.DateTimeField(null=True, blank=True)
+    discount_end_date = models.DateTimeField(null=True, blank=True)
+    
+    is_active = models.BooleanField(default=True)
+    requires_payment = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['content_type', 'content_id']
+        ordering = ['content_type', 'created_at']
+        indexes = [
+            models.Index(fields=['content_type', 'content_id', 'is_active']),
+            models.Index(fields=['pricing_type', 'is_active']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_content_type_display()} - {self.content_name or f'ID:{self.content_id}'} - {self.get_pricing_type_display()}"
+    
+    def get_price(self):
+        if self.has_discount():
+            discount_amount = (self.price * self.discount_percentage) / 100
+            return self.price - discount_amount
+        return self.price
+    
+    def has_discount(self):
+        if self.discount_percentage <= 0:
+            return False
+        if self.discount_start_date and timezone.now() < self.discount_start_date:
+            return False
+        if self.discount_end_date and timezone.now() > self.discount_end_date:
+            return False
+        return True
+    
+    def is_free(self):
+        return self.pricing_type == 'free' and not self.requires_payment
+    
+    def is_paid(self):
+        return self.pricing_type == 'paid' or self.requires_payment
+    
+    def is_subscription(self):
+        return self.pricing_type == 'subscription'
+    
+    def is_trial(self):
+        return self.pricing_type == 'trial' and self.trial_duration_days
+    
+    def clean(self):
+        if self.pricing_type == 'paid' and self.price <= 0 and self.requires_payment:
+            raise ValidationError({
+                'price': 'Price must be greater than 0 for paid content.'
+            })
+        if self.pricing_type == 'subscription' and not self.subscription_duration_days:
+            raise ValidationError({
+                'subscription_duration_days': 'Subscription duration is required for subscription pricing.'
+            })
+        if self.pricing_type == 'trial' and not self.trial_duration_days:
+            raise ValidationError({
+                'trial_duration_days': 'Trial duration is required for trial pricing.'
+            })
+        if self.discount_percentage < 0 or self.discount_percentage > 100:
+            raise ValidationError({
+                'discount_percentage': 'Discount percentage must be between 0 and 100.'
+            })
+
+
+class UserContentAccess(models.Model):
+    """
+    Tracks user access to content
+    """
+    
+    ACCESS_TYPES = [
+        ('one_time', 'One-time Purchase'),
+        ('subscription', 'Subscription'),
+        ('free', 'Free Access'),
+        ('trial', 'Trial Access'),
+        ('lifetime', 'Lifetime Access'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('expired', 'Expired'),
+        ('cancelled', 'Cancelled'),
+        ('pending', 'Pending'),
+    ]
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='exam_content_access'
+    )
+    
+    content_type = models.CharField(max_length=20, choices=PricingConfig.CONTENT_TYPES)
+    content_id = models.PositiveIntegerField()
+    
+    access_type = models.CharField(max_length=20, choices=ACCESS_TYPES, default='free')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    
+    payment = models.ForeignKey(
+        'Payment',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='exam_content_accesses'
+    )
+    
+    start_date = models.DateTimeField(auto_now_add=True)
+    expiry_date = models.DateTimeField(null=True, blank=True)
+    last_accessed = models.DateTimeField(null=True, blank=True)
+    
+    access_count = models.PositiveIntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'content_type', 'content_id']
+        indexes = [
+            models.Index(fields=['user', 'content_type', 'content_id']),
+            models.Index(fields=['status', 'expiry_date']),
+            models.Index(fields=['user', 'status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.content_type} {self.content_id}"
+    
+    def is_active(self):
+        if self.status != 'active':
+            return False
+        if self.expiry_date and timezone.now() > self.expiry_date:
+            self.status = 'expired'
+            self.save(update_fields=['status'])
+            return False
+        return True
+    
+    def can_access(self):
+        return self.is_active()
+    
+    def get_remaining_days(self):
+        if self.expiry_date and self.expiry_date > timezone.now():
+            delta = self.expiry_date - timezone.now()
+            return delta.days
+        return 0
+
+
+class Payment(models.Model):
+    """
+    Payment transaction model
+    """
+    
+    PAYMENT_STATUS = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    PAYMENT_METHODS = [
+        ('razorpay', 'Razorpay'),
+        ('stripe', 'Stripe'),
+        ('paypal', 'PayPal'),
+        ('upi', 'UPI'),
+        ('cod', 'Cash on Delivery'),
+    ]
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='exam_payments'
+    )
+    
+    payment_id = models.CharField(max_length=100, unique=True, blank=True)
+    order_id = models.CharField(max_length=100, unique=True)
+    payment_gateway_id = models.CharField(max_length=255, blank=True, null=True)
+    
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    tax = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS)
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending')
+    
+    items = models.JSONField(default=list, help_text="List of purchased items")
+    
+    gateway_response = models.JSONField(default=dict, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    refund_reason = models.TextField(blank=True)
+    refunded_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['payment_id']),
+            models.Index(fields=['order_id']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.amount} - {self.status}"
+    
+    def save(self, *args, **kwargs):
+        if not self.payment_id:
+            import uuid
+            self.payment_id = f"PAY-{uuid.uuid4().hex[:12].upper()}"
+        super().save(*args, **kwargs)
+    
+    def complete_payment(self, gateway_response=None):
+        self.status = 'completed'
+        self.completed_at = timezone.now()
+        if gateway_response:
+            self.gateway_response = gateway_response
+        self.save()
+        
+        for item in self.items:
+            self.grant_access(item)
+    
+    def grant_access(self, item):
+        content_type = item.get('content_type')
+        content_id = item.get('content_id')
+        
+        if not content_type or not content_id:
+            return
+        
+        access, created = UserContentAccess.objects.get_or_create(
+            user=self.user,
+            content_type=content_type,
+            content_id=content_id,
+            defaults={
+                'access_type': item.get('access_type', 'one_time'),
+                'payment': self,
+                'status': 'active',
+                'expiry_date': item.get('expiry_date'),
+            }
+        )
+        
+        if not created:
+            access.payment = self
+            access.status = 'active'
+            
+            if item.get('subscription_duration_days'):
+                if access.expiry_date:
+                    access.expiry_date = access.expiry_date + timezone.timedelta(
+                        days=item['subscription_duration_days']
+                    )
+                else:
+                    access.expiry_date = timezone.now() + timezone.timedelta(
+                        days=item['subscription_duration_days']
+                    )
+            access.save()
+    
+    def refund(self, amount=None, reason=None):
+        if amount is None:
+            amount = self.total_amount
+        
+        self.refund_amount = amount
+        self.refund_reason = reason or 'Customer refund'
+        self.refunded_at = timezone.now()
+        self.status = 'refunded'
+        self.save()
+        
+        UserContentAccess.objects.filter(
+            user=self.user,
+            payment=self
+        ).update(status='cancelled')
+
+
+class Subscription(models.Model):
+    """
+    User subscription model
+    """
+    
+    SUBSCRIPTION_PLANS = [
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('half_yearly', 'Half Yearly'),
+        ('yearly', 'Yearly'),
+        ('lifetime', 'Lifetime'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('expired', 'Expired'),
+        ('cancelled', 'Cancelled'),
+        ('pending', 'Pending'),
+    ]
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='exam_subscriptions'
+    )
+    
+    plan = models.CharField(max_length=20, choices=SUBSCRIPTION_PLANS)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='exam_subscriptions'
+    )
+    
+    start_date = models.DateTimeField(default=timezone.now)
+    expiry_date = models.DateTimeField()
+    
+    is_unlimited = models.BooleanField(default=True, help_text="If True, access to all content")
+    allowed_content_types = models.JSONField(default=list, blank=True, help_text="List of content types allowed")
+    allowed_content_ids = models.JSONField(default=list, blank=True, help_text="List of specific content IDs")
+    
+    features = models.JSONField(default=dict, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['expiry_date']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.plan} - {self.status}"
+    
+    def is_active(self):
+        if self.status != 'active':
+            return False
+        if self.expiry_date and timezone.now() > self.expiry_date:
+            self.status = 'expired'
+            self.save(update_fields=['status'])
+            return False
+        return True
+    
+    def can_access_content(self, content_type, content_id):
+        if not self.is_active():
+            return False
+        
+        if self.is_unlimited:
+            return True
+        
+        if content_type in self.allowed_content_types:
+            if not self.allowed_content_ids or content_id in self.allowed_content_ids:
+                return True
+        
+        return False
+    
+    def get_remaining_days(self):
+        if self.expiry_date and self.expiry_date > timezone.now():
+            delta = self.expiry_date - timezone.now()
+            return delta.days
+        return 0
+    
+    def renew(self, duration_days, payment=None):
+        if self.expiry_date and self.expiry_date > timezone.now():
+            self.expiry_date = self.expiry_date + timezone.timedelta(days=duration_days)
+        else:
+            self.expiry_date = timezone.now() + timezone.timedelta(days=duration_days)
+        
+        if payment:
+            self.payment = payment
+        
+        self.status = 'active'
+        self.save()
+        return self
+
+
+class TransactionLog(models.Model):
+    """
+    Log all payment-related transactions for audit
+    """
+    
+    ACTION_CHOICES = [
+        ('payment_init', 'Payment Initiated'),
+        ('payment_success', 'Payment Success'),
+        ('payment_failed', 'Payment Failed'),
+        ('refund', 'Refund'),
+        ('access_granted', 'Access Granted'),
+        ('access_revoked', 'Access Revoked'),
+        ('subscription_created', 'Subscription Created'),
+        ('subscription_renewed', 'Subscription Renewed'),
+        ('subscription_cancelled', 'Subscription Cancelled'),
+        ('trial_started', 'Trial Started'),
+        ('trial_expired', 'Trial Expired'),
+    ]
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='exam_transaction_logs'
+    )
+    
+    action = models.CharField(max_length=30, choices=ACTION_CHOICES)
+    content_type = models.CharField(max_length=20, blank=True, null=True)
+    content_id = models.PositiveIntegerField(null=True, blank=True)
+    
+    details = models.JSONField(default=dict)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'action']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.action} - {self.user} - {self.created_at}"
 
 
 # ============================================
@@ -15,7 +486,6 @@ import re
 class BaseContentSection(models.Model):
     """Abstract base model for content sections with bilingual support"""
     
-    # Section Title (optional)
     section_title_en = models.CharField(
         max_length=500, 
         blank=True, 
@@ -29,7 +499,6 @@ class BaseContentSection(models.Model):
         verbose_name="Section Title (Hindi)"
     )
     
-    # Main Content - can contain HTML with headings, paragraphs, lists
     content_en = models.TextField(
         blank=True, 
         null=True,
@@ -43,7 +512,6 @@ class BaseContentSection(models.Model):
         help_text="You can use HTML: <h2>, <p>, <ul>, <ol>, <table>, etc."
     )
     
-    # Optional Image
     image = models.ImageField(
         upload_to="section_images/", 
         blank=True, 
@@ -63,7 +531,6 @@ class BaseContentSection(models.Model):
         verbose_name="Image Alt Text (Hindi)"
     )
     
-    # Optional Table Data (JSON)
     table_data = models.JSONField(
         default=dict,
         blank=True,
@@ -77,18 +544,15 @@ class BaseContentSection(models.Model):
         }'''
     )
     
-    # Optional List Items
     list_items = models.JSONField(
         default=list,
         blank=True,
         help_text='List items as JSON array: ["Item 1", "Item 2", "Item 3"]'
     )
     
-    # Display order
     order = models.PositiveIntegerField(default=0, help_text="Order of this section")
     is_active = models.BooleanField(default=True, help_text="Show this section")
     
-    # Styling
     background_color = models.CharField(
         max_length=50, 
         blank=True, 
@@ -125,21 +589,18 @@ class BaseContentSection(models.Model):
         return self.image_alt_en
     
     def render_table(self):
-        """Render table as HTML"""
         if not self.table_data:
             return ""
         
         html = '<div class="table-responsive overflow-x-auto">'
         html += '<table class="min-w-full border-collapse border border-gray-300">'
         
-        # Headers
         if 'headers' in self.table_data and self.table_data['headers']:
             html += '<thead><tr>'
             for header in self.table_data['headers']:
                 html += f'<th class="border border-gray-300 px-4 py-2 bg-gray-100 font-semibold">{header}</th>'
             html += '</tr></thead>'
         
-        # Rows
         if 'rows' in self.table_data and self.table_data['rows']:
             html += '<tbody>'
             for row in self.table_data['rows']:
@@ -153,7 +614,6 @@ class BaseContentSection(models.Model):
         return html
     
     def render_list(self):
-        """Render list as HTML"""
         if not self.list_items:
             return ""
         
@@ -164,29 +624,23 @@ class BaseContentSection(models.Model):
         return html
     
     def render(self, language='en'):
-        """Render full section as HTML"""
         html = '<div class="content-section mb-8">'
         
-        # Title
         title = self.get_title(language)
         if title:
             html += f'<h2 class="text-2xl font-bold mb-4">{title}</h2>'
         
-        # Image
         if self.image:
             alt = self.get_image_alt(language) or 'Image'
             html += f'<figure class="my-4"><img src="{self.image.url}" alt="{alt}" class="rounded-lg shadow-md max-w-full h-auto"><figcaption class="text-sm text-gray-500 mt-2 text-center">{alt}</figcaption></figure>'
         
-        # Content
         content = self.get_content(language)
         if content:
             html += f'<div class="prose max-w-none mb-4">{content}</div>'
         
-        # Table
         if self.table_data:
             html += self.render_table()
         
-        # List
         if self.list_items:
             html += self.render_list()
         
@@ -199,7 +653,6 @@ class BaseContentSection(models.Model):
 # ============================================
 
 class CategoryContentSection(BaseContentSection):
-    """Content sections for ExamCategory"""
     category = models.ForeignKey(
         'ExamCategory',
         on_delete=models.CASCADE,
@@ -217,7 +670,6 @@ class CategoryContentSection(BaseContentSection):
 # ============================================
 
 class SubCategoryContentSection(BaseContentSection):
-    """Content sections for SubCategory"""
     subcategory = models.ForeignKey(
         'SubCategory',
         on_delete=models.CASCADE,
@@ -235,7 +687,6 @@ class SubCategoryContentSection(BaseContentSection):
 # ============================================
 
 class MockTestContentSection(BaseContentSection):
-    """Content sections for MockTest"""
     mock_test = models.ForeignKey(
         'MockTest',
         on_delete=models.CASCADE,
@@ -249,7 +700,7 @@ class MockTestContentSection(BaseContentSection):
 
 
 # ============================================
-# EXAM CATEGORY MODEL
+# EXAM CATEGORY MODEL - WITH PAYMENT METHODS
 # ============================================
 
 class ExamCategory(models.Model):
@@ -259,8 +710,8 @@ class ExamCategory(models.Model):
     description_hi = models.TextField(blank=True, null=True, verbose_name="Description (Hindi)")
     slug = models.SlugField(unique=True, blank=True)
     logo = models.ImageField(upload_to="category_logos/", blank=True, null=True)
+    is_active = models.BooleanField(default=True, help_text="Show this category on the site")
     
-    # ===== HERO/BANNER SECTION =====
     banner_image = models.ImageField(
         upload_to="categories/banners/", 
         blank=True, 
@@ -292,19 +743,130 @@ class ExamCategory(models.Model):
         help_text="Banner subtitle in Hindi"
     )
     
-    # ===== SYLLABUS/OVERVIEW =====
     syllabus_heading = models.CharField(max_length=200, blank=True, null=True)
     syllabus_heading_hi = models.CharField(max_length=200, blank=True, null=True)
     syllabus_description = models.TextField(blank=True, null=True)
     syllabus_description_hi = models.TextField(blank=True, null=True)
     
-    # ===== SEO =====
     meta_title = models.CharField(max_length=200, blank=True, null=True)
     meta_description = models.TextField(blank=True, null=True)
     meta_keywords = models.CharField(max_length=300, blank=True, null=True)
     
-    # Deprecated - kept for compatibility
     custom_content = models.JSONField(default=list, blank=True)
+
+    # ========== PAYMENT METHODS ==========
+    
+    def get_pricing_config(self):
+        """Get pricing config for this category"""
+        try:
+            return PricingConfig.objects.get(
+                content_type='subject',
+                content_id=self.id,
+                is_active=True
+            )
+        except PricingConfig.DoesNotExist:
+            return None
+    
+    def is_locked(self):
+        """Check if this category is locked (requires payment)"""
+        pricing = self.get_pricing_config()
+        if pricing:
+            return pricing.requires_payment and pricing.pricing_type != 'free'
+        return False
+    
+    def is_free(self):
+        """Check if this category is free"""
+        try:
+            pricing = PricingConfig.objects.get(
+                content_type='subject',
+                content_id=self.id,
+                is_active=True
+            )
+            return not pricing.requires_payment or pricing.pricing_type == 'free'
+        except PricingConfig.DoesNotExist:
+            return True
+    
+    def get_price(self):
+        """Get price for this category"""
+        pricing = self.get_pricing_config()
+        if pricing:
+            return pricing.get_price()
+        return Decimal('0.00')
+    
+    def has_pricing(self):
+        return self.get_pricing_config() is not None
+    
+    def user_has_access(self, user):
+        """Check if user has access to this category"""
+        if not user.is_authenticated:
+            return False
+        
+        # Check if free
+        if not self.is_locked():
+            return True
+        
+        # Check direct access
+        try:
+            access = UserContentAccess.objects.get(
+                user=user,
+                content_type='subject',
+                content_id=self.id,
+                status='active'
+            )
+            if access.can_access():
+                return True
+        except UserContentAccess.DoesNotExist:
+            pass
+        
+        # Check subscription (subscribed users get all access)
+        subscriptions = Subscription.objects.filter(
+            user=user,
+            status='active',
+            expiry_date__gt=timezone.now()
+        )
+        if subscriptions.exists():
+            return True
+        
+        return False
+    
+    def get_access_status(self, user):
+        """Get detailed access status for this category"""
+        if not user.is_authenticated:
+            return {'has_access': False, 'reason': 'Please login to access this content'}
+        
+        if not self.is_locked():
+            return {'has_access': True, 'reason': 'Free content'}
+        
+        if self.user_has_access(user):
+            return {'has_access': True, 'reason': 'Access granted'}
+        
+        pricing = self.get_pricing_config()
+        return {
+            'has_access': False, 
+            'reason': 'This content requires payment',
+            'price': pricing.get_price() if pricing else Decimal('0.00'),
+            'pricing_type': pricing.pricing_type if pricing else 'free'
+        }
+    
+    def get_locked_subcategories(self):
+        """Get all locked subcategories under this category"""
+        return self.subcategories.filter(is_active=True).exclude(
+            id__in=SubCategory.objects.filter(
+                pricingconfig__requires_payment=False,
+                pricingconfig__is_active=True
+            ).values_list('id', flat=True)
+        )
+    
+    def get_free_subcategories(self):
+        """Get all free subcategories under this category"""
+        return self.subcategories.filter(is_active=True).filter(
+            id__in=SubCategory.objects.filter(
+                pricingconfig__requires_payment=False,
+                pricingconfig__is_active=True
+            ).values_list('id', flat=True)
+        )
+    
+    # ========== END PAYMENT METHODS ==========
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -347,7 +909,6 @@ class ExamCategory(models.Model):
         return self.syllabus_description
     
     def get_content_sections(self, language='en'):
-        """Get all content sections rendered as HTML"""
         sections = self.content_sections.filter(is_active=True).order_by('order')
         return [section.render(language) for section in sections]
     
@@ -356,7 +917,7 @@ class ExamCategory(models.Model):
 
 
 # ============================================
-# SUBCATEGORY MODEL
+# SUBCATEGORY MODEL - WITH PAYMENT METHODS
 # ============================================
 
 class SubCategory(models.Model):
@@ -371,8 +932,8 @@ class SubCategory(models.Model):
     icon = models.ImageField(upload_to="sub_icons/", null=True, blank=True)
     description = models.TextField(blank=True)
     description_hi = models.TextField(blank=True, null=True, verbose_name="Description (Hindi)")
+    is_active = models.BooleanField(default=True, help_text="Show this subcategory on the site")
     
-    # ===== HERO/BANNER SECTION =====
     banner_image = models.ImageField(
         upload_to="subcategories/banners/", 
         blank=True, 
@@ -404,18 +965,143 @@ class SubCategory(models.Model):
         help_text="Banner subtitle in Hindi"
     )
     
-    # ===== SYLLABUS/OVERVIEW =====
     syllabus_heading = models.CharField(max_length=200, blank=True, null=True)
     syllabus_heading_hi = models.CharField(max_length=200, blank=True, null=True)
     syllabus_description = models.TextField(blank=True, null=True)
     syllabus_description_hi = models.TextField(blank=True, null=True)
     
-    # ===== SEO =====
     meta_title = models.CharField(max_length=200, blank=True, null=True)
     meta_description = models.TextField(blank=True, null=True)
     
-    # Deprecated - kept for compatibility
     custom_content = models.JSONField(default=list, blank=True)
+
+    # ========== PAYMENT METHODS ==========
+    
+    def get_pricing_config(self):
+        """Get pricing config for this subcategory"""
+        try:
+            return PricingConfig.objects.get(
+                content_type='topic',
+                content_id=self.id,
+                is_active=True
+            )
+        except PricingConfig.DoesNotExist:
+            return None
+    
+    def is_locked(self):
+        """Check if this subcategory is locked"""
+        # First check parent category lock
+        if self.category.is_locked():
+            return True
+        
+        pricing = self.get_pricing_config()
+        if pricing:
+            return pricing.requires_payment and pricing.pricing_type != 'free'
+        return False
+    
+    def is_free(self):
+        """Check if this subcategory is free"""
+        if self.category.is_locked():
+            return False
+        
+        try:
+            pricing = PricingConfig.objects.get(
+                content_type='topic',
+                content_id=self.id,
+                is_active=True
+            )
+            return not pricing.requires_payment or pricing.pricing_type == 'free'
+        except PricingConfig.DoesNotExist:
+            return True
+    
+    def get_price(self):
+        """Get price for this subcategory"""
+        pricing = self.get_pricing_config()
+        if pricing:
+            return pricing.get_price()
+        return Decimal('0.00')
+    
+    def has_pricing(self):
+        return self.get_pricing_config() is not None
+    
+    def user_has_access(self, user):
+        """Check if user has access to this subcategory"""
+        if not user.is_authenticated:
+            return False
+        
+        # Check parent category access
+        if not self.category.user_has_access(user):
+            return False
+        
+        # Check if free
+        if not self.is_locked():
+            return True
+        
+        # Check direct access
+        try:
+            access = UserContentAccess.objects.get(
+                user=user,
+                content_type='topic',
+                content_id=self.id,
+                status='active'
+            )
+            if access.can_access():
+                return True
+        except UserContentAccess.DoesNotExist:
+            pass
+        
+        # Check subscription
+        subscriptions = Subscription.objects.filter(
+            user=user,
+            status='active',
+            expiry_date__gt=timezone.now()
+        )
+        if subscriptions.exists():
+            return True
+        
+        return False
+    
+    def get_access_status(self, user):
+        """Get detailed access status for this subcategory"""
+        if not user.is_authenticated:
+            return {'has_access': False, 'reason': 'Please login to access this content'}
+        
+        if not self.category.user_has_access(user):
+            return {'has_access': False, 'reason': 'Parent category is locked'}
+        
+        if not self.is_locked():
+            return {'has_access': True, 'reason': 'Free content'}
+        
+        if self.user_has_access(user):
+            return {'has_access': True, 'reason': 'Access granted'}
+        
+        pricing = self.get_pricing_config()
+        return {
+            'has_access': False, 
+            'reason': 'This content requires payment',
+            'price': pricing.get_price() if pricing else Decimal('0.00'),
+            'pricing_type': pricing.pricing_type if pricing else 'free'
+        }
+    
+    def get_locked_tests(self):
+        """Get all locked tests under this subcategory"""
+        return self.mock_tests.filter(is_active=True).exclude(
+            id__in=MockTest.objects.filter(
+                pricingconfig__requires_payment=False,
+                pricingconfig__is_active=True
+            ).values_list('id', flat=True)
+        )
+    
+    def get_free_tests(self):
+        """Get all free tests under this subcategory"""
+        return self.mock_tests.filter(is_active=True).filter(
+            id__in=MockTest.objects.filter(
+                pricingconfig__requires_payment=False,
+                pricingconfig__is_active=True
+            ).values_list('id', flat=True)
+        )
+    
+    # ========== END PAYMENT METHODS ==========
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -462,7 +1148,6 @@ class SubCategory(models.Model):
         return self.syllabus_description
     
     def get_content_sections(self, language='en'):
-        """Get all content sections rendered as HTML"""
         sections = self.content_sections.filter(is_active=True).order_by('order')
         return [section.render(language) for section in sections]
     
@@ -471,7 +1156,7 @@ class SubCategory(models.Model):
 
 
 # ============================================
-# MOCK TEST MODEL
+# MOCK TEST MODEL - WITH PAYMENT METHODS
 # ============================================
 
 class MockTest(models.Model):
@@ -493,7 +1178,7 @@ class MockTest(models.Model):
     title_hi = models.CharField(max_length=255, blank=True, null=True, verbose_name="Title (Hindi)")
     description = models.TextField(blank=True, null=True)
     description_hi = models.TextField(blank=True, null=True, verbose_name="Description (Hindi)")
-
+    is_active = models.BooleanField(default=True, help_text="Show this mock test on the site")
     subcategory = models.ForeignKey(
         'SubCategory',
         on_delete=models.SET_NULL,
@@ -529,7 +1214,6 @@ class MockTest(models.Model):
 
     is_active = models.BooleanField(default=True)
     
-    # ===== HERO/BANNER SECTION =====
     banner_image = models.ImageField(
         upload_to="mocktests/banners/", 
         blank=True, 
@@ -561,20 +1245,16 @@ class MockTest(models.Model):
         help_text="Banner subtitle in Hindi"
     )
     
-    # ===== SYLLABUS/OVERVIEW =====
     syllabus_heading = models.CharField(max_length=200, blank=True, null=True)
     syllabus_heading_hi = models.CharField(max_length=200, blank=True, null=True)
     syllabus_description = models.TextField(blank=True, null=True)
     syllabus_description_hi = models.TextField(blank=True, null=True)
     
-    # ===== TEST STRUCTURE =====
     total_sections = models.PositiveIntegerField(default=1, help_text="Number of sections")
     
-    # ===== SEO =====
     meta_title = models.CharField(max_length=200, blank=True, null=True)
     meta_description = models.TextField(blank=True, null=True)
     
-    # Deprecated - kept for compatibility
     custom_content = models.JSONField(default=list, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -585,6 +1265,122 @@ class MockTest(models.Model):
 
     def __str__(self):
         return self.title
+
+    # ========== PAYMENT METHODS ==========
+    
+    def get_pricing_config(self):
+        """Get pricing config for this mock test"""
+        try:
+            return PricingConfig.objects.get(
+                content_type='mocktest',
+                content_id=self.id,
+                is_active=True
+            )
+        except PricingConfig.DoesNotExist:
+            return None
+    
+    def is_locked(self):
+        """Check if this mock test is locked"""
+        # Check parent subcategory lock
+        if self.subcategory and self.subcategory.is_locked():
+            return True
+        # Check parent category lock
+        if self.subcategory and self.subcategory.category.is_locked():
+            return True
+        
+        pricing = self.get_pricing_config()
+        if pricing:
+            return pricing.requires_payment and pricing.pricing_type != 'free'
+        return False
+    
+    def is_free(self):
+        """Check if this mock test is free"""
+        if self.subcategory and self.subcategory.is_locked():
+            return False
+        if self.subcategory and self.subcategory.category.is_locked():
+            return False
+        
+        try:
+            pricing = PricingConfig.objects.get(
+                content_type='mocktest',
+                content_id=self.id,
+                is_active=True
+            )
+            return not pricing.requires_payment or pricing.pricing_type == 'free'
+        except PricingConfig.DoesNotExist:
+            return True
+    
+    def get_price(self):
+        """Get price for this mock test"""
+        pricing = self.get_pricing_config()
+        if pricing:
+            return pricing.get_price()
+        return Decimal('0.00')
+    
+    def has_pricing(self):
+        return self.get_pricing_config() is not None
+    
+    def user_has_access(self, user):
+        """Check if user has access to this mock test"""
+        if not user.is_authenticated:
+            return False
+        
+        # Check parent access
+        if self.subcategory:
+            if not self.subcategory.user_has_access(user):
+                return False
+        
+        # Check if free
+        if not self.is_locked():
+            return True
+        
+        # Check direct access
+        try:
+            access = UserContentAccess.objects.get(
+                user=user,
+                content_type='mocktest',
+                content_id=self.id,
+                status='active'
+            )
+            if access.can_access():
+                return True
+        except UserContentAccess.DoesNotExist:
+            pass
+        
+        # Check subscription
+        subscriptions = Subscription.objects.filter(
+            user=user,
+            status='active',
+            expiry_date__gt=timezone.now()
+        )
+        if subscriptions.exists():
+            return True
+        
+        return False
+    
+    def get_access_status(self, user):
+        """Get detailed access status for this mock test"""
+        if not user.is_authenticated:
+            return {'has_access': False, 'reason': 'Please login to access this content'}
+        
+        if self.subcategory and not self.subcategory.user_has_access(user):
+            return {'has_access': False, 'reason': 'Parent subcategory is locked'}
+        
+        if not self.is_locked():
+            return {'has_access': True, 'reason': 'Free content'}
+        
+        if self.user_has_access(user):
+            return {'has_access': True, 'reason': 'Access granted'}
+        
+        pricing = self.get_pricing_config()
+        return {
+            'has_access': False, 
+            'reason': 'This content requires payment',
+            'price': pricing.get_price() if pricing else Decimal('0.00'),
+            'pricing_type': pricing.pricing_type if pricing else 'free'
+        }
+    
+    # ========== END PAYMENT METHODS ==========
 
     def clean(self):
         if self.negative_marking_type != 'no_negative' and self.negative_marking_value <= 0:
@@ -647,7 +1443,6 @@ class MockTest(models.Model):
         return self.syllabus_description
     
     def get_content_sections(self, language='en'):
-        """Get all content sections rendered as HTML"""
         sections = self.content_sections.filter(is_active=True).order_by('order')
         return [section.render(language) for section in sections]
 
@@ -670,7 +1465,7 @@ class MockTest(models.Model):
 
 
 # ============================================
-# SUBJECT MODEL
+# SUBJECT MODEL (Exam-specific, not QA app)
 # ============================================
 
 class Subject(models.Model):
@@ -1064,6 +1859,12 @@ class UserAnswer(models.Model):
 
 class Testimonial(models.Model):
     
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
     user = models.ForeignKey(
         'auth.User', 
         on_delete=models.CASCADE,
@@ -1077,23 +1878,47 @@ class Testimonial(models.Model):
     )
     achievement = models.CharField(max_length=200, blank=True)
     
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        help_text="Admin approval status"
+    )
+    
     is_featured = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     display_order = models.IntegerField(default=0)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_testimonials'
+    )
     
     class Meta:
         ordering = ['display_order', '-is_featured', '-created_at']
     
     def __str__(self):
-        return f"{self.user.username} - {self.stars} Stars"
+        return f"{self.user.username} - {self.stars} Stars ({self.get_status_display()})"
     
     def user_name(self):
         if self.user.get_full_name():
             return self.user.get_full_name()
         return self.user.username
+    
+    @property
+    def user_initials(self):
+        if self.user.get_full_name():
+            parts = self.user.get_full_name().split()
+            if len(parts) >= 2:
+                return f"{parts[0][0]}{parts[1][0]}".upper()
+            return self.user.get_full_name()[:2].upper()
+        return self.user.username[:2].upper()
     
     def clean(self):
         if self.stars < 1 or self.stars > 5:
@@ -1104,6 +1929,19 @@ class Testimonial(models.Model):
             raise ValidationError({
                 'text': 'Testimonial text must be at least 10 characters long.'
             })
+    
+    def approve(self, admin_user=None):
+        self.status = 'approved'
+        self.is_active = True
+        self.approved_at = timezone.now()
+        if admin_user:
+            self.approved_by = admin_user
+        self.save()
+    
+    def reject(self):
+        self.status = 'rejected'
+        self.is_active = False
+        self.save()
 
 
 # ============================================
@@ -1237,3 +2075,90 @@ class Contact(models.Model):
             raise ValidationError({
                 'name': 'Name is required.'
             })
+
+
+
+# ============================================
+# ADD THESE METHODS TO ExamCategory, SubCategory, MockTest
+# ============================================
+
+def get_pricing_config(self):
+    """Get pricing config for this content"""
+    try:
+        from payments.models import PricingConfig
+        content_type_map = {
+            'ExamCategory': 'exam_category',
+            'SubCategory': 'exam_subcategory',
+            'MockTest': 'exam_mocktest',
+        }
+        return PricingConfig.objects.get(
+            content_type=content_type_map.get(self.__class__.__name__),
+            content_id=self.id,
+            content_app='exams',
+            is_active=True
+        )
+    except:
+        return None
+
+def is_locked(self):
+    """Check if content is locked"""
+    pricing = self.get_pricing_config()
+    return pricing.is_locked if pricing else False
+
+def is_free(self):
+    """Check if content is free"""
+    pricing = self.get_pricing_config()
+    if pricing:
+        return not pricing.is_locked
+    return True
+
+def get_price(self):
+    """Get price"""
+    pricing = self.get_pricing_config()
+    return pricing.price if pricing else 0
+
+def user_has_access(self, user):
+    """Check if user has access - With parent hierarchy"""
+    if not user.is_authenticated:
+        return False
+    
+    from payments.models import UserSubscription, UserContentAccess
+    
+    # 1. Check if user has subscription
+    if UserSubscription.objects.filter(
+        user=user,
+        status='active',
+        expiry_date__gt=timezone.now()
+    ).exists():
+        return True
+    
+    # 2. Get content type
+    content_type_map = {
+        'ExamCategory': 'exam_category',
+        'SubCategory': 'exam_subcategory',
+        'MockTest': 'exam_mocktest',
+    }
+    content_type = content_type_map.get(self.__class__.__name__)
+    
+    # 3. Check direct purchase
+    if UserContentAccess.objects.filter(
+        user=user,
+        content_type=content_type,
+        content_id=self.id,
+        content_app='exams',
+        status='active'
+    ).exists():
+        return True
+    
+    # 4. If not locked, free access
+    if not self.is_locked():
+        return True
+    
+    # 5. Check parent access (for subcategory and mocktest)
+    if hasattr(self, 'category') and self.category:
+        return self.category.user_has_access(user)
+    
+    if hasattr(self, 'subcategory') and self.subcategory:
+        return self.subcategory.user_has_access(user)
+    
+    return False            

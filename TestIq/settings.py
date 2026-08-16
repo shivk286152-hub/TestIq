@@ -1,10 +1,11 @@
 import os
 import dj_database_url
 from pathlib import Path
+from django.contrib.messages import constants as messages
 
 # ----------------------------
 # BASE DIR
-# # ----------------------------
+# ----------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ----------------------------
@@ -16,16 +17,14 @@ SECRET_KEY = os.environ.get(
 )
 
 # ----------------------------
-# DEBUG
+# DEBUG - Set to True for development
 # ----------------------------
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = True
 
 # ----------------------------
 # ALLOWED HOSTS
 # ----------------------------
-ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS", "127.0.0.1,localhost,testiq-3.onrender.com"
-).split(",")
+ALLOWED_HOSTS = ['*']
 
 # ----------------------------
 # INSTALLED APPS
@@ -36,7 +35,14 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles', # Must be here
+    'django.contrib.staticfiles',
+    'django.contrib.sites',
+
+    # Allauth Apps
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 
     # Third Party Apps
     'ckeditor',
@@ -51,6 +57,7 @@ INSTALLED_APPS = [
     'CurrentAffairs',
     'subject_mocktests',
     'QA',
+    'payments',
 ]
 
 # ----------------------------
@@ -58,13 +65,14 @@ INSTALLED_APPS = [
 # ----------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Must be right after SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 # ----------------------------
@@ -102,81 +110,178 @@ TEMPLATES = [
 # ----------------------------
 # DATABASE
 # ----------------------------
-if os.environ.get("RENDER") == "TRUE":
-    # Use SQLite on Render to avoid PostgreSQL setup complexity
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
-else:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default="sqlite:///db.sqlite3",
-            conn_max_age=600
-        )
-    }
+}
 
 # ----------------------------
-# STATIC FILES (CRUCIAL FIX)
+# AUTHENTICATION BACKENDS
+# ----------------------------
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+# ----------------------------
+# SITE FRAMEWORK
+# ----------------------------
+SITE_ID = 1
+
+# ----------------------------
+# ALLAUTH CONFIGURATION
+# ----------------------------
+# Account Settings
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Set to 'mandatory' for production
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_USERNAME_MIN_LENGTH = 3
+ACCOUNT_EMAIL_UNIQUE = True
+ACCOUNT_UNIQUE_EMAIL = True
+
+# Login/Logout Settings
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+ACCOUNT_LOGOUT_REDIRECT_URL = 'login'
+ACCOUNT_LOGIN_REDIRECT_URL = 'home'
+ACCOUNT_SIGNUP_REDIRECT_URL = 'home'
+
+# Session Settings
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_USER_DISPLAY = 'get_full_name'
+
+# Email Settings
+ACCOUNT_EMAIL_SUBJECT_PREFIX = '[TestIQ] '
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # Change to 'https' in production
+
+# ----------------------------
+# SOCIAL ACCOUNT PROVIDERS
+# ----------------------------
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID', 'your-google-client-id'),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET', 'your-google-client-secret'),
+            'key': ''
+        }
+    }
+}
+
+# Social Account Settings
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_STORE_TOKENS = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+# ----------------------------
+# LOGIN/LOGOUT SETTINGS
+# ----------------------------
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login'
+
+# ----------------------------
+# PASSWORD VALIDATION
+# ----------------------------
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 8},
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# Session Settings
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+
+# ----------------------------
+# EMAIL - Console for development
+# ----------------------------
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# For production, use SMTP:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+# DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@testiq.com')
+
+# Password Reset
+PASSWORD_RESET_TIMEOUT = 86400  # 24 hours
+
+# ----------------------------
+# STATIC FILES
 # ----------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
-
-# Whitenoise for serving static files in production
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ----------------------------
-# MEDIA FILES (FOR USER UPLOADS)
+# MEDIA FILES
 # ----------------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ----------------------------
-# CKEDITOR CONFIGURATION
+# CKEDITOR
 # ----------------------------
 CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_5_CONFIGS = {
+CKEDITOR_CONFIGS = {
     'default': {
-        'toolbar': [
-            'heading', '|',
-            'bold', 'italic', 'underline', '|',
-            'link', 'bulletedList', 'numberedList', '|',
-            'insertTable', 'imageUpload', '|',
-            'undo', 'redo'
-        ],
+        'toolbar': 'full',
         'height': 300,
         'width': '100%',
-    }
+    },
 }
 
 # ----------------------------
-# LOGIN / LOGOUT SETTINGS
+# MESSAGE TAGS
 # ----------------------------
-LOGIN_REDIRECT_URL = "home"
-LOGIN_URL = 'login'
-LOGOUT_REDIRECT_URL = 'home'
+MESSAGE_TAGS = {
+    messages.DEBUG: 'debug',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'error',
+}
 
 # ----------------------------
-# SECURITY SETTINGS
+# SECURITY - All disabled for development
 # ----------------------------
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_BROWSER_XSS_FILTER = False
+SECURE_CONTENT_TYPE_NOSNIFF = False
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+SECURE_HSTS_SECONDS = 0
 CSRF_TRUSTED_ORIGINS = [
-    "https://testiq-3.onrender.com"
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://0.0.0.0:8000",
 ]
-
-# Only enable these in production (when DEBUG is False)
-if not DEBUG:
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-
-# File upload settings
-FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
-FILE_UPLOAD_PERMISSIONS = 0o644
-FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 
 # ----------------------------
 # DEFAULT AUTO FIELD
@@ -184,18 +289,22 @@ FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ----------------------------
-# LOGGING
+# INTERNATIONALIZATION
 # ----------------------------
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'ERROR',
-    },
-}
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+
+# ----------------------------
+# TAGGIT
+# ----------------------------
+TAGGIT_CASE_INSENSITIVE = True
+
+# ----------------------------
+# RENDER.COM DEPLOYMENT (Optional)
+# ----------------------------
+if os.environ.get("RENDER") == "TRUE":
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_PORT = True

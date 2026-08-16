@@ -5,10 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-  <title>{% block title %}{{ site_name }}{% endblock %}</title>
+  <title>{% block title %}{{ site_name|default:'AuthApp' }}{% endblock %}</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
@@ -19,19 +18,25 @@
       --bottom-header-h: 4rem;
     }
 
-    /* Reset and Base Styles */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    body {
-      background: #f3f4f6;
-      overflow-x: hidden;
+    /* ✅ FIX: Body should not scroll, main should scroll */
+    html, body {
+      height: 100%;
+      overflow: hidden;
     }
 
-    /* ===== HEADER ===== */
+    body {
+      background: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== HEADER - FIXED ===== */
     .header {
       height: var(--header-h);
       position: fixed;
@@ -41,6 +46,7 @@
       z-index: 100;
       background: white;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
     }
 
     /* ===== SIDEBAR ===== */
@@ -61,7 +67,6 @@
       will-change: width;
     }
 
-    /* collapsed desktop */
     .sidebar.collapsed {
       width: var(--sidebar-close);
     }
@@ -70,7 +75,6 @@
       display: none;
     }
 
-    /* Sidebar Content - Independent Scrollable Area */
     .sidebar-content {
       flex: 1;
       overflow-y: auto;
@@ -80,7 +84,6 @@
       padding: 0.5rem 0;
     }
 
-    /* Custom scrollbar for sidebar */
     .sidebar-content::-webkit-scrollbar {
       width: 5px;
     }
@@ -98,7 +101,6 @@
       background: #6b7280;
     }
 
-    /* Sidebar Bottom - Fixed at bottom */
     .sidebar-bottom {
       border-top: 1px solid #374151;
       background: #1f2937;
@@ -106,7 +108,6 @@
       flex-shrink: 0;
     }
 
-    /* Sidebar Links */
     .sidebar-link {
       display: flex;
       align-items: center;
@@ -129,7 +130,6 @@
       color: white;
     }
 
-    /* Dropdown Styles */
     .dropdown-btn {
       display: flex;
       align-items: center;
@@ -165,21 +165,44 @@
       background: #374151;
     }
 
-    /* ===== MAIN CONTENT ===== */
+    /* ===== MAIN CONTENT - SCROLLABLE ===== */
     .main {
-      margin-left: var(--sidebar-open);
-      margin-top: var(--header-h);
-      min-height: calc(100vh - var(--header-h));
-      transition: margin-left 0.2s ease-out;
+      position: fixed;
+      top: var(--header-h);
+      left: var(--sidebar-open);
+      right: 0;
+      bottom: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
       padding: 1.5rem;
-      will-change: margin-left;
+      transition: left 0.2s ease-out;
+      will-change: left;
+      background: #f3f4f6;
     }
 
     .main.collapsed {
-      margin-left: var(--sidebar-close);
+      left: var(--sidebar-close);
     }
 
-    /* ===== BOTTOM HEADER (Mobile Only) ===== */
+    /* ✅ Custom scrollbar for main content */
+    .main::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .main::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .main::-webkit-scrollbar-thumb {
+      background: #c4b5fd;
+      border-radius: 3px;
+    }
+
+    .main::-webkit-scrollbar-thumb:hover {
+      background: #8b5cf6;
+    }
+
+    /* ===== BOTTOM HEADER ===== */
     .bottom-header {
       position: fixed;
       bottom: 0;
@@ -215,9 +238,8 @@
 
       .main,
       .main.collapsed {
-        margin-left: 0 !important;
+        left: 0 !important;
         padding-bottom: calc(var(--bottom-header-h) + 1rem);
-        min-height: calc(100vh - var(--header-h));
         transition: none;
       }
 
@@ -255,16 +277,15 @@
       }
     }
 
-    /* ===== DESKTOP STYLES ===== */
     @media (min-width: 769px) {
       .bottom-header {
         display: none !important;
       }
-      
+
       .overlay {
         display: none;
       }
-      
+
       .swipe-area {
         display: none;
       }
@@ -300,24 +321,44 @@
       color: white;
     }
 
-    /* Prevent body scroll when sidebar open on mobile */
-    body.sidebar-open {
-      overflow: hidden;
-      position: fixed;
-      width: 100%;
-      height: 100%;
+    /* Notification Badge */
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 9999px;
+      min-width: 18px;
+      text-align: center;
     }
 
-    /* Desktop - ensure no layout shift */
-    @media (min-width: 769px) {
-      body {
-        overflow-y: auto;
+    /* Flash Message Animation */
+    .flash-message {
+      animation: slideDown 0.5s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
       }
-      
-      .sidebar,
-      .main {
-        transition-timing-function: cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
+    }
+
+    /* Payment Badge */
+    .payment-badge {
+      background: #dbeafe;
+      color: #1e40af;
+      font-size: 0.55rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 9999px;
+      margin-left: 0.3rem;
     }
   </style>
 </head>
@@ -335,32 +376,68 @@
         <button id="collapseBtn" class="hidden md:block text-xl p-2 hover:bg-gray-100 rounded-lg transition">
           <i class="fa fa-bars"></i>
         </button>
-        <a href="{% url 'exams:home' %}" class="text-lg font-bold text-blue-600 hover:text-blue-700 transition">
-          {{ site_name }}
+        <a href="{% url 'home' %}" class="text-lg font-bold text-blue-600 hover:text-blue-700 transition">
+          {{ site_name|default:'AuthApp' }}
         </a>
       </div>
 
       <!-- RIGHT -->
-      <div class="relative">
+      <div class="flex items-center gap-3">
         {% if user.is_authenticated %}
-        <button id="userMenuBtn" class="flex items-center gap-2 focus:outline-none hover:bg-gray-100 px-3 py-2 rounded-lg transition">
-          <i class="fa fa-user-circle text-2xl"></i>
-          <span class="font-medium hidden sm:inline">{{ user.username }}</span>
-          <i class="fa fa-chevron-down text-sm"></i>
+        <button id="userMenuBtn"
+          class="flex items-center gap-2 focus:outline-none hover:bg-gray-100 px-3 py-2 rounded-lg transition relative">
+          <i class="fa fa-user-circle text-2xl text-blue-600"></i>
+          <span class="font-medium hidden sm:inline text-gray-700">{{ user.username }}</span>
+          <i class="fa fa-chevron-down text-sm text-gray-500"></i>
+          {% if user.profile.notifications > 0 %}
+          <span class="notification-badge">{{ user.profile.notifications }}</span>
+          {% endif %}
         </button>
 
-        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
-          <a href="{% url 'profile' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 transition">
-            <i class="fa fa-user mr-2"></i> Profile
-          </a>
-          <a href="{% url 'logout' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 text-red-600 transition">
-            <i class="fa fa-sign-out mr-2"></i> Logout
-          </a>
+        <div id="userDropdown"
+          class="hidden absolute right-0 top-16 mt-2 w-64 bg-white rounded-lg shadow-xl border z-50">
+          <div class="px-4 py-3 border-b">
+            <p class="font-semibold text-gray-800">{{ user.get_full_name|default:user.username }}</p>
+            <p class="text-sm text-gray-500">{{ user.email }}</p>
+          </div>
+          <div class="py-2">
+            <a href="{% url 'profile' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 transition">
+              <i class="fa fa-user mr-3 text-gray-600 w-5"></i> Profile
+            </a>
+            <a href="{% url 'change_password' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 transition">
+              <i class="fa fa-key mr-3 text-gray-600 w-5"></i> Change Password
+            </a>
+            <a href="{% url 'payments:user_dashboard' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 transition">
+              <i class="fa fa-wallet mr-3 text-indigo-600 w-5"></i> 
+              Payment Dashboard
+              <span class="payment-badge">💰</span>
+            </a>
+            <a href="{% url 'payments:subscription_status' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 transition">
+              <i class="fa fa-crown mr-3 text-yellow-600 w-5"></i> 
+              Subscription
+            </a>
+            <a href="{% url 'payments:purchase_history' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 transition">
+              <i class="fa fa-clock-rotate-left mr-3 text-gray-600 w-5"></i> 
+              Purchase History
+            </a>
+            <a href="{% url 'exams:dashboard' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 transition">
+              <i class="fa fa-tachometer-alt mr-3 text-gray-600 w-5"></i> Dashboard
+            </a>
+            <hr class="my-1">
+            <a href="{% url 'logout' %}" class="flex items-center px-4 py-2 hover:bg-gray-100 text-red-600 transition">
+              <i class="fa fa-sign-out mr-3 w-5"></i> Logout
+            </a>
+          </div>
         </div>
         {% else %}
-        <a href="{% url 'login' %}" id="loginBtn" class="progress-btn flex items-center gap-2 px-6 py-2 rounded-full">
+        <a href="{% url 'login' %}" id="loginBtn"
+          class="progress-btn flex items-center gap-2 px-6 py-2 rounded-full text-gray-700 hover:text-gray-900">
           <i class="fa fa-sign-in"></i>
-          Login
+          <span class="hidden sm:inline">Login</span>
+        </a>
+        <a href="{% url 'register' %}"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition hidden sm:inline-block">
+          <i class="fa fa-user-plus mr-1"></i> Register
         </a>
         {% endif %}
       </div>
@@ -375,26 +452,46 @@
 
   <!-- ===== SIDEBAR ===== -->
   <aside id="sidebar" class="sidebar">
-    <!-- Scrollable Menu Area -->
     <div class="sidebar-content">
       <ul class="space-y-0">
-        <!-- HOME -->
         <li>
-          <a href="{% url 'exams:home' %}" class="sidebar-link {% if request.resolver_match.url_name == 'home' %}menu-active{% endif %}">
+          <a href="{% url 'home' %}"
+            class="sidebar-link {% if request.resolver_match.url_name == 'home' %}menu-active{% endif %}">
             <i class="fa fa-home w-6"></i>
             <span class="label ml-3">Home</span>
           </a>
         </li>
-        
-        <!-- ABOUT US -->
         <li>
-          <a href="{% url 'exams:about' %}" class="sidebar-link {% if request.resolver_match.url_name == 'about' %}menu-active{% endif %}">
+          <a href="{% url 'exams:about' %}"
+            class="sidebar-link {% if request.resolver_match.url_name == 'about' %}menu-active{% endif %}">
             <i class="fa fa-book w-6"></i>
             <span class="label ml-3">About Us</span>
           </a>
         </li>
-        
-        <!-- SUBJECTS DROPDOWN -->
+        {% if user.is_authenticated %}
+        <li>
+          <a href="{% url 'payments:user_dashboard' %}"
+            class="sidebar-link {% if request.resolver_match.url_name == 'user_dashboard' %}menu-active{% endif %}">
+            <i class="fa fa-wallet w-6 text-indigo-400"></i>
+            <span class="label ml-3">Payment Dashboard</span>
+            <span class="ml-auto text-xs bg-indigo-600 px-2 py-0.5 rounded-full">💰</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'payments:subscription_status' %}"
+            class="sidebar-link {% if request.resolver_match.url_name == 'subscription_status' %}menu-active{% endif %}">
+            <i class="fa fa-crown w-6 text-yellow-400"></i>
+            <span class="label ml-3">Subscription</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'payments:purchase_history' %}"
+            class="sidebar-link {% if request.resolver_match.url_name == 'purchase_history' %}menu-active{% endif %}">
+            <i class="fa fa-clock-rotate-left w-6 text-gray-400"></i>
+            <span class="label ml-3">Purchase History</span>
+          </a>
+        </li>
+        {% endif %}
         <li>
           <div class="dropdown-btn" id="subjectsMenuBtn">
             <div class="flex items-center">
@@ -406,27 +503,25 @@
           <div id="subjectsDropdown" class="dropdown-content">
             <ul class="py-2">
               {% if subject_mocktests_subjects %}
-                {% for subject in subject_mocktests_subjects %}
-                <li>
-                  <a href="{% url 'subject_mocktests:subject_detail' subject.slug %}" class="sidebar-link dropdown-item">
-                    {% if subject.icon %}
-                    <img src="{{ subject.icon.url }}" alt="{{ subject.name }}" class="w-4 h-4 mr-2 object-cover rounded">
-                    {% else %}
-                    <i class="fa fa-graduation-cap w-4 mr-2"></i>
-                    {% endif %}
-                    <span class="truncate flex-1">{{ subject.name }}</span>
-                    <span class="text-xs bg-indigo-600 px-1.5 py-0.5 rounded-full">{{ subject.total_mocktests }}</span>
-                  </a>
-                </li>
-                {% endfor %}
+              {% for subject in subject_mocktests_subjects %}
+              <li>
+                <a href="{% url 'subject_mocktests:subject_detail' subject.slug %}" class="sidebar-link dropdown-item">
+                  {% if subject.icon %}
+                  <img src="{{ subject.icon.url }}" alt="{{ subject.name }}" class="w-4 h-4 mr-2 object-cover rounded">
+                  {% else %}
+                  <i class="fa fa-graduation-cap w-4 mr-2"></i>
+                  {% endif %}
+                  <span class="truncate flex-1">{{ subject.name }}</span>
+                  <span class="text-xs bg-indigo-600 px-1.5 py-0.5 rounded-full">{{ subject.total_mocktests }}</span>
+                </a>
+              </li>
+              {% endfor %}
               {% else %}
-                <li class="px-4 py-2 text-gray-400 text-sm italic">No subjects available</li>
+              <li class="px-4 py-2 text-gray-400 text-sm italic">No subjects available</li>
               {% endif %}
             </ul>
           </div>
         </li>
-
-        <!-- TEST DROPDOWN -->
         <li>
           <div class="dropdown-btn" id="testMenuBtn">
             <div class="flex items-center">
@@ -438,65 +533,60 @@
           <div id="testDropdown" class="dropdown-content">
             <ul class="py-2">
               {% if user.is_authenticated %}
-                {% if latest_mocktests %}
-                  {% for test in latest_mocktests %}
-                  <li>
-                    <a href="{% url 'exams:pretest_detail' test.id %}" class="sidebar-link dropdown-item">
-                      <i class="fa fa-file-text w-4 mr-2"></i>
-                      <span class="truncate flex-1">{{ test.title|truncatechars:25 }}</span>
-                      {% if test.is_new %}
-                      <span class="bg-green-500 text-xs px-1.5 py-0.5 rounded-full">New</span>
-                      {% endif %}
-                    </a>
-                  </li>
-                  {% endfor %}
-                {% else %}
-                  <li class="px-4 py-2 text-gray-400 text-sm italic">No tests available</li>
-                {% endif %}
+              {% if latest_mocktests %}
+              {% for test in latest_mocktests %}
+              <li>
+                <a href="{% url 'exams:pretest_detail' test.id %}" class="sidebar-link dropdown-item">
+                  <i class="fa fa-file-text w-4 mr-2"></i>
+                  <span class="truncate flex-1">{{ test.title|truncatechars:25 }}</span>
+                  {% if test.is_new %}
+                  <span class="bg-green-500 text-xs px-1.5 py-0.5 rounded-full">New</span>
+                  {% endif %}
+                </a>
+              </li>
+              {% endfor %}
               {% else %}
-                <li>
-                  <a href="{% url 'login' %}?next={{ request.path }}" class="sidebar-link dropdown-item">
-                    <i class="fa fa-sign-in w-4 mr-2"></i>
-                    Sign in to take tests
-                  </a>
-                </li>
-                <li>
-                  <a href="{% url 'register' %}" class="sidebar-link dropdown-item">
-                    <i class="fa fa-user-plus w-4 mr-2"></i>
-                    Register now
-                  </a>
-                </li>
+              <li class="px-4 py-2 text-gray-400 text-sm italic">No tests available</li>
+              {% endif %}
+              {% else %}
+              <li>
+                <a href="{% url 'login' %}?next={{ request.path }}" class="sidebar-link dropdown-item">
+                  <i class="fa fa-sign-in w-4 mr-2"></i>
+                  Sign in to take tests
+                </a>
+              </li>
+              <li>
+                <a href="{% url 'register' %}" class="sidebar-link dropdown-item">
+                  <i class="fa fa-user-plus w-4 mr-2"></i>
+                  Register now
+                </a>
+              </li>
               {% endif %}
             </ul>
           </div>
         </li>
-
-        <!-- USER DASHBOARD -->
         {% if user.is_authenticated %}
         <li>
-          <a href="{% url 'exams:dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}menu-active{% endif %}">
+          <a href="{% url 'exams:dashboard' %}"
+            class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}menu-active{% endif %}">
             <i class="fa fa-tachometer-alt w-6"></i>
             <span class="label ml-3">Dashboard</span>
           </a>
         </li>
-        
         <li>
-          <a href="{% url 'subject_mocktests:subject_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'subject_dashboard' %}menu-active{% endif %}">
+          <a href="{% url 'subject_mocktests:subject_dashboard' %}"
+            class="sidebar-link {% if request.resolver_match.url_name == 'subject_dashboard' %}menu-active{% endif %}">
             <i class="fa fa-chart-line w-6"></i>
             <span class="label ml-3">Subject Tests</span>
           </a>
         </li>
         {% endif %}
-
-        <!-- CURRENT AFFAIRS -->
         <li>
           <a href="{% url 'current_affairs_list' %}" class="sidebar-link">
             <i class="fa fa-newspaper w-6"></i>
             <span class="label ml-3">Current Affairs</span>
           </a>
         </li>
-
-        <!-- EXAM NEWS -->
         <li>
           <a href="#" class="sidebar-link">
             <i class="fa fa-newspaper w-6"></i>
@@ -506,12 +596,19 @@
       </ul>
     </div>
 
-    <!-- BOTTOM SECTION - Fixed at bottom -->
     <div class="sidebar-bottom">
       {% if user.is_authenticated %}
       <a href="{% url 'profile' %}" class="sidebar-link">
         <i class="fa fa-user w-6"></i>
         <span class="label ml-3">{{ user.username }}</span>
+      </a>
+      <a href="{% url 'change_password' %}" class="sidebar-link">
+        <i class="fa fa-key w-6"></i>
+        <span class="label ml-3">Change Password</span>
+      </a>
+      <a href="{% url 'payments:user_dashboard' %}" class="sidebar-link text-indigo-300 hover:text-indigo-200">
+        <i class="fa fa-wallet w-6"></i>
+        <span class="label ml-3">Payments</span>
       </a>
       <a href="{% url 'logout' %}" class="sidebar-link text-red-300 hover:text-red-200">
         <i class="fa fa-sign-out w-6"></i>
@@ -532,29 +629,62 @@
 
   <!-- ===== MAIN CONTENT ===== -->
   <main id="main" class="main">
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="flash-message px-4 py-3 rounded-lg border-l-4 
+        {% if message.tags == 'error' %}bg-red-50 border-red-500 text-red-700{% elif message.tags == 'success' %}bg-green-50 border-green-500 text-green-700{% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-500 text-yellow-700{% elif message.tags == 'info' %}bg-blue-50 border-blue-500 text-blue-700{% else %}bg-gray-50 border-gray-500 text-gray-700{% endif %} 
+        flex justify-between items-center">
+        <span>{{ message }}</span>
+        <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
   </main>
 
   <!-- ===== BOTTOM HEADER (Mobile Only) ===== -->
   <div id="bottomHeader" class="bottom-header">
-    <a href="{% url 'exams:home' %}" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2">
+    <a href="{% url 'home' %}"
+      class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2">
       <i class="fa fa-home text-xl"></i>
       <span class="text-xs mt-1">Home</span>
     </a>
-    <a href="#" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2" id="mobileTestBtn">
+    <a href="#" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2"
+      id="mobileTestBtn">
       <i class="fa fa-pen text-xl"></i>
       <span class="text-xs mt-1">Test</span>
     </a>
-    <a href="{% url 'subject_mocktests:subject_list' %}" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2">
+    <a href="{% url 'subject_mocktests:subject_list' %}"
+      class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2">
       <i class="fa fa-book-open text-xl"></i>
       <span class="text-xs mt-1">Subjects</span>
     </a>
-    <a href="{% url 'profile' %}" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2">
+    <a href="{% url 'payments:user_dashboard' %}"
+      class="flex flex-col items-center justify-center text-gray-600 hover:text-indigo-600 transition py-2">
+      <i class="fa fa-wallet text-xl"></i>
+      <span class="text-xs mt-1">Wallet</span>
+    </a>
+    {% if user.is_authenticated %}
+    <a href="{% url 'profile' %}"
+      class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2">
       <i class="fa fa-user text-xl"></i>
       <span class="text-xs mt-1">Profile</span>
     </a>
+    {% else %}
+    <a href="{% url 'login' %}"
+      class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 transition py-2">
+      <i class="fa fa-sign-in text-xl"></i>
+      <span class="text-xs mt-1">Login</span>
+    </a>
+    {% endif %}
   </div>
-  
+
   <script>
     // DOM Elements
     const sidebar = document.getElementById("sidebar");
@@ -575,7 +705,7 @@
     let touchEndX = 0;
     let isTransitioning = false;
 
-    // Desktop sidebar collapse with localStorage (NO VIBRATION)
+    // Desktop sidebar collapse with localStorage
     function initDesktopSidebar() {
       if (window.innerWidth > 768) {
         const sidebarState = localStorage.getItem('sidebarCollapsed');
@@ -589,18 +719,16 @@
       }
     }
 
-    // Toggle desktop sidebar with smooth transition (NO VIBRATION)
+    // Toggle desktop sidebar
     function toggleDesktopSidebar() {
       if (window.innerWidth > 768 && !isTransitioning) {
         isTransitioning = true;
-        
+
         sidebar.classList.toggle('collapsed');
         main.classList.toggle('collapsed');
-        
-        // Save state
+
         localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-        
-        // Reset transition flag after animation completes
+
         setTimeout(() => {
           isTransitioning = false;
         }, 200);
@@ -613,7 +741,7 @@
         if (open === undefined) {
           open = !sidebar.classList.contains('open');
         }
-        
+
         if (open) {
           sidebar.classList.add('open');
           overlay.classList.add('show');
@@ -626,7 +754,6 @@
       }
     }
 
-    // Close sidebar function
     function closeSidebar() {
       if (window.innerWidth <= 768) {
         sidebar.classList.remove('open');
@@ -636,8 +763,16 @@
     }
 
     // Event Listeners
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       initDesktopSidebar();
+
+      document.querySelectorAll('.flash-message').forEach(msg => {
+        setTimeout(() => {
+          msg.style.transition = 'opacity 0.5s ease';
+          msg.style.opacity = '0';
+          setTimeout(() => msg.remove(), 500);
+        }, 5000);
+      });
     });
 
     if (menuBtn) {
@@ -655,7 +790,6 @@
       overlay.addEventListener("click", closeSidebar);
     }
 
-    // Close sidebar when clicking on main content on mobile
     if (main) {
       main.addEventListener('click', (e) => {
         if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
@@ -690,7 +824,7 @@
       subjectsMenuBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const isOpen = subjectsDropdown.classList.contains("show");
         subjectsDropdown.classList.toggle("show");
         subjectsChevron.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
@@ -702,7 +836,7 @@
       testMenuBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const isOpen = testDropdown.classList.contains("show");
         testDropdown.classList.toggle("show");
         testChevron.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
@@ -711,16 +845,16 @@
 
     // Close dropdowns when clicking outside
     document.addEventListener("click", (e) => {
-      if (subjectsDropdown && subjectsMenuBtn && 
-          !subjectsMenuBtn.contains(e.target) && 
-          !subjectsDropdown.contains(e.target)) {
+      if (subjectsDropdown && subjectsMenuBtn &&
+        !subjectsMenuBtn.contains(e.target) &&
+        !subjectsDropdown.contains(e.target)) {
         subjectsDropdown.classList.remove("show");
         if (subjectsChevron) subjectsChevron.style.transform = "rotate(0deg)";
       }
-      
-      if (testDropdown && testMenuBtn && 
-          !testMenuBtn.contains(e.target) && 
-          !testDropdown.contains(e.target)) {
+
+      if (testDropdown && testMenuBtn &&
+        !testMenuBtn.contains(e.target) &&
+        !testDropdown.contains(e.target)) {
         testDropdown.classList.remove("show");
         if (testChevron) testChevron.style.transform = "rotate(0deg)";
       }
@@ -752,7 +886,7 @@
         if (window.innerWidth <= 768) {
           touchEndX = e.changedTouches[0].screenX;
           const swipeDistance = touchEndX - touchStartX;
-          
+
           if (swipeDistance > 50 && !sidebar.classList.contains('open')) {
             toggleMobileSidebar(true);
           } else if (swipeDistance < -50 && sidebar.classList.contains('open')) {
@@ -769,7 +903,7 @@
     window.addEventListener('scroll', () => {
       if (window.innerWidth <= 768 && bottomHeader && !sidebar.classList.contains('open')) {
         if (scrollTimeout) clearTimeout(scrollTimeout);
-        
+
         const currentScroll = window.scrollY;
         if (currentScroll > lastScroll && currentScroll > 100) {
           bottomHeader.style.transform = 'translateY(100%)';
@@ -777,7 +911,7 @@
           bottomHeader.style.transform = 'translateY(0)';
         }
         lastScroll = currentScroll;
-        
+
         scrollTimeout = setTimeout(() => {
           if (window.scrollY <= 50) {
             bottomHeader.style.transform = 'translateY(0)';
@@ -792,12 +926,10 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         if (window.innerWidth > 768) {
-          // Desktop
           closeSidebar();
           if (bottomHeader) bottomHeader.style.transform = 'translateY(0)';
           initDesktopSidebar();
         } else {
-          // Mobile - ensure collapsed class doesn't interfere
           sidebar.classList.remove('collapsed');
           main.classList.remove('collapsed');
         }

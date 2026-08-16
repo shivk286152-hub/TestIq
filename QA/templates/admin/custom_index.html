@@ -1,0 +1,38 @@
+templates/admin/custom_index.html
+{% extends "admin/index.html" %}
+
+{% block content %}
+<div id="content-main">
+    <!-- Dashboard Widgets -->
+    <div class="dashboard-widgets">
+        <div style="padding: 20px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 30px;">
+            {% if dashboard_stats %}
+                {{ dashboard_stats }}
+            {% else %}
+                <!-- Stats will be rendered here -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
+                        <h3 style="margin: 0; color: #4f46e5;">{{ subject_count|default:"0" }}</h3>
+                        <p style="margin: 5px 0 0 0; color: #6b7280;">Subjects</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
+                        <h3 style="margin: 0; color: #7c3aed;">{{ topic_count|default:"0" }}</h3>
+                        <p style="margin: 5px 0 0 0; color: #6b7280;">Topics</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
+                        <h3 style="margin: 0; color: #2563eb;">{{ part_count|default:"0" }}</h3>
+                        <p style="margin: 5px 0 0 0; color: #6b7280;">Parts</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
+                        <h3 style="margin: 0; color: #059669;">{{ question_count|default:"0" }}</h3>
+                        <p style="margin: 5px 0 0 0; color: #6b7280;">Questions</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Original admin content -->
+    {{ block.super }}
+</div>
+{% endblock %}

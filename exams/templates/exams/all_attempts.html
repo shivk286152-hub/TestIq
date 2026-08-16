@@ -43,6 +43,25 @@
         color: white;
         box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
     }
+    .test-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .test-type-exam {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    .test-type-subject {
+        background: #fce7f3;
+        color: #9d174d;
+    }
 </style>
 {% endblock %}
 
@@ -65,7 +84,7 @@
                     </a>
                 </div>
                 <h1 class="text-3xl md:text-4xl font-bold">📋 All Test Attempts</h1>
-                <p class="text-white/80 mt-1">View all your test history and performance</p>
+                <p class="text-white/80 mt-1">View all your test history from both Main and Subject tests</p>
             </div>
             <div class="flex items-center gap-3">
                 <span class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-sm">
@@ -97,7 +116,7 @@
             <p class="text-sm text-gray-500">Recent Test</p>
             <p class="text-sm font-semibold text-gray-700 truncate">
                 {% if attempts %}
-                    {{ attempts.0.mock_test.title|truncatechars:20 }}
+                    {{ attempts.0.title|truncatechars:20 }}
                 {% else %}
                     No tests
                 {% endif %}
@@ -127,22 +146,25 @@
 
         {% if attempts %}
         <div class="divide-y divide-gray-100">
-            {% for attempt in attempts %}
+            {% for attempt_data in attempts %}
             <div class="attempt-card p-5 hover:bg-gray-50/50 transition">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <!-- Left: Test Info -->
                     <div class="flex-1">
                         <div class="flex items-center flex-wrap gap-2 mb-1">
-                            <h3 class="font-semibold text-gray-800">{{ attempt.mock_test.title }}</h3>
-                            <span class="score-badge px-2.5 py-0.5 text-xs rounded-full font-medium
-                                {% if attempt.percentage >= 70 %}bg-green-100 text-green-700
-                                {% elif attempt.percentage >= 40 %}bg-yellow-100 text-yellow-700
-                                {% else %}bg-red-100 text-red-700{% endif %}">
-                                {{ attempt.percentage }}%
+                            <h3 class="font-semibold text-gray-800">{{ attempt_data.title }}</h3>
+                            <span class="test-type-badge {% if attempt_data.type == 'exam' %}test-type-exam{% else %}test-type-subject{% endif %}">
+                                {{ attempt_data.app_name }}
                             </span>
-                            {% if attempt.percentage >= 90 %}
+                            <span class="score-badge px-2.5 py-0.5 text-xs rounded-full font-medium
+                                {% if attempt_data.percentage >= 70 %}bg-green-100 text-green-700
+                                {% elif attempt_data.percentage >= 40 %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ attempt_data.percentage }}%
+                            </span>
+                            {% if attempt_data.percentage >= 90 %}
                             <span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full">🌟 Excellent</span>
-                            {% elif attempt.percentage >= 75 %}
+                            {% elif attempt_data.percentage >= 75 %}
                             <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">💪 Good</span>
                             {% endif %}
                         </div>
@@ -152,49 +174,49 @@
                                 <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
-                                {{ attempt.submitted_at|date:"d M Y, h:i A" }}
+                                {{ attempt_data.submitted_at|date:"d M Y, h:i A" }}
                             </span>
                             <span class="flex items-center">
                                 <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                {{ attempt.total_marks }} Questions
+                                {{ attempt_data.total_marks }} Questions
                             </span>
                             <span class="flex items-center">
                                 <span class="inline-block w-2 h-2 rounded-full mr-1
-                                    {% if attempt.percentage >= 70 %}bg-green-500
-                                    {% elif attempt.percentage >= 40 %}bg-yellow-500
+                                    {% if attempt_data.percentage >= 70 %}bg-green-500
+                                    {% elif attempt_data.percentage >= 40 %}bg-yellow-500
                                     {% else %}bg-red-500{% endif %}">
                                 </span>
-                                {{ attempt.correct_answers }} Correct
+                                {{ attempt_data.correct_answers }} Correct
                                 <span class="mx-1 text-gray-300">|</span>
-                                {{ attempt.wrong_answers }} Wrong
+                                {{ attempt_data.wrong_answers }} Wrong
                                 <span class="mx-1 text-gray-300">|</span>
-                                {{ attempt.skipped_answers }} Skipped
+                                {{ attempt_data.skipped_answers }} Skipped
                             </span>
                         </div>
                         
                         <!-- Progress Bar -->
                         <div class="mt-2 w-full bg-gray-100 rounded-full h-1.5">
                             <div class="h-1.5 rounded-full transition-all duration-1000
-                                {% if attempt.percentage >= 70 %}bg-green-500
-                                {% elif attempt.percentage >= 40 %}bg-yellow-500
+                                {% if attempt_data.percentage >= 70 %}bg-green-500
+                                {% elif attempt_data.percentage >= 40 %}bg-yellow-500
                                 {% else %}bg-red-500{% endif %}" 
-                                style="width: {{ attempt.percentage }}%;">
+                                style="width: {{ attempt_data.percentage }}%;">
                             </div>
                         </div>
                     </div>
                     
                     <!-- Right: Action Buttons -->
                     <div class="flex gap-2 flex-shrink-0">
-                        <a href="{% url 'exams:result_dashboard' attempt.id %}" 
+                        <a href="{% url attempt_data.result_url attempt_data.id %}" 
                            class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition text-sm font-medium flex items-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                             Results
                         </a>
-                        <a href="{% url 'exams:detailed_analysis' attempt.id %}" 
+                        <a href="{% url attempt_data.analysis_url attempt_data.id %}" 
                            class="px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition text-sm font-medium flex items-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
@@ -262,12 +284,20 @@
             </div>
             <h3 class="text-xl font-medium text-gray-700 mb-2">No Test Attempts Yet</h3>
             <p class="text-gray-500 mb-4">Start your learning journey by taking your first mock test</p>
-            <a href="{% url 'exams:home' %}" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/25">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                </svg>
-                Browse Tests
-            </a>
+            <div class="flex flex-wrap gap-3 justify-center">
+                <a href="{% url 'exams:home' %}" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/25">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Browse Main Tests
+                </a>
+                <a href="{% url 'subject_mocktests:subject_list' %}" class="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow-lg shadow-purple-500/25">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Browse Subject Tests
+                </a>
+            </div>
         </div>
         {% endif %}
     </div>

@@ -29,7 +29,7 @@
                 {% if mocktest.topic %}
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                         </svg>
                         <a href="{% url 'subject_mocktests:topic_detail' mocktest.topic.id %}" class="text-gray-700 hover:text-indigo-600 ml-1 md:ml-2">
@@ -40,7 +40,7 @@
                 {% endif %}
                 <li aria-current="page">
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                         </svg>
                         <span class="text-gray-500 ml-1 md:ml-2">Instructions</span>
@@ -69,7 +69,7 @@
             <!-- Quick Stats Grid -->
             <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 border-b">
                 <div class="p-6 text-center">
-                    <div class="text-3xl font-bold text-indigo-600 mb-1">{{ mocktest.total_questions }}</div>
+                    <div class="text-3xl font-bold text-indigo-600 mb-1">{{ mocktest.total_questions|default:mocktest.questions.count|default:0 }}</div>
                     <div class="text-sm text-gray-500">Total Questions</div>
                 </div>
                 <div class="p-6 text-center">
@@ -77,7 +77,7 @@
                     <div class="text-sm text-gray-500">Minutes</div>
                 </div>
                 <div class="p-6 text-center">
-                    <div class="text-3xl font-bold text-indigo-600 mb-1">{{ mocktest.total_marks }}</div>
+                    <div class="text-3xl font-bold text-indigo-600 mb-1">{{ mocktest.total_marks|default:mocktest.questions.count }}</div>
                     <div class="text-sm text-gray-500">Total Marks</div>
                 </div>
                 <div class="p-6 text-center">
@@ -160,13 +160,17 @@
                         </div>
                         <div>
                             <h3 class="font-semibold text-gray-800">Marking Scheme</h3>
-                            <p class="text-gray-600">Each question carries <span class="font-bold">{{ mocktest.total_marks|floatformat:"0" }} marks</span>.</p>
-                            {% if mocktest.has_negative_marking %}
+                            <p class="text-gray-600">Each question carries <span class="font-bold">{{ mocktest.total_marks|floatformat:"0"|default:"1" }} mark{% if mocktest.total_marks > 1 %}s{% endif %}</span>.</p>
+                            {% if mocktest.negative_marking_type != 'no_negative' %}
                                 <p class="text-red-600 mt-1 flex items-center">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                     </svg>
-                                    {{ mocktest.get_negative_marking_description }}
+                                    {% if mocktest.negative_marking_type == 'fixed_per_question' %}
+                                        Negative Marking: -{{ mocktest.negative_marking_value }} per wrong answer
+                                    {% elif mocktest.negative_marking_type == 'percentage_of_marks' %}
+                                        Negative Marking: {{ mocktest.negative_marking_value }}% of marks deducted per wrong answer
+                                    {% endif %}
                                 </p>
                             {% else %}
                                 <p class="text-green-600 mt-1 flex items-center">
@@ -227,28 +231,28 @@
                 <form method="post" action="{% url 'subject_mocktests:start_test' mocktest.id %}" class="space-y-6">
                     {% csrf_token %}
                     
-                    <!-- Language Selection -->
+                    <!-- Language Selection - UPDATED -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-3">
                             Select your preferred language:
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {% for lang in languages %}
-                            <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-colors {% if forloop.first %}border-indigo-600 bg-indigo-50{% endif %}">
-                                <input type="radio" name="language" value="{{ lang.code }}" class="sr-only" {% if forloop.first %}checked{% endif %} required>
+                            <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-colors 
+                                  {% if lang.code == selected_language %}border-indigo-600 bg-indigo-50{% endif %}">
+                                <input type="radio" name="language" value="{{ lang.code }}" 
+                                       class="sr-only" {% if lang.code == selected_language %}checked{% endif %} required>
                                 <div class="flex items-center">
-                                    <div class="w-5 h-5 rounded-full border-2 {% if forloop.first %}border-indigo-600 bg-indigo-600{% else %}border-gray-300{% endif %} flex items-center justify-center mr-3">
-                                        {% if forloop.first %}
+                                    <div class="w-5 h-5 rounded-full border-2 
+                                          {% if lang.code == selected_language %}border-indigo-600 bg-indigo-600{% else %}border-gray-300{% endif %} 
+                                          flex items-center justify-center mr-3">
+                                        {% if lang.code == selected_language %}
                                         <div class="w-2 h-2 bg-white rounded-full"></div>
                                         {% endif %}
                                     </div>
                                     <div>
                                         <span class="font-medium text-gray-900">{{ lang.name }}</span>
-                                        {% if lang.code == 'en' %}
-                                        <p class="text-xs text-gray-500">English</p>
-                                        {% else %}
-                                        <p class="text-xs text-gray-500">हिन्दी</p>
-                                        {% endif %}
+                                        <p class="text-xs text-gray-500">{{ lang.code|upper }}</p>
                                     </div>
                                 </div>
                             </label>

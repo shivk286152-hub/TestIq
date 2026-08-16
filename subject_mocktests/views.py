@@ -3,38 +3,67 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.core.paginator import Paginator
+from django.db import transaction
 import json
+import logging
 
 from .models import (
     Subject, Topic, MockTest, Question, Option,
     MockTestAttempt, UserAnswer
 )
 
+logger = logging.getLogger(__name__)
+
 
 # ============================================
 # HELPER FUNCTIONS
 # ============================================
 
+def prepare_mocktest_data(mocktest):
+    """
+    Prepare mock test data with proper totals
+    Ensures total_questions and total_marks are set
+    """
+    if mocktest.total_questions == 0:
+        mocktest.total_questions = mocktest.questions.count()
+    
+    if mocktest.total_marks == 0:
+        total_marks = mocktest.questions.aggregate(Sum('marks'))['marks__sum']
+        mocktest.total_marks = total_marks if total_marks else mocktest.total_questions
+    
+    return mocktest
+
+
+def prepare_tests_queryset(tests):
+    """
+    Prepare a queryset of tests with proper totals
+    """
+    result = []
+    for test in tests:
+        test.total_questions = test.questions.count()
+        total_marks = test.questions.aggregate(Sum('marks'))['marks__sum']
+        test.total_marks = total_marks if total_marks else test.total_questions
+        result.append(test)
+    
+    return result
+
+
 def calculate_question_marks(question, is_correct, mock_test):
     """
     Calculate marks for a single question based on negative marking rules
-    Each question has 1 mark by default
     """
-    base_marks = 1  # Each question is worth 1 mark
+    base_marks = question.marks if question.marks else 1
     
     if is_correct:
         return base_marks
     else:
-        # Wrong answer - apply negative marking
         if mock_test.negative_marking_type == 'no_negative':
             return 0
         elif mock_test.negative_marking_type == 'fixed_per_question':
-            # Fixed negative marking per wrong question
             return -mock_test.negative_marking_value
         elif mock_test.negative_marking_type == 'percentage_of_marks':
-            # Percentage of question marks (e.g., 25% of 1 = -0.25)
             return -(base_marks * mock_test.negative_marking_value / 100)
         else:
             return 0
@@ -43,7 +72,6 @@ def calculate_question_marks(question, is_correct, mock_test):
 def recalculate_attempt_stats(attempt):
     """
     Recalculate all stats for an attempt based on answers
-    This ensures accuracy even if model fields are corrupted
     """
     answers = UserAnswer.objects.filter(attempt=attempt).select_related(
         'question', 'selected_option', 'question__mock_test'
@@ -59,27 +87,23 @@ def recalculate_attempt_stats(attempt):
         question = answer.question
         mock_test = question.mock_test
         
-        # Max possible for this question (always 1)
-        max_possible_score += 1
+        question_marks = question.marks if question.marks else 1
+        max_possible_score += question_marks
         
         if not answer.selected_option:
             skipped += 1
-            # Skipped questions get 0 marks
             continue
         
         if answer.is_correct:
             correct += 1
-            total_score += 1  # +1 for correct answer
+            total_score += question_marks
         else:
             wrong += 1
-            # Apply negative marking for wrong answers
             if mock_test.negative_marking_type == 'fixed_per_question':
                 total_score -= mock_test.negative_marking_value
             elif mock_test.negative_marking_type == 'percentage_of_marks':
-                total_score -= (1 * mock_test.negative_marking_value / 100)
-            # If 'no_negative', subtract 0
+                total_score -= (question_marks * mock_test.negative_marking_value / 100)
     
-    # Round to 2 decimal places to avoid floating point issues
     total_score = round(total_score, 2)
     
     return {
@@ -133,17 +157,17 @@ def subject_detail(request, subject_slug):
     """Show subject details with topics and mock tests"""
     subject = get_object_or_404(Subject, slug=subject_slug)
     
-    # Get topics with mock test counts
     topics = subject.topics.annotate(
         test_count=Count('mock_tests', filter=Q(mock_tests__is_active=True))
     ).order_by('order', 'name')
     
-    # Get mock tests directly under subject (no topic)
     direct_tests = MockTest.objects.filter(
         subject=subject,
         topic__isnull=True,
         is_active=True
     ).order_by('-created_at')
+    
+    direct_tests = prepare_tests_queryset(direct_tests)
     
     return render(request, 'subject_mocktests/subject_detail.html', {
         'subject': subject,
@@ -161,6 +185,8 @@ def topic_detail(request, topic_id):
         is_active=True
     ).order_by('-created_at')
     
+    tests = prepare_tests_queryset(tests)
+    
     return render(request, 'subject_mocktests/topic_detail.html', {
         'topic': topic,
         'tests': tests,
@@ -171,7 +197,6 @@ def mocktest_list(request, subject_slug):
     """List all mock tests for a subject"""
     subject = get_object_or_404(Subject, slug=subject_slug)
     
-    # Filter by topic if provided
     topic_id = request.GET.get('topic')
     if topic_id:
         tests = MockTest.objects.filter(
@@ -185,16 +210,15 @@ def mocktest_list(request, subject_slug):
             is_active=True
         )
     
-    # Apply filters
     difficulty = request.GET.get('difficulty')
     if difficulty:
         tests = tests.filter(difficulty=difficulty)
     
-    # Sort options
     sort = request.GET.get('sort', '-created_at')
     tests = tests.order_by(sort)
     
-    # Pagination
+    tests = prepare_tests_queryset(tests)
+    
     paginator = Paginator(tests, 12)
     page = request.GET.get('page')
     tests_page = paginator.get_page(page)
@@ -202,7 +226,7 @@ def mocktest_list(request, subject_slug):
     return render(request, 'subject_mocktests/mocktest_list.html', {
         'subject': subject,
         'tests': tests_page,
-        'difficulties': ['Easy', 'Medium', 'Hard'],
+        'difficulties': ['Easy', 'Medium', 'Hard', 'Expert'],
     })
 
 
@@ -210,6 +234,8 @@ def mocktest_list_by_topic(request, topic_id):
     """List mock tests for a specific topic"""
     topic = get_object_or_404(Topic, id=topic_id)
     tests = MockTest.objects.filter(topic=topic, is_active=True)
+    
+    tests = prepare_tests_queryset(tests)
     
     return render(request, 'subject_mocktests/mocktest_list.html', {
         'topic': topic,
@@ -227,28 +253,20 @@ def pretest_detail(request, mocktest_id):
     """Pretest page with instructions and language selection"""
     mocktest = get_object_or_404(MockTest, id=mocktest_id, is_active=True)
     
-    # IMPORTANT: Calculate total questions and marks if not set
-    if mocktest.total_questions == 0:
-        mocktest.total_questions = mocktest.questions.count()
+    mocktest = prepare_mocktest_data(mocktest)
     
-    if mocktest.total_marks == 0:
-        mocktest.total_marks = sum(q.marks for q in mocktest.questions.all())
-    
-    # Check for incomplete attempt
     existing_attempt = MockTestAttempt.objects.filter(
         user=request.user,
         mock_test=mocktest,
         is_completed=False
     ).first()
     
-    # Check if user has any previous attempts
     previous_attempts = MockTestAttempt.objects.filter(
         user=request.user,
         mock_test=mocktest,
         is_completed=True
     ).count()
     
-    # Get previous best score
     previous_best = None
     if previous_attempts > 0:
         best_attempt = MockTestAttempt.objects.filter(
@@ -272,13 +290,13 @@ def pretest_detail(request, mocktest_id):
     }
     return render(request, 'subject_mocktests/pretest_detail.html', context)
 
+
 @login_required
 def start_test(request, mocktest_id):
     """Start or resume a test after language selection"""
     if request.method == 'POST':
         mocktest = get_object_or_404(MockTest, id=mocktest_id, is_active=True)
         
-        # Get form data
         terms_accepted = request.POST.get('terms_accepted')
         selected_language = request.POST.get('language')
         
@@ -290,13 +308,10 @@ def start_test(request, mocktest_id):
             messages.error(request, 'Please select your preferred language.')
             return redirect('subject_mocktests:pretest_detail', mocktest_id=mocktest.id)
         
-        # Store language in session
         request.session[f'subject_test_{mocktest.id}_language'] = selected_language
         
-        # Check if user is paid
         is_paid = check_if_paid_user(request.user)
         
-        # Get or create attempt
         attempt, created = MockTestAttempt.objects.get_or_create(
             user=request.user,
             mock_test=mocktest,
@@ -305,15 +320,16 @@ def start_test(request, mocktest_id):
                 'started_at': timezone.now(),
                 'language': selected_language,
                 'is_paid_user': is_paid,
-                'has_detailed_data': True
+                'has_detailed_data': True,
+                'total_marks': mocktest.total_questions,
             }
         )
         
-        # Update existing attempt if needed
         if not created:
             if not attempt.started_at:
                 attempt.started_at = timezone.now()
             attempt.language = selected_language
+            attempt.total_marks = mocktest.total_questions
             attempt.save()
         
         return redirect('subject_mocktests:attempt_test', mocktest_id=mocktest.id)
@@ -330,7 +346,6 @@ def attempt_test(request, mocktest_id):
     """Main test-taking interface"""
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
     
-    # Get active attempt
     attempt = MockTestAttempt.objects.filter(
         user=request.user,
         mock_test=mocktest,
@@ -341,22 +356,17 @@ def attempt_test(request, mocktest_id):
         messages.error(request, 'No active test found. Please start a new test.')
         return redirect('subject_mocktests:pretest_detail', mocktest_id=mocktest.id)
     
-    # Get language from session
     language = request.session.get(f'subject_test_{mocktest.id}_language', attempt.language)
     
-    # Calculate remaining time
     duration = mocktest.duration * 60
     elapsed = (timezone.now() - attempt.started_at).total_seconds()
     remaining_seconds = int(duration - elapsed)
     
-    # Auto-submit if time's up
     if remaining_seconds <= 0:
         return redirect('subject_mocktests:submit_test', mocktest_id=mocktest.id)
     
-    # Get questions
     questions = mocktest.questions.all().order_by('order', 'id')
     
-    # Group questions by topic for navigation
     topics = {}
     for q in questions:
         topic_name = q.topic or 'General'
@@ -380,7 +390,6 @@ def ajax_question(request, mocktest_id):
     """AJAX endpoint to load question content"""
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
     
-    # Get attempt for language
     attempt = MockTestAttempt.objects.filter(
         user=request.user,
         mock_test=mocktest,
@@ -395,7 +404,7 @@ def ajax_question(request, mocktest_id):
     q_number = request.GET.get('q', 1)
     try:
         q_number = int(q_number)
-    except:
+    except ValueError:
         q_number = 1
     
     q_number = max(1, min(q_number, questions.count()))
@@ -405,7 +414,6 @@ def ajax_question(request, mocktest_id):
     
     question = questions[q_number - 1]
     
-    # Get saved answers from session
     saved_answers = request.session.get(f'subject_answers_{mocktest.id}', {})
     selected_option = saved_answers.get(str(question.id))
     
@@ -422,52 +430,54 @@ def ajax_question(request, mocktest_id):
 def save_answer(request):
     """Save answer to session (AJAX)"""
     if request.method == 'POST':
-        for key, value in request.POST.items():
-            if key.startswith('question_'):
-                qid = int(key.replace('question_', ''))
-                question = get_object_or_404(Question, id=qid)
-                
-                answers = request.session.get(
-                    f'subject_answers_{question.mock_test.id}', {}
-                )
-                
-                if value == '':
-                    answers.pop(str(qid), None)
-                else:
-                    answers[str(qid)] = int(value)
-                
-                request.session[f'subject_answers_{question.mock_test.id}'] = answers
-        
-        return JsonResponse({'status': 'ok'})
+        try:
+            for key, value in request.POST.items():
+                if key.startswith('question_'):
+                    qid = int(key.replace('question_', ''))
+                    question = get_object_or_404(Question, id=qid)
+                    
+                    answers = request.session.get(
+                        f'subject_answers_{question.mock_test.id}', {}
+                    )
+                    
+                    if value == '':
+                        answers.pop(str(qid), None)
+                    else:
+                        answers[str(qid)] = int(value)
+                    
+                    request.session[f'subject_answers_{question.mock_test.id}'] = answers
+            
+            return JsonResponse({'status': 'ok'})
+        except Exception as e:
+            logger.error(f"Error saving answer: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
-    return JsonResponse({'status': 'error'})
+    return JsonResponse({'status': 'error'}, status=400)
 
 
 # ============================================
-# SUBMIT TEST - WITH PROPER NEGATIVE MARKING
+# SUBMIT TEST
 # ============================================
 
 @login_required
+@transaction.atomic
 def submit_test(request, mocktest_id):
     """Submit test with proper negative marking calculation"""
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
     
-    # Get subject_mocktests attempt
     subject_attempt = MockTestAttempt.objects.filter(
         user=request.user,
         mock_test=mocktest,
         is_completed=False
-    ).first()
+    ).select_for_update().first()
     
     if not subject_attempt:
         messages.error(request, 'No active test found.')
         return redirect('subject_mocktests:subject_list')
     
-    # Prevent double submission
     if subject_attempt.is_completed:
         return redirect('subject_mocktests:result_dashboard', attempt_id=subject_attempt.id)
     
-    # Get all questions and saved answers
     questions = mocktest.questions.all()
     session_answers = request.session.get(f'subject_answers_{mocktest.id}', {})
     
@@ -476,7 +486,6 @@ def submit_test(request, mocktest_id):
     skipped = 0
     total_score = 0
     
-    # Create UserAnswer records with proper mark calculation
     for question in questions:
         selected_id = session_answers.get(str(question.id))
         
@@ -491,18 +500,16 @@ def submit_test(request, mocktest_id):
                 selected_option = Option.objects.get(id=selected_id)
                 is_correct = selected_option.is_correct
                 
-                # Calculate marks for this question based on negative marking
                 if is_correct:
                     correct += 1
-                    question_marks = 1  # +1 for correct
+                    question_marks = question.marks if question.marks else 1
                 else:
                     wrong += 1
-                    # Apply negative marking
                     if mocktest.negative_marking_type == 'fixed_per_question':
                         question_marks = -mocktest.negative_marking_value
                     elif mocktest.negative_marking_type == 'percentage_of_marks':
-                        question_marks = -(1 * mocktest.negative_marking_value / 100)
-                    else:  # no_negative
+                        question_marks = -((question.marks if question.marks else 1) * mocktest.negative_marking_value / 100)
+                    else:
                         question_marks = 0
                 
                 total_score += question_marks
@@ -514,28 +521,27 @@ def submit_test(request, mocktest_id):
                     is_correct=is_correct
                 )
             except Option.DoesNotExist:
-                # Handle case where selected option doesn't exist
                 skipped += 1
                 UserAnswer.objects.create(
                     attempt=subject_attempt,
                     question=question
                 )
     
-    # Round total score to 2 decimal places
     total_score = round(total_score, 2)
+    total_marks = sum(q.marks if q.marks else 1 for q in questions)
     
-    # Update attempt with calculated values (only database fields)
     subject_attempt.correct_answers = correct
     subject_attempt.wrong_answers = wrong
     subject_attempt.skipped_answers = skipped
-    subject_attempt.total_marks = questions.count()  # Total questions
-    subject_attempt.score = total_score  # Score with negative marking applied
-    # DON'T set percentage - it's a property calculated from score and total_marks
+    subject_attempt.total_marks = total_marks
+    subject_attempt.raw_score = correct
+    subject_attempt.score = max(0, total_score)
+    subject_attempt.score_with_negative = max(0, total_score)
+    subject_attempt.negative_marks_applied = max(0, correct - total_score) if total_score < correct else 0
     subject_attempt.submitted_at = timezone.now()
     subject_attempt.is_completed = True
     subject_attempt.save()
     
-    # Clear session
     request.session.pop(f'subject_answers_{mocktest.id}', None)
     
     messages.success(request, 'Test submitted successfully!')
@@ -544,7 +550,7 @@ def submit_test(request, mocktest_id):
 
 
 # ============================================
-# RESULTS AND ANALYTICS - FIXED TEMPLATE PATHS
+# RESULTS AND ANALYTICS
 # ============================================
 
 @login_required
@@ -557,28 +563,19 @@ def result_dashboard(request, attempt_id):
         is_completed=True
     )
     
-    # Recalculate stats to ensure accuracy
     stats = recalculate_attempt_stats(attempt)
     
-    # Get answers with related data
     answers = attempt.answers.select_related(
         'question', 'selected_option', 'question__mock_test'
     ).all()
     
-    # Use model's percentage property
     percentage = attempt.percentage
     
-    # Calculate marks
-    marks_obtained = stats['score']  # Score with negative marking
-    max_marks = stats['max_score']    # Maximum possible marks
-    
-    # NEW: Calculate raw marks (correct - wrong)
+    marks_obtained = stats['score']
+    max_marks = stats['max_score']
     raw_marks = stats['correct'] - stats['wrong']
-    
-    # NEW: Calculate total negative marks applied
     negative_applied = marks_obtained - raw_marks if marks_obtained < raw_marks else 0
     
-    # Topic stats with marks
     topic_stats = []
     topic_performance = {}
     
@@ -599,30 +596,28 @@ def result_dashboard(request, attempt_id):
                 'accuracy': 0
             }
         
+        question_marks = question.marks if question.marks else 1
         topic_performance[topic_name]['total'] += 1
-        topic_performance[topic_name]['max_marks'] += 1
+        topic_performance[topic_name]['max_marks'] += question_marks
         
         if not answer.selected_option:
             topic_performance[topic_name]['skipped'] += 1
         elif answer.is_correct:
             topic_performance[topic_name]['correct'] += 1
-            topic_performance[topic_name]['marks_obtained'] += 1
+            topic_performance[topic_name]['marks_obtained'] += question_marks
         else:
             topic_performance[topic_name]['wrong'] += 1
-            # Apply negative marking
             if mock_test.negative_marking_type == 'fixed_per_question':
                 topic_performance[topic_name]['marks_obtained'] -= mock_test.negative_marking_value
             elif mock_test.negative_marking_type == 'percentage_of_marks':
-                topic_performance[topic_name]['marks_obtained'] -= (1 * mock_test.negative_marking_value / 100)
+                topic_performance[topic_name]['marks_obtained'] -= (question_marks * mock_test.negative_marking_value / 100)
     
-    # Calculate topic percentages and round marks
     for topic, data in topic_performance.items():
         data['marks_obtained'] = round(data['marks_obtained'], 2)
         if data['total'] > 0:
             data['accuracy'] = round((data['correct'] / data['total']) * 100, 1)
         topic_stats.append(data)
     
-    # Calculate rank
     all_attempts = MockTestAttempt.objects.filter(
         mock_test=attempt.mock_test,
         is_completed=True
@@ -634,13 +629,11 @@ def result_dashboard(request, attempt_id):
             rank = idx
             break
     
-    # Calculate percentile
     percentile = None
     if all_attempts.count() > 0:
         better_than = all_attempts.filter(score__lt=attempt.score).count()
         percentile = round((better_than / all_attempts.count()) * 100, 1)
     
-    # Get negative marking info for display
     mock_test = attempt.mock_test
     negative_marking_info = {
         'type': mock_test.get_negative_marking_type_display(),
@@ -655,13 +648,9 @@ def result_dashboard(request, attempt_id):
         'correct': stats['correct'],
         'wrong': stats['wrong'],
         'skipped': stats['skipped'],
-        # Raw marks (correct - wrong)
         'raw_marks': raw_marks,
-        # Marks with negative applied
         'marks_obtained': marks_obtained,
-        # Maximum possible marks
         'max_marks': max_marks,
-        # Total negative marks deducted
         'negative_applied': abs(negative_applied),
         'percentage': percentage,
         'rank': rank,
@@ -670,8 +659,8 @@ def result_dashboard(request, attempt_id):
         'negative_marking': negative_marking_info,
     }
     
-    # Use the same template as main app but with our context
     return render(request, 'subject_mocktests/result_dashboard.html', context)
+
 
 @login_required
 def subject_dashboard(request):
@@ -681,7 +670,6 @@ def subject_dashboard(request):
         is_completed=True
     ).select_related('mock_test', 'mock_test__subject').order_by('-submitted_at')
     
-    # Statistics
     total_tests = attempts.count()
     avg_accuracy = 0
     best_accuracy = 0
@@ -703,7 +691,6 @@ def subject_dashboard(request):
         avg_accuracy = round(total_accuracy / total_tests, 1)
         total_marks_obtained = round(total_marks_obtained, 2)
     
-    # Subject-wise stats
     subject_stats = []
     subject_data = {}
     
@@ -740,12 +727,10 @@ def subject_dashboard(request):
         
         subject_stats.append(data)
     
-    # Prepare chart data
     subject_labels = [s['name'] for s in subject_stats]
     subject_accuracies = [s['accuracy'] for s in subject_stats]
     subject_marks = [s['avg_marks_per_test'] for s in subject_stats]
     
-    # Prepare attempts data for line chart
     attempts_data = []
     for attempt in attempts[:10]:
         if attempt.total_marks and attempt.total_marks > 0:
@@ -766,7 +751,6 @@ def subject_dashboard(request):
     subject_marks_json = json.dumps(subject_marks)
     attempts_json = json.dumps(attempts_data)
     
-    # Calculate streak
     streak = 0
     if attempts.exists():
         from datetime import date, timedelta
@@ -794,6 +778,7 @@ def subject_dashboard(request):
     
     return render(request, 'subject_mocktests/dashboard.html', context)
 
+
 @login_required
 def view_rankings(request, attempt_id):
     """View rankings with marks consideration"""
@@ -806,13 +791,11 @@ def view_rankings(request, attempt_id):
     
     mock_test = current_attempt.mock_test
     
-    # Get all completed attempts for this mock test
     all_attempts = MockTestAttempt.objects.filter(
         mock_test=mock_test,
         is_completed=True
     ).select_related('user').order_by('-score', 'submitted_at')
     
-    # Get unique users with best scores
     user_best_scores = {}
     for att in all_attempts:
         user_id = att.user.id
@@ -822,32 +805,26 @@ def view_rankings(request, attempt_id):
                 'score': att.score
             }
     
-    # Convert to list and sort
     best_attempts_list = [data['attempt'] for data in user_best_scores.values()]
     best_attempts_list.sort(key=lambda x: x.score, reverse=True)
     
-    # Calculate top score
     top_score = 0
-    top_marks = 0
     if best_attempts_list:
         top_attempt = best_attempts_list[0]
         if top_attempt.total_marks and top_attempt.total_marks > 0:
             top_score = round(top_attempt.percentage, 1)
     
-    # Process rankings with tie handling
     ranked_attempts = []
     current_rank = 1
     prev_score = None
     prev_rank = 1
     
     for attempt in best_attempts_list:
-        # Calculate score percentage
         if attempt.total_marks and attempt.total_marks > 0:
             score_percentage = round(attempt.percentage, 1)
         else:
             score_percentage = 0
         
-        # Handle ties (same score gets same rank)
         if prev_score != attempt.score:
             rank = current_rank
         else:
@@ -877,14 +854,12 @@ def view_rankings(request, attempt_id):
         prev_rank = rank
         current_rank += 1
     
-    # Find current user's rank
     current_user_rank = None
     for item in ranked_attempts:
         if item['is_current']:
             current_user_rank = item['rank']
             break
     
-    # Statistics
     total_attempts_count = len(ranked_attempts)
     if total_attempts_count > 0:
         avg_score = round(sum(item['score'] for item in ranked_attempts) / total_attempts_count, 1)
@@ -895,12 +870,10 @@ def view_rankings(request, attempt_id):
     
     highest_score = ranked_attempts[0]['score'] if ranked_attempts else 0
     
-    # Calculate percentile for current user
     your_percentile = 100
     if total_attempts_count > 0 and current_user_rank:
         your_percentile = round(((total_attempts_count - current_user_rank) / total_attempts_count) * 100, 1)
     
-    # Pagination
     paginator = Paginator(ranked_attempts, 20)
     page_number = request.GET.get('page')
     if not page_number and current_user_rank:
@@ -927,8 +900,7 @@ def view_rankings(request, attempt_id):
         'top_score': top_score,
     }
     
-    # Use exams template
-    return render(request, 'exams/rankings.html', context)  
+    return render(request, 'exams/rankings.html', context)
 
 
 @login_required
@@ -941,12 +913,10 @@ def test_statistics(request, attempt_id):
         is_completed=True
     )
     
-    # Recalculate stats
     stats = recalculate_attempt_stats(attempt)
     
     answers = attempt.answers.select_related('question', 'selected_option', 'question__mock_test').all()
     
-    # Basic stats
     total_questions = stats['total_questions']
     correct = stats['correct']
     wrong = stats['wrong']
@@ -955,7 +925,6 @@ def test_statistics(request, attempt_id):
     score_with_negative = stats['score']
     negative_applied = abs(raw_score - correct) if raw_score < correct else 0
     
-    # Topic performance with marks
     topic_performance = {}
     for answer in answers:
         question = answer.question
@@ -968,23 +937,23 @@ def test_statistics(request, attempt_id):
                 'marks_obtained': 0, 'max_marks': 0, 'total_time': 0
             }
         
+        question_marks = question.marks if question.marks else 1
         topic_performance[topic_name]['total'] += 1
-        topic_performance[topic_name]['max_marks'] += 1
+        topic_performance[topic_name]['max_marks'] += question_marks
         
         if not answer.selected_option:
             topic_performance[topic_name]['skipped'] += 1
         elif answer.is_correct:
             topic_performance[topic_name]['correct'] += 1
-            topic_performance[topic_name]['marks_obtained'] += 1
+            topic_performance[topic_name]['marks_obtained'] += question_marks
         else:
             topic_performance[topic_name]['wrong'] += 1
-            # Apply negative marking
             if mock_test.negative_marking_type == 'fixed_per_question':
                 topic_performance[topic_name]['marks_obtained'] -= mock_test.negative_marking_value
             elif mock_test.negative_marking_type == 'percentage_of_marks':
-                topic_performance[topic_name]['marks_obtained'] -= (1 * mock_test.negative_marking_value / 100)
+                topic_performance[topic_name]['marks_obtained'] -= (question_marks * mock_test.negative_marking_value / 100)
     
-    subject_data = []  # Template expects subject_data
+    subject_data = []
     for name, data in topic_performance.items():
         accuracy = round((data['marks_obtained'] / data['max_marks'] * 100), 1) if data['max_marks'] > 0 else 0
         raw_accuracy = round((data['correct'] / data['total'] * 100), 1) if data['total'] > 0 else 0
@@ -994,7 +963,7 @@ def test_statistics(request, attempt_id):
             'correct': data['correct'],
             'wrong': data['wrong'],
             'skipped': data['skipped'],
-            'raw_score': data['marks_obtained'],  # Using marks_obtained as raw_score
+            'raw_score': data['marks_obtained'],
             'score_with_negative': round(data['marks_obtained'], 1),
             'accuracy': accuracy,
             'raw_accuracy': raw_accuracy,
@@ -1003,7 +972,6 @@ def test_statistics(request, attempt_id):
     
     subject_data.sort(key=lambda x: x['score_with_negative'], reverse=True)
     
-    # Difficulty analysis
     difficulty_data = []
     difficulty_counts = {}
     
@@ -1029,7 +997,6 @@ def test_statistics(request, attempt_id):
             'score': round(data['score'], 1)
         })
     
-    # Rankings data
     all_attempts = MockTestAttempt.objects.filter(
         mock_test=attempt.mock_test,
         is_completed=True
@@ -1037,19 +1004,16 @@ def test_statistics(request, attempt_id):
     
     total_attempts = all_attempts.count()
     
-    # Calculate user's rank
     rank = None
     for idx, att in enumerate(all_attempts, 1):
         if att.id == attempt.id:
             rank = idx
             break
     
-    # Calculate percentile
     percentile = None
     if rank and total_attempts > 0:
         percentile = round(((total_attempts - rank) / total_attempts) * 100, 1)
     
-    # Global stats
     global_avg = 0
     top_score = 0
     
@@ -1060,7 +1024,6 @@ def test_statistics(request, attempt_id):
         if top_attempt:
             top_score = round(top_attempt.percentage, 1)
     
-    # Get unique users with best scores for top scorers
     user_best_scores = {}
     for att in all_attempts:
         user_id = att.user.id
@@ -1085,7 +1048,6 @@ def test_statistics(request, attempt_id):
             'is_current': att.id == attempt.id
         })
     
-    # Insights
     insights = []
     if subject_data:
         strongest = subject_data[0]
@@ -1104,7 +1066,6 @@ def test_statistics(request, attempt_id):
     if attempt.percentage > global_avg:
         insights.append(f"Above global average by {round(attempt.percentage - global_avg, 1)}%")
     
-    # Distribution data for chart
     distribution_ranges = ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%']
     distribution_data = [0, 0, 0, 0, 0]
     
@@ -1154,8 +1115,8 @@ def test_statistics(request, attempt_id):
         'chart_data_json': json.dumps(chart_data),
     }
     
-    # Use exams template
     return render(request, 'exams/test_statistics.html', context)
+
 
 @login_required
 def detailed_analysis(request, attempt_id):
@@ -1170,14 +1131,12 @@ def detailed_analysis(request, attempt_id):
     selected_language = request.GET.get('lang', attempt.language)
     mock_test = attempt.mock_test
     
-    # Get all answers with related data
     answers = attempt.answers.select_related(
         'question',
         'selected_option',
         'question__mock_test'
     ).prefetch_related('question__options').all()
     
-    # Prepare questions data
     questions_data = []
     correct_count = 0
     wrong_count = 0
@@ -1188,26 +1147,25 @@ def detailed_analysis(request, attempt_id):
         question = answer.question
         selected_option = answer.selected_option
         
-        # Get all options for this question
         options = question.options.all().order_by('order')
         
-        # Determine if answer is correct and calculate marks
         is_correct = False
         marks_obtained = 0
         correct_option = None
+        
+        question_marks = question.marks if question.marks else 1
         
         if selected_option:
             is_correct = selected_option.is_correct
             if is_correct:
                 correct_count += 1
-                marks_obtained = 1
+                marks_obtained = question_marks
             else:
                 wrong_count += 1
-                # Apply negative marking
                 if mock_test.negative_marking_type == 'fixed_per_question':
                     marks_obtained = -mock_test.negative_marking_value
                 elif mock_test.negative_marking_type == 'percentage_of_marks':
-                    marks_obtained = -(1 * mock_test.negative_marking_value / 100)
+                    marks_obtained = -(question_marks * mock_test.negative_marking_value / 100)
                 else:
                     marks_obtained = 0
             correct_option = question.options.filter(is_correct=True).first()
@@ -1217,7 +1175,6 @@ def detailed_analysis(request, attempt_id):
         
         total_marks_obtained += marks_obtained
         
-        # Prepare option details
         options_data = []
         for opt_index, option in enumerate(options, start=1):
             option_text = option.get_text(selected_language)
@@ -1230,21 +1187,14 @@ def detailed_analysis(request, attempt_id):
                 'letter': chr(64 + opt_index)
             })
         
-        # Get question text
         question_text = question.get_question_text(selected_language)
-        
-        # Get subject/topic name
         subject_name = question.topic or question.mock_test.subject.name or 'General'
-        
-        # Get explanation
         explanation = question.get_explanation_text(selected_language)
         
-        # Get selected option text
         selected_option_text = 'Not Answered'
         if selected_option:
             selected_option_text = selected_option.get_text(selected_language)
         
-        # Get correct option text
         correct_option_text = 'No correct option found'
         if correct_option:
             correct_option_text = correct_option.get_text(selected_language)
@@ -1263,17 +1213,15 @@ def detailed_analysis(request, attempt_id):
             'is_correct': is_correct,
             'is_answered': selected_option is not None,
             'marks_obtained': round(marks_obtained, 2),
-            'max_marks': 1,
+            'max_marks': question_marks,
         }
         questions_data.append(question_data)
     
-    # Calculate statistics
     total_questions = len(questions_data)
     accuracy = round((correct_count / total_questions * 100), 1) if total_questions > 0 else 0
     total_marks_obtained = round(total_marks_obtained, 2)
-    max_possible_marks = total_questions
+    max_possible_marks = sum(q['max_marks'] for q in questions_data)
     
-    # Subject-wise performance with marks
     subject_stats = {}
     for q in questions_data:
         subject = q['subject']
@@ -1288,17 +1236,16 @@ def detailed_analysis(request, attempt_id):
                 'max_marks': 0
             }
         subject_stats[subject]['total'] += 1
-        subject_stats[subject]['max_marks'] += 1
+        subject_stats[subject]['max_marks'] += q['max_marks']
         if q['is_correct']:
             subject_stats[subject]['correct'] += 1
-            subject_stats[subject]['marks_obtained'] += 1
+            subject_stats[subject]['marks_obtained'] += q['max_marks']
         elif q['is_answered']:
             subject_stats[subject]['wrong'] += 1
             subject_stats[subject]['marks_obtained'] += q['marks_obtained']
         else:
             subject_stats[subject]['skipped'] += 1
     
-    # Calculate subject percentages
     for subject, stats in subject_stats.items():
         if stats['total'] > 0:
             stats['accuracy'] = round((stats['correct'] / stats['total'] * 100), 1)
@@ -1308,14 +1255,12 @@ def detailed_analysis(request, attempt_id):
             stats['accuracy'] = 0
             stats['score_percentage'] = 0
     
-    # Check if detailed data exists
     if not attempt.has_detailed_data:
         return render(request, 'exams/detailed_analysis_unavailable.html', {
             'attempt': attempt,
             'message': 'Detailed answers are no longer available for free users after 7 days. Upgrade to paid to keep your detailed history!'
         })
     
-    # Negative marking info
     negative_marking_info = {
         'type': mock_test.get_negative_marking_type_display(),
         'value': mock_test.negative_marking_value,
@@ -1332,7 +1277,7 @@ def detailed_analysis(request, attempt_id):
         'accuracy': accuracy,
         'marks_obtained': total_marks_obtained,
         'max_marks': max_possible_marks,
-        'subject_stats': subject_stats,  # Keep as dict for template compatibility
+        'subject_stats': subject_stats,
         'selected_language': selected_language,
         'negative_marking': negative_marking_info,
         'languages': [
@@ -1341,5 +1286,4 @@ def detailed_analysis(request, attempt_id):
         ]
     }
     
-    # Use the exams template
-    return render(request, 'exams/detailed_analysis.html', context)   
+    return render(request, 'exams/detailed_analysis.html', context)

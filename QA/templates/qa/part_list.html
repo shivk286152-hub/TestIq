@@ -258,7 +258,6 @@
         transform: scale(1.05);
     }
 
-    /* Only new style - for vertical date */
     .date-vertical {
         display: flex;
         flex-direction: column;
@@ -282,6 +281,46 @@
         text-align: center;
     }
 
+    /* ===== PAYMENT BADGES ===== */
+    .badge-locked {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 0.1rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.6rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        font-weight: 600;
+        border: 1px solid #fecaca;
+    }
+
+    .badge-free {
+        background: #dcfce7;
+        color: #16a34a;
+        padding: 0.1rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.6rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        font-weight: 600;
+        border: 1px solid #bbf7d0;
+    }
+    
+    .badge-subscribed {
+        background: #dbeafe;
+        color: #2563eb;
+        padding: 0.1rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.6rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        font-weight: 600;
+        border: 1px solid #bfdbfe;
+    }
+
     @media (max-width: 767px) {
         .content-section-wrapper { padding: 1rem !important; }
         .content-section-wrapper h1 { font-size: 1.25rem; }
@@ -296,7 +335,8 @@
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Breadcrumb -->
+        
+        <!-- ===== BREADCRUMB ===== -->
         <nav class="text-sm text-gray-500 mb-4 bg-white/80 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm">
             <a href="{% url 'qa:subject_list' %}" class="hover:text-indigo-600">Subjects</a>
             <span class="mx-2 text-gray-300">/</span>
@@ -305,7 +345,7 @@
             <span class="text-gray-700 font-medium">{{ topic.name }}</span>
         </nav>
 
-        <!-- Topic Header -->
+        <!-- ===== TOPIC HEADER ===== -->
         <div class="bg-white rounded-2xl shadow-lg p-5 mb-4 border border-gray-100">
             <div class="flex items-start gap-3">
                 <div class="text-2xl text-indigo-600 bg-indigo-50 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -317,8 +357,14 @@
                     <p class="text-gray-600 text-sm mt-1">{{ topic.description }}</p>
                     {% endif %}
                     <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <span><i class="fa-solid fa-layer-group text-indigo-500"></i> {{ parts|length }} Parts</span>
+                        <span><i class="fa-solid fa-layer-group text-indigo-500"></i> {{ total_parts }} Parts</span>
                         <span><i class="fa-regular fa-clock text-green-500"></i> {{ topic.updated_at|date:"M d, Y" }}</span>
+                        <!-- ✅ ACCESS STATUS -->
+                        {% if is_locked %}
+                            <span class="badge-locked"><i class="fa-solid fa-lock"></i> Locked - ₹{{ price }}</span>
+                        {% else %}
+                            <span class="badge-free"><i class="fa-solid fa-unlock"></i> Free</span>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="flex-shrink-0">
@@ -355,17 +401,14 @@
             <div id="filterBody" style="display:none; padding-top:12px; margin-top:8px; border-top:2px dashed #e2e8f0;">
                 <form method="get">
                     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:10px;">
-                        <!-- Date - NOW VERTICAL -->
                         <div>
                             <label style="font-size:11px; font-weight:600; color:#64748b; display:block; margin-bottom:3px;">📅 Date</label>
                             <div class="date-vertical">
                                 <div>
-                                    <!-- <label></label> -->
                                     <input type="date" name="date_from" value="{{ request.GET.date_from }}">
                                 </div>
                                 <div class="date-separator">↓</div>
                                 <div>
-                                    <!-- <label>To</label> -->
                                     <input type="date" name="date_to" value="{{ request.GET.date_to }}">
                                 </div>
                             </div>
@@ -500,7 +543,7 @@
         </div>
         {% endif %}
 
-        <!-- ===== PARTS SECTION ===== -->
+        <!-- ===== PARTS SECTION WITH PAYMENT INTEGRATION ===== -->
         <div>
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -508,40 +551,69 @@
                     Parts
                 </h2>
                 <span class="text-sm text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
-                    {{ parts|length }}
+                    {{ total_parts }}
                 </span>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {% for part in parts %}
-                <div class="group bg-white rounded-xl shadow hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-gray-100 hover:border-indigo-300 relative overflow-hidden">
+                {% for item in parts %}
+                <div class="group bg-white rounded-xl shadow hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border {% if item.is_locked %}border-red-200{% else %}border-gray-100{% endif %} hover:border-indigo-300 relative overflow-hidden">
                     <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     
-                    <a href="{% url 'qa:part_detail' subject.slug topic.slug part.slug %}" class="block p-4">
+                    <div class="p-4">
                         <div class="flex items-start justify-between">
                             <h3 class="text-base font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
-                                {{ part.name }}
+                                {{ item.part.name }}
                             </h3>
-                            <i class="fa-solid fa-arrow-right text-gray-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all duration-300 text-sm"></i>
+                            <!-- ✅ ACCESS STATUS BADGE -->
+                            {% if item.is_locked %}
+                                {% if item.can_access %}
+                                    <span class="badge-subscribed text-xs"><i class="fa-solid fa-check-circle"></i> Accessible</span>
+                                {% else %}
+                                    <span class="badge-locked text-xs"><i class="fa-solid fa-lock"></i> ₹{{ item.price }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge-free text-xs"><i class="fa-solid fa-unlock"></i> Free</span>
+                            {% endif %}
                         </div>
                         
-                        {% if part.description %}
-                        <p class="text-gray-500 text-xs mt-1 line-clamp-2">{{ part.description|truncatechars:60 }}</p>
+                        {% if item.part.description %}
+                        <p class="text-gray-500 text-xs mt-1 line-clamp-2">{{ item.part.description|truncatechars:60 }}</p>
                         {% endif %}
                         
                         <div class="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-100">
                             <span class="text-gray-500">
-                                <i class="fa-regular fa-question-circle text-indigo-400"></i> {{ part.questions_count }} Questions
-                            </span>
-                            <span class="text-indigo-600 font-medium text-xs flex items-center gap-1">
-                                Practice 
-                                <i class="fa-solid fa-chevron-right text-[8px] group-hover:translate-x-0.5 transition-transform"></i>
+                                <i class="fa-regular fa-question-circle text-indigo-400"></i> {{ item.questions_count }} Questions
                             </span>
                         </div>
-                    </a>
+                        
+                        <!-- ✅ ACTION BUTTON - WITH PAYMENT INTEGRATION -->
+                        <div class="mt-3">
+                            {% if item.is_locked %}
+                                {% if item.can_access %}
+                                    <a href="{% url 'qa:part_detail' subject.slug topic.slug item.part.slug %}" 
+                                       class="w-full inline-block text-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-3 rounded-lg transition-all">
+                                        📖 View Questions
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'payments:locked_content' content_type='qa_part' content_id=item.part.id %}" 
+                                       class="w-full inline-block text-center bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold py-2 px-3 rounded-lg transition-all">
+                                        🔒 Unlock ₹{{ item.price }}
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'qa:part_detail' subject.slug topic.slug item.part.slug %}" 
+                                   class="w-full inline-block text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2 px-3 rounded-lg transition-all">
+                                    📖 View Questions
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
                     
+                    <!-- ✅ PDF Download Button - Only show if part has slug -->
+                    {% if item.part.slug %}
                     <div class="px-4 pb-3 pt-1 border-t border-gray-50 flex justify-end">
-                        <a href="{% url 'qa:download_part_pdf' subject.slug topic.slug part.slug %}" 
+                        <a href="{% url 'qa:download_part_pdf' subject.slug topic.slug item.part.slug %}" 
                            class="pdf-part-btn inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] text-gray-400 hover:text-red-500 transition-all duration-200 border border-gray-100 hover:border-red-200 rounded-lg bg-gray-50/50 hover:bg-red-50">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -549,6 +621,7 @@
                             Download PDF
                         </a>
                     </div>
+                    {% endif %}
                 </div>
                 {% empty %}
                 <div class="col-span-full text-center py-8 bg-white rounded-xl">
@@ -623,6 +696,7 @@
             </div>
         </section>
         {% endif %}
+        
     </div>
 </div>
 
@@ -649,9 +723,7 @@
 
     function downloadFilteredPDF() {
         var url = window.location.pathname + window.location.search;
-        // Remove any existing download_pdf parameter
         url = url.replace(/[?&]download_pdf=true/g, '');
-        // Add download_pdf parameter
         var separator = url.includes('?') ? '&' : '?';
         url += separator + 'download_pdf=true';
         window.location.href = url;

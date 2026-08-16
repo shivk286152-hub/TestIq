@@ -3,382 +3,477 @@
 
 {% block title %}Subject Wise Mock Tests | TestIQ{% endblock %}
 
-{% block content %}
-<!-- Animated Background -->
-<div class="fixed inset-0 -z-10 overflow-hidden">
-    <div class="absolute inset-0 bg-[#0A0F1E]"></div>
-    <!-- Animated grid lines -->
-    <div class="absolute inset-0 opacity-20" 
-         style="background-image: linear-gradient(#1E293B 1px, transparent 1px), linear-gradient(90deg, #1E293B 1px, transparent 1px);
-                background-size: 50px 50px;">
-    </div>
-    <!-- Animated gradient orbs -->
-    <div class="absolute top-0 -left-20 w-[500px] h-[500px] bg-blue-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-    <div class="absolute top-0 -right-20 w-[500px] h-[500px] bg-purple-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-    <div class="absolute -bottom-40 left-20 w-[500px] h-[500px] bg-indigo-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
-</div>
-
-<!-- Hero Section with Glassmorphism -->
-<div class="relative overflow-hidden bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#020617] border-b border-gray-800">
-    <!-- Animated particles -->
-    <div class="absolute inset-0 opacity-30">
-        <div class="absolute top-1/4 left-1/4 w-1 h-1 bg-blue-400/50 rounded-full animate-ping"></div>
-        <div class="absolute top-3/4 right-1/4 w-1.5 h-1.5 bg-purple-400/50 rounded-full animate-ping animation-delay-1000"></div>
-        <div class="absolute bottom-1/4 right-1/3 w-1 h-1 bg-indigo-400/50 rounded-full animate-ping animation-delay-2000"></div>
-    </div>
+{% block extra_css %}
+<style>
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
     
-    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <!-- Badge -->
-        <div class="flex justify-center mb-4">
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-medium text-blue-400">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                </svg>
-                Practice Anywhere, Anytime
-            </span>
-        </div>
-        
-        <!-- Main Heading - Smaller -->
-        <div class="text-center max-w-3xl mx-auto">
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 pb-1">
-                Subject Wise Mock Tests
-            </h1>
-            <p class="mt-3 text-base text-gray-400 max-w-2xl mx-auto">
-                Master your competitive exams with comprehensive practice tests.
-            </p>
-        </div>
-        
-        <!-- Stats with Glass Effect - Smaller -->
-        <div class="mt-6 flex flex-wrap justify-center gap-3">
-            <!-- Subjects Count -->
-            <div class="group relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                <div class="relative px-4 py-2 bg-gray-900/90 backdrop-blur-xl rounded-xl border border-gray-800 flex items-center gap-2">
-                    <div class="p-1.5 bg-blue-500/20 rounded-lg">
-                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="text-lg font-bold text-white">{{ subjects.count }}</span>
-                        <span class="text-xs text-gray-400 ml-1">Subjects</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Tests Count -->
-            <div class="group relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                <div class="relative px-4 py-2 bg-gray-900/90 backdrop-blur-xl rounded-xl border border-gray-800 flex items-center gap-2">
-                    <div class="p-1.5 bg-purple-500/20 rounded-lg">
-                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="text-lg font-bold text-white">{{ total_tests|default:"0" }}</span>
-                        <span class="text-xs text-gray-400 ml-1">Tests</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Free Access -->
-            <div class="group relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-amber-600 to-orange-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                <div class="relative px-4 py-2 bg-gray-900/90 backdrop-blur-xl rounded-xl border border-gray-800 flex items-center gap-2">
-                    <div class="p-1.5 bg-amber-500/20 rounded-lg">
-                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="text-xs font-medium text-white">Free Access</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+        opacity: 0;
+    }
     
-    <!-- Bottom Wave -->
-    <div class="absolute bottom-0 left-0 right-0">
-        <svg class="w-full h-6 text-[#0A0F1E] fill-current" viewBox="0 0 1440 48" preserveAspectRatio="none">
-            <path d="M0 48h1440V0C1200 32 960 48 720 48S240 32 0 0v48z"></path>
-        </svg>
-    </div>
-</div>
+    .delay-1 { animation-delay: 0.05s; }
+    .delay-2 { animation-delay: 0.1s; }
+    .delay-3 { animation-delay: 0.15s; }
+    .delay-4 { animation-delay: 0.2s; }
+    .delay-5 { animation-delay: 0.25s; }
+    .delay-6 { animation-delay: 0.3s; }
 
-<!-- Main Content -->
-<div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Best Subject Highlight Section - COMPACT -->
-    {% if best_subject %}
-    <div class="mb-8">
-        <div class="flex items-center justify-between mb-2">
-            <h2 class="text-lg font-bold text-white flex items-center gap-1">
-                <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                </svg>
-                Featured Subject
-            </h2>
-            <a href="{% url 'subject_mocktests:subject_detail' best_subject.slug %}" class="text-xs text-blue-400 hover:text-blue-300">
-                View All →
-            </a>
-        </div>
-        
-        <!-- Compact Featured Card -->
-        <div class="group relative">
-            <div class="absolute -inset-0.5 bg-gradient-to-r from-yellow-600 to-orange-500 rounded-xl blur opacity-50 group-hover:opacity-75 transition-opacity"></div>
-            <div class="relative bg-gradient-to-r from-gray-900 to-gray-950 rounded-xl border border-gray-800 p-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                            <span class="text-lg font-bold text-yellow-400">{{ best_subject.name|slice:":2"|upper }}</span>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-white">{{ best_subject.name }}</h3>
-                            <p class="text-xs text-gray-400">{{ best_subject.test_count }} tests available</p>
-                        </div>
-                    </div>
-                    <a href="{% url 'subject_mocktests:subject_detail' best_subject.slug %}" 
-                       class="text-xs bg-gradient-to-r from-yellow-600 to-orange-600 text-white px-3 py-1.5 rounded-lg hover:from-yellow-700 hover:to-orange-700 transition-colors">
-                        Explore
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
+    /* ===== SUBJECT CARD - EXACT SAME AS FIRST CODE ===== */
+    .subject-card {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+        background: rgba(17, 24, 39, 0.95);
+        border: 1px solid rgba(55, 65, 81, 0.5);
+    }
+    
+    .subject-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2.5px;
+        background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .subject-card:hover::before {
+        opacity: 1;
+    }
+    
+    .subject-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px -8px rgba(99, 102, 241, 0.12);
+        border-color: #c7d2fe;
+    }
+    
+    .subject-card .icon-wrapper {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .subject-card:hover .icon-wrapper {
+        transform: scale(1.05);
+    }
+    
+    .subject-card .arrow-icon {
+        transition: all 0.3s ease;
+    }
+    
+    .subject-card:hover .arrow-icon {
+        transform: translateX(3px);
+        color: #6366f1;
+    }
 
-    <!-- Section Header with Search - COMPACT -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-        <div>
-            <h2 class="text-xl font-bold text-white">Browse Subjects</h2>
-        </div>
-        
-        <!-- Search with Clear Button -->
-        <div class="relative w-full sm:w-64">
-            <input type="text" 
-                   id="subjectSearch"
-                   placeholder="Search subjects..." 
-                   class="w-full px-3 py-2 pl-8 pr-8 bg-gray-900/90 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
-            <svg class="absolute left-2.5 top-2.5 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <button id="clearSearch" class="absolute right-2 top-2.5 text-gray-500 hover:text-gray-300 hidden">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-    </div>
+    /* ===== COUNTER BADGE - EXACT SAME ===== */
+    .counter-badge {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+        color: #93c5fd;
+        font-weight: 600;
+        padding: 0.1rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+    }
 
-    <!-- Filter Tabs - HOW TO CONTROL FROM VIEW -->
-    <!-- 
-        HOW TO USE:
-        In your view, pass a categories_context dictionary like this:
+    /* ===== FILTER BUTTONS ===== */
+    .filter-btn {
+        transition: all 0.3s ease;
+        background: rgba(31, 41, 55, 0.8);
+        color: #9ca3af;
+        border: 1px solid rgba(55, 65, 81, 0.5);
+    }
+    
+    .filter-btn:hover {
+        background: rgba(55, 65, 81, 0.8);
+        color: #e5e7eb;
+        transform: translateY(-1px);
+    }
+    
+    .filter-btn.active {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    /* ===== SEARCH INPUT - DARK THEME ===== */
+    .search-input-dark {
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid rgba(55, 65, 81, 0.5);
+        color: #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input-dark::placeholder {
+        color: #6b7280;
+    }
+    
+    .search-input-dark:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        background: rgba(17, 24, 39, 1);
+    }
+
+    /* ===== LINE CLAMP ===== */
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* ===== RESPONSIVE - MOBILE 2 COLUMNS ===== */
+    @media (max-width: 640px) {
+        .subjects-title { font-size: 1.6rem; }
+        .subjects-subtitle { font-size: 0.8rem; }
         
-        categories_context = {
-            'show_popular': True,  # Set to False to hide Popular tab
-            'show_new': True,       # Set to False to hide New tab
-            'show_beginner': True,  # Set to False to hide Beginner tab
-            'show_advanced': True,  # Set to False to hide Advanced tab
-            'custom_categories': [  # Add custom categories
-                {'id': 'science', 'name': '🔬 Science', 'filter': 'science'},
-                {'id': 'math', 'name': '📐 Mathematics', 'filter': 'math'},
-            ]
+        .subject-card { padding: 0.6rem !important; }
+        .subject-card .icon-wrapper { 
+            width: 2.2rem; 
+            height: 2.2rem; 
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
         }
-    -->
-    <div class="mb-4 overflow-x-auto pb-1 scrollbar-hide" id="categoryTabs">
-        <div class="flex gap-1.5 min-w-max">
-            <button class="filter-btn active px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium transition-all" data-filter="all">
-                All
-            </button>
+        .subject-card h3 { font-size: 0.8rem; }
+        .subject-card p { font-size: 0.65rem; margin-bottom: 0.3rem; }
+        .subject-card .counter-badge { font-size: 0.5rem; padding: 0.05rem 0.3rem; }
+        .subject-card .text-sm { font-size: 0.6rem; }
+        .subject-card .pt-3 { padding-top: 0.3rem; }
+        
+        .feature-footer { margin-top: 1.5rem; gap: 0.5rem; }
+        .feature-footer .p-3 { padding: 0.5rem !important; }
+        .feature-footer .w-8 { width: 1.75rem; height: 1.75rem; }
+        .feature-footer .text-xs { font-size: 0.65rem; }
+        .feature-footer .text-[10px] { font-size: 0.55rem; }
+        
+        .header-decoration { 
+            padding: 0.25rem 0.75rem; 
+            font-size: 0.55rem;
+            margin-bottom: 0.5rem;
+        }
+        .header-line { margin-top: 0.5rem; width: 2rem; }
+        .gap-4 { gap: 0.5rem; }
+        
+        .filter-btn { padding: 0.35rem 0.75rem; font-size: 0.65rem; }
+        .search-input-dark { font-size: 0.8rem; padding: 0.4rem 0.75rem 0.4rem 2rem; }
+    }
+    
+    @media (max-width: 480px) {
+        .subjects-title { font-size: 1.3rem; }
+        .subject-card { padding: 0.5rem !important; }
+        .subject-card .icon-wrapper { 
+            width: 2rem; 
+            height: 2rem; 
+            font-size: 0.9rem;
+        }
+        .subject-card h3 { font-size: 0.75rem; }
+        .subject-card p { font-size: 0.6rem; }
+        .subject-card .counter-badge { font-size: 0.45rem; padding: 0.05rem 0.25rem; }
+        .grid { gap: 0.4rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0A0F1E] py-4 sm:py-8">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+        
+        <!-- Header - EXACT SAME AS FIRST CODE -->
+        <div class="text-center mb-5 sm:mb-8 relative">
+            <!-- Decorative elements -->
+            <div class="absolute top-0 left-1/4 w-24 h-24 bg-indigo-200/20 rounded-full blur-2xl -z-10"></div>
+            <div class="absolute bottom-0 right-1/4 w-28 h-28 bg-purple-200/20 rounded-full blur-2xl -z-10"></div>
             
-            {% if categories_context.show_popular|default:True %}
-            <button class="filter-btn px-3 py-1.5 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-xs font-medium transition-all" data-filter="popular">
-                🔥 Popular
-            </button>
-            {% endif %}
+            <div class="header-decoration inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-[10px] sm:text-xs font-semibold tracking-wider uppercase mb-2 sm:mb-3">
+                <i class="fa-solid fa-graduation-cap mr-1"></i> Practice Anywhere, Anytime
+            </div>
             
-            {% if categories_context.show_new|default:True %}
-            <button class="filter-btn px-3 py-1.5 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-xs font-medium transition-all" data-filter="new">
-                ✨ New
-            </button>
-            {% endif %}
+            <h1 class="subjects-title text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center justify-center gap-2 sm:gap-3">
+                <span class="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    📚 Subject Wise Mock Tests
+                </span>
+                <span class="text-[10px] sm:text-xs bg-gray-800 text-gray-400 px-2 sm:px-3 py-0.5 rounded-full font-medium border border-gray-700">
+                    {{ subjects.count }}
+                </span>
+            </h1>
             
-            {% if categories_context.show_beginner|default:True %}
-            <button class="filter-btn px-3 py-1.5 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-xs font-medium transition-all" data-filter="beginner">
-                📘 Beginner
-            </button>
-            {% endif %}
+            <p class="subjects-subtitle text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2 max-w-md mx-auto">
+                Master your competitive exams with comprehensive practice tests
+            </p>
             
-            {% if categories_context.show_advanced|default:True %}
-            <button class="filter-btn px-3 py-1.5 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-xs font-medium transition-all" data-filter="advanced">
-                🎯 Advanced
-            </button>
-            {% endif %}
-            
-            <!-- Custom Categories from View -->
-            {% for category in categories_context.custom_categories|default:'' %}
-            <button class="filter-btn px-3 py-1.5 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-xs font-medium transition-all" data-filter="{{ category.filter }}">
-                {{ category.name }}
-            </button>
-            {% endfor %}
+            <!-- Decorative line - EXACT SAME -->
+            <div class="header-line flex justify-center mt-2 sm:mt-3">
+                <div class="w-10 sm:w-16 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+            </div>
         </div>
-    </div>
 
-    <!-- Subjects Count -->
-    <div class="mb-3">
-        <p class="text-xs text-gray-400"><span id="subjectCount">{{ subjects.count }}</span> subjects found</p>
-    </div>
-
-    <!-- Subjects Grid - COMPACT CARDS -->
-    <div id="subjectsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-        {% for subject in subjects %}
-        <!-- Subject Card - COMPACT VERSION -->
-        <div class="subject-card group relative" 
-             data-name="{{ subject.name|lower }}"
-             data-description="{{ subject.description|default:''|lower }}"
-             data-popular="{% if subject.test_count > 10 %}true{% else %}false{% endif %}"
-             data-new="{% if subject.is_new %}true{% else %}false{% endif %}"
-             data-beginner="{% if subject.difficulty == 'Easy' %}true{% else %}false{% endif %}"
-             data-advanced="{% if subject.difficulty == 'Hard' or subject.difficulty == 'Expert' %}true{% else %}false{% endif %}"
-             data-custom="{% if subject.category %}{{ subject.category }}{% endif %}">
-            
-            <!-- Card Glow Effect -->
-            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-0 group-hover:opacity-20 transition-all duration-300"></div>
-            
-            <!-- Main Card -->
-            <div class="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl border border-gray-800/50 overflow-hidden hover:border-gray-700 transition-all p-3">
-                <!-- Popular Badge -->
-                {% if subject.test_count > 10 %}
-                <div class="absolute top-2 right-2">
-                    <span class="px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded-full text-[10px] font-medium">🔥</span>
+        <!-- Stats - Compact -->
+        <div class="flex flex-wrap justify-center gap-2 sm:gap-3 mb-5 sm:mb-8">
+            <div class="bg-gray-900/80 backdrop-blur-sm rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-800 flex items-center gap-1.5 sm:gap-2">
+                <div class="p-1 bg-blue-500/20 rounded-lg">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
                 </div>
+                <div>
+                    <span class="text-sm sm:text-base font-bold text-white">{{ subjects.count }}</span>
+                    <span class="text-[10px] sm:text-xs text-gray-400 ml-0.5">Subjects</span>
+                </div>
+            </div>
+            
+            <div class="bg-gray-900/80 backdrop-blur-sm rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-800 flex items-center gap-1.5 sm:gap-2">
+                <div class="p-1 bg-purple-500/20 rounded-lg">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-sm sm:text-base font-bold text-white">{{ total_tests|default:"0" }}</span>
+                    <span class="text-[10px] sm:text-xs text-gray-400 ml-0.5">Tests</span>
+                </div>
+            </div>
+            
+            <div class="bg-gray-900/80 backdrop-blur-sm rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-800 flex items-center gap-1.5 sm:gap-2">
+                <div class="p-1 bg-amber-500/20 rounded-lg">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-[10px] sm:text-xs font-medium text-white">Free Access</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Best Subject Highlight Section - COMPACT -->
+        {% if best_subject %}
+        <div class="mb-5 sm:mb-8">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    Featured Subject
+                </h2>
+                <a href="{% url 'subject_mocktests:subject_detail' best_subject.slug %}" class="text-[10px] sm:text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                    View All →
+                </a>
+            </div>
+            
+            <!-- Compact Featured Card -->
+            <div class="group relative">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-yellow-600 to-orange-500 rounded-xl blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                <div class="relative bg-gradient-to-r from-gray-900 to-gray-950 rounded-xl border border-gray-800 p-3 sm:p-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                                <span class="text-sm sm:text-base font-bold text-yellow-400">{{ best_subject.name|slice:":2"|upper }}</span>
+                            </div>
+                            <div>
+                                <h3 class="text-sm sm:text-base font-semibold text-white">{{ best_subject.name }}</h3>
+                                <p class="text-[10px] sm:text-xs text-gray-400">{{ best_subject.test_count }} tests available</p>
+                            </div>
+                        </div>
+                        <a href="{% url 'subject_mocktests:subject_detail' best_subject.slug %}" 
+                           class="text-[10px] sm:text-xs bg-gradient-to-r from-yellow-600 to-orange-600 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg hover:from-yellow-700 hover:to-orange-700 transition-colors">
+                            Explore
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Section Header with Search - COMPACT -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <h2 class="text-base sm:text-lg font-bold text-white">Browse Subjects</h2>
+            
+            <!-- Search with Clear Button -->
+            <div class="relative w-full sm:w-56 md:w-72">
+                <div class="relative group">
+                    <div class="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-20 group-focus-within:opacity-30 transition-all duration-300"></div>
+                    <div class="relative bg-gray-900 rounded-xl border border-gray-700/50 group-hover:border-gray-600 group-focus-within:border-transparent transition-all duration-300">
+                        <div class="flex items-center px-3">
+                            <svg class="w-4 h-4 text-gray-400 group-focus-within:text-indigo-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" 
+                                   id="subjectSearch"
+                                   placeholder="Search subjects..." 
+                                   class="w-full px-3 py-2.5 bg-transparent text-sm text-gray-200 placeholder-gray-400 focus:outline-none">
+                            <button id="clearSearch" class="text-gray-500 hover:text-gray-300 hidden transition-colors p-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs - COMPACT -->
+        <div class="mb-8 mt-8 sm:mb-4 border-b border-gray-700 overflow-x-auto pb-1 scrollbar-hide" id="categoryTabs">
+            <div class="flex gap-1 min-w-max text-white">
+                <button class="filter-btn active px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all" data-filter="all">
+                    All
+                </button>
+                
+                {% if categories_context.show_popular|default:True %}
+                <button class="filter-btn px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all" data-filter="popular">
+                    🔥 Popular
+                </button>
                 {% endif %}
                 
-                <div class="flex items-start gap-3">
-                    <!-- Subject Icon - Smaller -->
-                    <div class="relative flex-shrink-0">
-                        <div class="absolute inset-0 bg-gradient-to-r 
-                            {% if forloop.counter0|divisibleby:6 %}from-blue-600 to-cyan-600
-                            {% elif forloop.counter0|divisibleby:5 %}from-purple-600 to-pink-600
-                            {% elif forloop.counter0|divisibleby:4 %}from-emerald-600 to-teal-600
-                            {% elif forloop.counter0|divisibleby:3 %}from-amber-600 to-orange-600
-                            {% elif forloop.counter0|divisibleby:2 %}from-rose-600 to-red-600
-                            {% else %}from-indigo-600 to-blue-600{% endif %} rounded-lg blur opacity-50">
-                        </div>
-                        <div class="relative w-10 h-10 bg-gradient-to-br 
-                            {% if forloop.counter0|divisibleby:6 %}from-blue-500 to-cyan-500
-                            {% elif forloop.counter0|divisibleby:5 %}from-purple-500 to-pink-500
-                            {% elif forloop.counter0|divisibleby:4 %}from-emerald-500 to-teal-500
-                            {% elif forloop.counter0|divisibleby:3 %}from-amber-500 to-orange-500
-                            {% elif forloop.counter0|divisibleby:2 %}from-rose-500 to-red-500
-                            {% else %}from-indigo-500 to-blue-500{% endif %} rounded-lg flex items-center justify-center shadow-md">
-                            <span class="text-sm font-bold text-white">
-                                {{ subject.name|slice:":2"|upper }}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <!-- Subject Info - Compact -->
-                    <div class="flex-1 min-w-0">
-                        <h3 class="text-sm font-semibold text-white truncate">{{ subject.name }}</h3>
-                        <p class="text-xs text-gray-400 truncate">{{ subject.test_count }} tests • 30-60 min</p>
-                    </div>
+                {% if categories_context.show_new|default:True %}
+                <button class="filter-btn px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all" data-filter="new">
+                    ✨ New
+                </button>
+                {% endif %}
+                
+                {% if categories_context.show_beginner|default:True %}
+                <button class="filter-btn px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all" data-filter="beginner">
+                    📘 Beginner
+                </button>
+                {% endif %}
+                
+                {% if categories_context.show_advanced|default:True %}
+                <button class="filter-btn px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all" data-filter="advanced">
+                    🎯 Advanced
+                </button>
+                {% endif %}
+                
+                <!-- Custom Categories from View -->
+                {% for category in categories_context.custom_categories|default:'' %}
+                <button class="filter-btn px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all" data-filter="{{ category.filter }}">
+                    {{ category.name }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Subjects Count -->
+        <div class="mb-2 sm:mb-3">
+            <p class="text-[10px] sm:text-xs text-gray-400"><span id="subjectCount">{{ subjects.count }}</span> subjects found</p>
+        </div>
+
+        <!-- Subjects Grid - MOBILE 2 COLUMNS -->
+        <div id="subjectsContainer" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+            {% for subject in subjects %}
+            <a href="{% url 'subject_mocktests:subject_detail' subject.slug %}" 
+               class="subject-card block rounded-xl sm:rounded-2xl shadow-sm hover:shadow-lg p-3 sm:p-4 md:p-5 transition-all duration-300 border border-gray-800/50 hover:border-indigo-200 animate-fade-in-up delay-{{ forloop.counter }}"
+               style="animation-delay: {{ forloop.counter|add:"0"|stringformat:"d" }}0ms;"
+               data-name="{{ subject.name|lower }}"
+               data-description="{{ subject.description|default:''|lower }}"
+               data-popular="{% if subject.test_count > 10 %}true{% else %}false{% endif %}"
+               data-new="{% if subject.is_new %}true{% else %}false{% endif %}"
+               data-beginner="{% if subject.difficulty == 'Easy' %}true{% else %}false{% endif %}"
+               data-advanced="{% if subject.difficulty == 'Hard' or subject.difficulty == 'Expert' %}true{% else %}false{% endif %}"
+               data-custom="{% if subject.category %}{{ subject.category }}{% endif %}">
+                
+                <!-- Icon - EXACT SAME SIZE AND STYLE -->
+                <div class="icon-wrapper w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center text-xl sm:text-2xl md:text-3xl mb-1.5 sm:mb-2 md:mb-3 shadow-sm">
+                    {% if subject.icon %}
+                        <i class="fa-solid {{ subject.icon }} text-indigo-600"></i>
+                    {% else %}
+                        <span class="text-xl sm:text-2xl">📖</span>
+                    {% endif %}
                 </div>
                 
-                <!-- Action Buttons - Compact -->
-                <div class="mt-3 flex gap-2">
-                    <a href="{% url 'subject_mocktests:subject_detail' subject.slug %}" 
-                       class="flex-1 text-center text-xs bg-gradient-to-r 
-                              {% if forloop.counter0|divisibleby:6 %}from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700
-                              {% elif forloop.counter0|divisibleby:5 %}from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700
-                              {% elif forloop.counter0|divisibleby:4 %}from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700
-                              {% elif forloop.counter0|divisibleby:3 %}from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700
-                              {% elif forloop.counter0|divisibleby:2 %}from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700
-                              {% else %}from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700{% endif %} 
-                              text-white py-1.5 px-2 rounded-lg transition-colors">
-                        Practice
+                <h3 class="text-sm sm:text-base md:text-lg font-bold text-white mb-0.5 sm:mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                    {{ subject.name }}
+                </h3>
+                
+                <p class="text-gray-400 text-[10px] sm:text-xs md:text-sm mb-1.5 sm:mb-2 md:mb-3 line-clamp-2 leading-relaxed">
+                    {{ subject.description|default:"Explore this subject"|truncatechars:60 }}
+                </p>
+                
+                <div class="flex items-center justify-between text-[10px] sm:text-xs pt-1.5 sm:pt-2 md:pt-3 border-t border-gray-800">
+                    <span class="counter-badge text-white text-[9px] sm:text-[10px] md:text-xs">
+                        <i class="fa-regular fa-folder-open text-[8px] sm:text-[9px]"></i>
+                        {{ subject.test_count }} tests
+                    </span>
+                    <span class="text-indigo-400 font-medium text-[10px] sm:text-xs flex items-center gap-1 group-hover:gap-1.5 transition-all">
+                        Explore 
+                        <i class="fa-solid fa-chevron-right text-[8px] sm:text-[9px] arrow-icon"></i>
+                    </span>
+                </div>
+            </a>
+            {% empty %}
+            <!-- Empty State - EXACT SAME -->
+            <div class="col-span-full">
+                <div class="bg-gray-900/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-12 text-center border-2 border-dashed border-gray-700">
+                    <div class="text-4xl sm:text-6xl mb-2 sm:mb-4">📭</div>
+                    <h3 class="text-base sm:text-xl font-semibold text-gray-300 mb-1 sm:mb-2">No Subjects Available</h3>
+                    <p class="text-gray-400 text-sm sm:text-base max-w-sm mx-auto">Start by adding your first subject to begin creating content.</p>
+                    <a href="/admin/QA/subject/add/" class="inline-flex items-center gap-2 mt-3 sm:mt-4 px-4 sm:px-6 py-1.5 sm:py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg sm:rounded-xl hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-300 text-xs sm:text-sm">
+                        <i class="fa-solid fa-plus"></i>
+                        Add Subject
                     </a>
-                    
-                    <button onclick="toggleBookmark({{ subject.id }})" 
-                            class="p-1.5 bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 rounded-lg text-gray-400 hover:text-yellow-400 transition-colors">
-                        <svg class="w-4 h-4 bookmark-{{ subject.id }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-                        </svg>
-                    </button>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <!-- Empty State - Compact -->
-        <div class="col-span-full text-center py-10">
-            <div class="relative w-16 h-16 mx-auto mb-3">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl animate-pulse"></div>
-                <div class="absolute inset-1 bg-gray-900 rounded-xl flex items-center justify-center">
-                    <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                    </svg>
+        
+        <!-- Feature Footer - EXACT SAME AS FIRST CODE -->
+        <div class="feature-footer mt-4 sm:mt-6 md:mt-10 grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 md:gap-3">
+            <div class="bg-gray-900/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-3 flex items-center gap-1.5 sm:gap-2 md:gap-3 shadow-sm border border-gray-800/50">
+                <div class="w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-clock text-indigo-400 text-[10px] sm:text-xs md:text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] sm:text-xs font-semibold text-gray-300">Learn at your pace</p>
+                    <p class="text-[8px] sm:text-[9px] md:text-[10px] text-gray-500 hidden sm:block">Self-paced learning</p>
                 </div>
             </div>
-            <p class="text-sm text-gray-400">No subjects available yet</p>
-        </div>
-        {% endfor %}
-    </div>
-    
-    <!-- Features Section - Compact -->
-    <div class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl border border-gray-800 p-3">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
+            <div class="bg-gray-900/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-3 flex items-center gap-1.5 sm:gap-2 md:gap-3 shadow-sm border border-gray-800/50">
+                <div class="w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-check-circle text-emerald-400 text-[10px] sm:text-xs md:text-sm"></i>
                 </div>
-                <span class="text-xs text-gray-300">Performance Analytics</span>
+                <div>
+                    <p class="text-[10px] sm:text-xs font-semibold text-gray-300">Track progress</p>
+                    <p class="text-[8px] sm:text-[9px] md:text-[10px] text-gray-500 hidden sm:block">Monitor your growth</p>
+                </div>
+            </div>
+            <div class="bg-gray-900/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-3 flex items-center gap-1.5 sm:gap-2 md:gap-3 shadow-sm border border-gray-800/50">
+                <div class="w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-star text-purple-400 text-[10px] sm:text-xs md:text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] sm:text-xs font-semibold text-gray-300">Quality content</p>
+                    <p class="text-[8px] sm:text-[9px] md:text-[10px] text-gray-500 hidden sm:block">Expert curated material</p>
+                </div>
             </div>
         </div>
         
-        <div class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl border border-gray-800 p-3">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <span class="text-xs text-gray-300">Timed Practice</span>
-            </div>
-        </div>
-        
-        <div class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl border border-gray-800 p-3">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <span class="text-xs text-gray-300">Detailed Solutions</span>
-            </div>
-        </div>
     </div>
 </div>
 
 <!-- Floating Action Buttons -->
 <div class="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
-    <!-- Scroll to Top - FIXED -->
     <button id="scrollToTopBtn" 
-            class="group relative p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-110">
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-50 group-hover:opacity-75 transition-opacity"></div>
-        <svg class="relative w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="group relative p-2.5 sm:p-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-110">
+        <div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg blur opacity-50 group-hover:opacity-75 transition-opacity"></div>
+        <svg class="relative w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
         </svg>
     </button>
     
-    <!-- Quick Help -->
     <button onclick="openHelp()" 
-            class="group relative p-3 bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-110 border border-gray-700">
+            class="group relative p-2.5 sm:p-3 bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-110 border border-gray-700">
         <div class="absolute inset-0 bg-gray-700 rounded-lg blur opacity-0 group-hover:opacity-50 transition-opacity"></div>
-        <svg class="relative w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="relative w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
     </button>
@@ -413,18 +508,12 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
-    
-    /* Filter button active state */
-    .filter-btn.active {
-        background-color: #2563eb;
-        color: white;
-    }
 </style>
 
 <!-- JavaScript for Interactions -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // ===== SCROLL TO TOP BUTTON - FIXED =====
+        // ===== SCROLL TO TOP BUTTON =====
         const scrollToTopBtn = document.getElementById('scrollToTopBtn');
         
         if (scrollToTopBtn) {
@@ -437,7 +526,7 @@
             });
         }
         
-        // Show/hide scroll to top button based on scroll position
+        // Show/hide scroll to top button
         window.addEventListener('scroll', function() {
             if (scrollToTopBtn) {
                 if (window.scrollY > 300) {
@@ -460,7 +549,6 @@
             searchInput.addEventListener('input', function(e) {
                 const searchTerm = e.target.value.toLowerCase().trim();
                 
-                // Show/hide clear button
                 if (searchTerm.length > 0) {
                     clearBtn.classList.remove('hidden');
                 } else {
@@ -481,12 +569,10 @@
                     }
                 });
                 
-                // Update count
                 if (subjectCountSpan) {
                     subjectCountSpan.textContent = visibleCount;
                 }
                 
-                // Show "no results" message if needed
                 const container = document.getElementById('subjectsContainer');
                 let noResultsMsg = document.getElementById('noSearchResults');
                 
@@ -494,14 +580,14 @@
                     if (!noResultsMsg) {
                         noResultsMsg = document.createElement('div');
                         noResultsMsg.id = 'noSearchResults';
-                        noResultsMsg.className = 'col-span-full text-center py-8';
+                        noResultsMsg.className = 'col-span-full text-center py-6 sm:py-8';
                         noResultsMsg.innerHTML = `
                             <div class="text-gray-400">
-                                <svg class="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                 </svg>
-                                <p class="text-sm">No subjects found</p>
-                                <button onclick="document.getElementById('clearSearch').click()" class="mt-2 text-xs text-blue-400 hover:text-blue-300">
+                                <p class="text-xs sm:text-sm">No subjects found</p>
+                                <button onclick="document.getElementById('clearSearch').click()" class="mt-1.5 text-[10px] sm:text-xs text-blue-400 hover:text-blue-300">
                                     Clear search
                                 </button>
                             </div>
@@ -513,7 +599,6 @@
                 }
             });
             
-            // Clear search
             if (clearBtn) {
                 clearBtn.addEventListener('click', function() {
                     searchInput.value = '';
@@ -528,7 +613,6 @@
         
         filterBtns.forEach(btn => {
             btn.addEventListener('click', function() {
-                // Update active state
                 filterBtns.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 
@@ -546,18 +630,15 @@
                     } else if (filter === 'advanced') {
                         card.style.display = card.dataset.advanced === 'true' ? '' : 'none';
                     } else {
-                        // Custom filter
                         card.style.display = card.dataset.custom === filter ? '' : 'none';
                     }
                 });
                 
-                // Update visible count
                 const visibleCount = Array.from(subjectCards).filter(card => card.style.display !== 'none').length;
                 if (subjectCountSpan) {
                     subjectCountSpan.textContent = visibleCount;
                 }
                 
-                // Clear search input when filtering
                 if (searchInput) {
                     searchInput.value = '';
                     clearBtn.classList.add('hidden');
@@ -581,7 +662,7 @@
     // Toast notification
     function showToast(message) {
         const toast = document.createElement('div');
-        toast.className = 'fixed bottom-4 left-4 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl border border-gray-800 transform transition-all duration-500 z-50 text-sm';
+        toast.className = 'fixed bottom-4 left-4 bg-gray-900 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg shadow-xl border border-gray-800 transform transition-all duration-500 z-50 text-[10px] sm:text-sm';
         toast.style.animation = 'slideIn 0.3s ease-out';
         toast.innerHTML = message;
         

@@ -3,104 +3,456 @@
 
 {% block title %}{{ topic.name }} - Mock Tests | TestIQ{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes blob {
+        0% {
+            transform: translate(0px, 0px) scale(1);
+        }
+
+        33% {
+            transform: translate(30px, -50px) scale(1.1);
+        }
+
+        66% {
+            transform: translate(-20px, 20px) scale(0.9);
+        }
+
+        100% {
+            transform: translate(0px, 0px) scale(1);
+        }
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+        opacity: 0;
+    }
+
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+
+    /* ===== CARD STYLES ===== */
+    .test-card {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(15, 23, 42, 0.95));
+        border: 1px solid rgba(55, 65, 81, 0.5);
+    }
+
+    .test-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2.5px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .test-card:hover::before {
+        opacity: 1;
+    }
+
+    .test-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(99, 102, 241, 0.3);
+        box-shadow: 0 12px 28px -8px rgba(99, 102, 241, 0.15);
+    }
+
+    /* Difficulty-specific gradients */
+    .test-card.easy::before {
+        background: linear-gradient(90deg, #22c55e, #10b981);
+    }
+
+    .test-card.medium::before {
+        background: linear-gradient(90deg, #eab308, #f59e0b);
+    }
+
+    .test-card.hard::before {
+        background: linear-gradient(90deg, #ef4444, #ec4899);
+    }
+
+    .test-card.expert::before {
+        background: linear-gradient(90deg, #8b5cf6, #ec4899);
+    }
+
+    .test-card .icon-wrapper {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .test-card:hover .icon-wrapper {
+        transform: scale(1.05);
+    }
+
+    .test-card .arrow-icon {
+        transition: all 0.3s ease;
+    }
+
+    .test-card:hover .arrow-icon {
+        transform: translateX(3px);
+        color: #6366f1;
+    }
+
+    /* ===== BADGE STYLES ===== */
+    .badge-easy {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .badge-medium {
+        background: rgba(234, 179, 8, 0.15);
+        color: #facc15;
+        border: 1px solid rgba(234, 179, 8, 0.2);
+    }
+
+    .badge-hard {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .badge-expert {
+        background: rgba(139, 92, 246, 0.15);
+        color: #a78bfa;
+        border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    /* ===== STAT BOX ===== */
+    .stat-box {
+        background: rgba(31, 41, 55, 0.5);
+        border: 1px solid rgba(55, 65, 81, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .stat-box:hover {
+        background: rgba(31, 41, 55, 0.8);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    /* ===== FILTER BUTTONS ===== */
+    .filter-btn {
+        transition: all 0.3s ease;
+        background: rgba(31, 41, 55, 0.8);
+        color: #9ca3af;
+        border: 1px solid rgba(55, 65, 81, 0.5);
+    }
+
+    .filter-btn:hover {
+        background: rgba(55, 65, 81, 0.8);
+        color: #e5e7eb;
+        transform: translateY(-1px);
+    }
+
+    .filter-btn.active {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    /* ===== SEARCH INPUT ===== */
+    .search-input-dark {
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid rgba(55, 65, 81, 0.5);
+        color: #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .search-input-dark::placeholder {
+        color: #6b7280;
+    }
+
+    .search-input-dark:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        background: rgba(17, 24, 39, 1);
+    }
+
+    /* ===== LINE CLAMP ===== */
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px) {
+        .test-card {
+            padding: 0.75rem !important;
+        }
+
+        .test-card .icon-wrapper {
+            width: 2.5rem;
+            height: 2.5rem;
+            font-size: 1.2rem;
+        }
+
+        .test-card h3 {
+            font-size: 0.95rem;
+        }
+
+        .test-card p {
+            font-size: 0.75rem;
+        }
+
+        .test-card .stat-box {
+            padding: 0.4rem 0.6rem;
+        }
+
+        .test-card .stat-box .text-lg {
+            font-size: 0.9rem;
+        }
+
+        .test-card .stat-box .text-xs {
+            font-size: 0.55rem;
+        }
+
+        .header-section {
+            padding: 1rem !important;
+        }
+
+        .header-section .icon-wrapper {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .header-section h1 {
+            font-size: 1.3rem;
+        }
+
+        .header-section .stats-card {
+            padding: 0.5rem 1rem;
+        }
+
+        .header-section .stats-card .text-2xl {
+            font-size: 1.2rem;
+        }
+
+        .filter-btn {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.65rem;
+        }
+
+        .search-input-dark {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.75rem 0.4rem 2rem;
+        }
+
+        .grid {
+            gap: 0.5rem;
+        }
+
+        .gap-4 {
+            gap: 0.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .test-card {
+            padding: 0.6rem !important;
+        }
+
+        .test-card .icon-wrapper {
+            width: 2rem;
+            height: 2rem;
+            font-size: 1rem;
+        }
+
+        .test-card h3 {
+            font-size: 0.85rem;
+        }
+
+        .test-card p {
+            font-size: 0.65rem;
+        }
+
+        .test-card .stat-box {
+            padding: 0.3rem 0.5rem;
+        }
+
+        .test-card .stat-box .text-lg {
+            font-size: 0.8rem;
+        }
+
+        .header-section h1 {
+            font-size: 1.1rem;
+        }
+
+        .header-section .stats-card .text-2xl {
+            font-size: 1rem;
+        }
+
+        .grid {
+            gap: 0.4rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<!-- Animated Background (consistent with other pages) -->
+<!-- Animated Background -->
 <div class="fixed inset-0 -z-10 overflow-hidden">
     <div class="absolute inset-0 bg-[#0A0F1E]"></div>
-    <!-- Animated grid lines -->
-    <div class="absolute inset-0 opacity-20" 
-         style="background-image: linear-gradient(#1E293B 1px, transparent 1px), linear-gradient(90deg, #1E293B 1px, transparent 1px);
+    <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(#1E293B 1px, transparent 1px), linear-gradient(90deg, #1E293B 1px, transparent 1px);
                 background-size: 50px 50px;">
     </div>
-    <!-- Animated gradient orbs -->
-    <div class="absolute top-0 -left-20 w-[500px] h-[500px] bg-blue-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-    <div class="absolute top-0 -right-20 w-[500px] h-[500px] bg-purple-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-    <div class="absolute -bottom-40 left-20 w-[500px] h-[500px] bg-indigo-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+    <div
+        class="absolute top-0 -left-20 w-[500px] h-[500px] bg-blue-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob">
+    </div>
+    <div
+        class="absolute top-0 -right-20 w-[500px] h-[500px] bg-purple-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000">
+    </div>
+    <div
+        class="absolute -bottom-40 left-20 w-[500px] h-[500px] bg-indigo-600/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000">
+    </div>
 </div>
 
-<!-- Breadcrumb with Glass Effect -->
+<!-- Breadcrumb -->
 <div class="relative border-b border-gray-800 bg-gray-900/50 backdrop-blur-xl sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <nav class="flex items-center space-x-2 text-sm" aria-label="Breadcrumb">
-            <a href="{% url 'subject_mocktests:subject_list' %}" class="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+        <nav class="flex items-center space-x-2 text-xs sm:text-sm" aria-label="Breadcrumb">
+            <a href="{% url 'subject_mocktests:subject_list' %}"
+                class="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span>Subjects</span>
+                <span class="hidden sm:inline">Subjects</span>
+                <span class="sm:hidden">Home</span>
             </a>
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            <a href="{% url 'subject_mocktests:subject_detail' topic.subject.slug %}" class="text-gray-400 hover:text-blue-400 transition-colors">
+            <a href="{% url 'subject_mocktests:subject_detail' topic.subject.slug %}"
+                class="text-gray-400 hover:text-blue-400 transition-colors hidden sm:inline">
                 {{ topic.subject.name }}
             </a>
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            <a href="{% url 'subject_mocktests:subject_detail' topic.subject.slug %}"
+                class="text-gray-400 hover:text-blue-400 transition-colors sm:hidden">
+                {{ topic.subject.name|truncatechars:12 }}
+            </a>
+            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 font-semibold">{{ topic.name }}</span>
+            <span
+                class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 font-semibold truncate max-w-[120px] sm:max-w-none">
+                {{ topic.name }}
+            </span>
         </nav>
     </div>
 </div>
 
 <!-- Main Content -->
-<div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-    
-    <!-- Header Section with Glass Effect -->
-    <div class="relative mb-12">
-        <!-- Background Glow -->
-        <div class="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-3xl blur-3xl"></div>
-        
-        <div class="relative bg-gradient-to-br from-gray-900/90 to-gray-950/90 backdrop-blur-xl rounded-2xl border border-gray-800 p-8 lg:p-10">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+<div class="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8 lg:py-10">
+
+    <!-- Header Section - COMPACT -->
+    <div class="header-section relative mb-6 sm:mb-8">
+        <div
+            class="relative bg-gradient-to-br from-gray-900/90 to-gray-950/90 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-gray-800 p-4 sm:p-6 lg:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <!-- Topic Info -->
-                <div class="flex-1">
-                    <div class="flex items-center gap-4 mb-4">
-                        <!-- Topic Icon with Gradient -->
-                        <div class="relative">
-                            <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur-lg opacity-50"></div>
-                            <div class="relative w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-3">
+                        <!-- Topic Icon -->
+                        <div class="icon-wrapper relative flex-shrink-0">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg sm:rounded-xl blur-lg opacity-50">
+                            </div>
+                            <div
+                                class="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
                                 </svg>
                             </div>
                         </div>
-                        <div>
-                            <h1 class="text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400">
+                        <div class="min-w-0">
+                            <h1
+                                class="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 truncate">
                                 {{ topic.name }}
                             </h1>
-                            <div class="flex items-center gap-2 mt-1">
-                                <a href="{% url 'subject_mocktests:subject_detail' topic.subject.slug %}" 
-                                   class="text-sm text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-0.5">
+                                <a href="{% url 'subject_mocktests:subject_detail' topic.subject.slug %}"
+                                    class="text-[10px] sm:text-xs text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
                                     </svg>
                                     {{ topic.subject.name }}
                                 </a>
-                                <span class="text-gray-600">•</span>
-                                <div class="flex items-center gap-1 text-sm text-gray-400">
-                                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                <span class="text-gray-600 text-[10px] sm:text-xs">•</span>
+                                <div class="flex items-center gap-1 text-[10px] sm:text-xs text-gray-400">
+                                    <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
                                     <span>{{ tests|length }} Tests</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     {% if topic.description %}
-                        <p class="text-gray-300 text-lg leading-relaxed max-w-3xl">{{ topic.description }}</p>
-                    {% else %}
-                        <p class="text-gray-400 text-lg">Explore mock tests for {{ topic.name }} under {{ topic.subject.name }}.</p>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">{{ topic.description|truncatechars:150
+                        }}</p>
                     {% endif %}
                 </div>
-                
-                <!-- Stats Card -->
-                <div class="relative group">
-                    <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                    <div class="relative px-6 py-4 bg-gray-900/90 backdrop-blur-xl rounded-2xl border border-gray-800">
+
+                <!-- Stats Card - COMPACT -->
+                <div class="stats-card relative group flex-shrink-0">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity">
+                    </div>
+                    <div
+                        class="relative px-4 sm:px-5 py-2 sm:py-3 bg-gray-900/90 backdrop-blur-xl rounded-xl border border-gray-800">
                         <div class="text-center">
-                            <span class="text-3xl font-bold text-white">{{ tests|length }}</span>
-                            <span class="text-sm text-gray-400 block mt-1">Available Tests</span>
+                            <span class="text-xl sm:text-2xl font-bold text-white">{{ tests|length }}</span>
+                            <span class="text-[10px] sm:text-xs text-gray-400 block mt-0.5">Available Tests</span>
                         </div>
                     </div>
                 </div>
@@ -111,246 +463,235 @@
     {% if tests %}
     <!-- Tests Section -->
     <div>
-        <!-- Section Header with Sort Dropdown -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-            <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-                <div class="p-2 bg-purple-500/20 rounded-xl">
-                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        <!-- Section Header with Search & Filter -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                <div class="p-1.5 sm:p-2 bg-purple-500/20 rounded-lg">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Mock Tests</span>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Mock
+                    Tests</span>
+                <span
+                    class="text-[10px] sm:text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full border border-gray-700">
+                    {{ tests|length }}
+                </span>
             </h2>
-            
-            <!-- Sort Dropdown with Glass Effect -->
-            <div class="relative" x-data="{ open: false, selected: 'Newest First' }">
-                <button @click="open = !open" 
-                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900/90 backdrop-blur-xl border border-gray-800 rounded-xl text-gray-300 hover:text-white hover:border-gray-700 transition-all group">
-                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/>
-                    </svg>
-                    <span class="text-sm font-medium" x-text="selected">Newest First</span>
-                    <svg class="w-4 h-4 ml-2 text-gray-500 group-hover:text-gray-400 transition-colors" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
 
-                <!-- Dropdown menu -->
-                <div x-show="open" @click.away="open = false" 
-                     class="absolute right-0 mt-2 w-56 rounded-xl bg-gray-900 border border-gray-800 shadow-2xl z-50 overflow-hidden"
-                     style="display: none;">
-                    <div class="py-2">
-                        <a href="?sort=-created_at" @click="selected='Newest First'; open=false" 
-                           class="block px-4 py-3 text-sm text-gray-300 hover:bg-purple-600/20 hover:text-purple-400 transition-colors">
-                            <span class="flex items-center gap-3">
-                                <span class="text-lg">🆕</span>
-                                <span>Newest First</span>
-                            </span>
-                        </a>
-                        <a href="?sort=title" @click="selected='Name A-Z'; open=false"
-                           class="block px-4 py-3 text-sm text-gray-300 hover:bg-purple-600/20 hover:text-purple-400 transition-colors">
-                            <span class="flex items-center gap-3">
-                                <span class="text-lg">📝</span>
-                                <span>Name A-Z</span>
-                            </span>
-                        </a>
-                        <a href="?sort=difficulty" @click="selected='Difficulty'; open=false"
-                           class="block px-4 py-3 text-sm text-gray-300 hover:bg-purple-600/20 hover:text-purple-400 transition-colors">
-                            <span class="flex items-center gap-3">
-                                <span class="text-lg">⚡</span>
-                                <span>Difficulty</span>
-                            </span>
-                        </a>
-                        <a href="?sort=-total_questions" @click="selected='Most Questions'; open=false"
-                           class="block px-4 py-3 text-sm text-gray-300 hover:bg-purple-600/20 hover:text-purple-400 transition-colors">
-                            <span class="flex items-center gap-3">
-                                <span class="text-lg">📊</span>
-                                <span>Most Questions</span>
-                            </span>
-                        </a>
+            <!-- Search Bar -->
+            <!-- Premium Search Bar - Responsive & Mobile Optimized -->
+            <div class="relative w-full sm:w-48 md:w-64 lg:w-72">
+                <!-- Search Container with Glow Effect -->
+                <div class="relative group">
+                    <!-- Glow Background -->
+                    <div
+                        class="absolute -inset-0.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl blur-md opacity-0 group-hover:opacity-60 group-focus-within:opacity-80 transition-all duration-300">
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="relative">
+                        <input type="text" id="testSearch" placeholder="Search tests..."
+                            class="w-full px-3 py-2 sm:py-2.5 pl-9 pr-9 sm:pl-10 sm:pr-10 bg-gray-900/90 border border-gray-700/50 rounded-xl text-xs sm:text-sm text-gray-200 placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 hover:border-gray-600">
+
+                        <!-- Search Icon -->
+                        <svg class="absolute left-3 top-2.5 sm:top-3 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 group-hover:text-purple-400 group-focus-within:text-purple-400 transition-colors duration-300"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+
+                        <!-- Clear Button -->
+                        <button id="clearSearch"
+                            class="absolute right-2.5 top-2 sm:top-2.5 text-gray-500 hover:text-gray-300 hidden transition-colors duration-200 p-0.5">
+                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        <!-- Animated Bottom Border -->
+                        <div
+                            class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 rounded-full scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Tests Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Filter Tabs -->
+        <div class="mb-4 overflow-x-auto pb-1 text-white scrollbar-hide">
+            <div class="flex gap-1 min-w-max">
+                <button class="filter-btn active px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                    data-filter="all">
+                    All
+                </button>
+                <button class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-all" data-filter="easy">
+                    🟢 Easy
+                </button>
+                <button class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                    data-filter="medium">
+                    🟡 Medium
+                </button>
+                <button class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-all" data-filter="hard">
+                    🔴 Hard
+                </button>
+                <button class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                    data-filter="expert">
+                    🟣 Expert
+                </button>
+            </div>
+        </div>
+
+        <!-- Tests Count -->
+        <div class="mb-3">
+            <p class="text-[10px] sm:text-xs text-gray-400"><span id="testCount">{{ tests|length }}</span> tests found
+            </p>
+        </div>
+
+        <!-- Tests Grid - COMPACT CARDS -->
+        <div id="testsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {% for test in tests %}
-            <div class="group relative card-hover-effect">
-                <!-- Card Glow -->
-                <div class="absolute -inset-0.5 bg-gradient-to-r 
-                    {% if test.difficulty == 'Easy' %}from-green-600 to-emerald-600
-                    {% elif test.difficulty == 'Medium' %}from-yellow-600 to-amber-600
-                    {% else %}from-red-600 to-rose-600{% endif %} 
-                    rounded-2xl blur opacity-0 group-hover:opacity-30 transition-all duration-500">
+            <div class="test-card {% if test.difficulty == 'Easy' %}easy{% elif test.difficulty == 'Medium' %}medium{% elif test.difficulty == 'Hard' %}hard{% else %}expert{% endif %} rounded-xl sm:rounded-2xl shadow-sm hover:shadow-lg p-3 sm:p-4 transition-all duration-300 border border-gray-800/50 animate-fade-in-up"
+                style="animation-delay: {{ forloop.counter|add:" 0"|stringformat:"d" }}0ms;"
+                data-title="{{ test.title|lower }}" data-description="{{ test.description|default:''|lower }}"
+                data-difficulty="{{ test.difficulty|lower }}">
+
+                <!-- Header -->
+                <div class="flex justify-between items-start gap-2 mb-2">
+                    <h3 class="text-sm sm:text-base font-bold text-white line-clamp-1 flex-1">
+                        {{ test.title }}
+                    </h3>
+                    <span class="px-2 py-0.5 rounded-full text-sm text-white font-semibold flex-shrink-0
+                        {% if test.difficulty == 'Easy' %}badge-easy text-green-400
+                        {% elif test.difficulty == 'Medium' %}badge-medium text-yellow-400
+                        {% elif test.difficulty == 'Hard' %}badge-hard text-rose-400
+                        {% else %}badge-expert{% endif %}">
+                        {{ test.difficulty }}
+                    </span>
                 </div>
-                
-                <!-- Main Card -->
-                <div class="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl border border-gray-800 overflow-hidden hover:border-gray-700 transition-all">
-                    <!-- Difficulty Indicator Top Bar -->
-                    <div class="h-1.5 w-full bg-gradient-to-r 
-                        {% if test.difficulty == 'Easy' %}from-green-500 to-emerald-500
-                        {% elif test.difficulty == 'Medium' %}from-yellow-500 to-amber-500
-                        {% else %}from-red-500 to-rose-500{% endif %}">
+
+                <!-- Description -->
+                <p class="text-gray-400 text-[10px] sm:text-xs mb-3 line-clamp-2">
+                    {% if test.description %}
+                    {{ test.description|truncatechars:80 }}
+                    {% else %}
+                    Test your {{ topic.name }} knowledge with this {{ test.difficulty|lower }} level mock test.
+                    {% endif %}
+                </p>
+
+                <!-- Stats Grid - COMPACT -->
+                <div class="grid grid-cols-4 gap-1.5 mb-3">
+                    <div class="stat-box rounded-lg p-1.5 sm:p-2 text-center">
+                        <p class="text-[8px] sm:text-[10px] text-gray-500">Questions</p>
+                        <p class="text-xs sm:text-sm font-bold text-white">{{ test.total_questions }}</p>
                     </div>
-                    
-                    <div class="p-6">
-                        <!-- Header with Title and Difficulty -->
-                        <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r 
-                                {% if test.difficulty == 'Easy' %}from-green-400 to-emerald-400
-                                {% elif test.difficulty == 'Medium' %}from-yellow-400 to-amber-400
-                                {% else %}from-red-400 to-rose-400{% endif %} 
-                                transition-all">
-                                {{ test.title }}
-                            </h3>
-                            <span class="px-3 py-1.5 rounded-full text-xs font-semibold border
-                                {% if test.difficulty == 'Easy' %}
-                                    bg-green-500/10 text-green-400 border-green-500/30
-                                {% elif test.difficulty == 'Medium' %}
-                                    bg-yellow-500/10 text-yellow-400 border-yellow-500/30
-                                {% else %}
-                                    bg-red-500/10 text-red-400 border-red-500/30
-                                {% endif %}">
-                                {{ test.difficulty }}
-                            </span>
-                        </div>
-                        
-                        <!-- Description -->
-                        <p class="text-gray-400 text-sm mb-6">
-                            {% if test.description %}
-                                {{ test.description|truncatechars:120 }}
-                            {% else %}
-                                Test your {{ topic.name }} knowledge with this {{ test.difficulty|lower }} level mock test.
-                            {% endif %}
+                    <div class="stat-box rounded-lg p-1.5 sm:p-2 text-center">
+                        <p class="text-[8px] sm:text-[10px] text-gray-500">Duration</p>
+                        <p class="text-xs sm:text-sm font-bold text-white">{{ test.duration }}m</p>
+                    </div>
+                    <div class="stat-box rounded-lg p-1.5 sm:p-2 text-center">
+                        <p class="text-[8px] sm:text-[10px] text-gray-500">Marks</p>
+                        <p class="text-xs sm:text-sm font-bold text-white">{{ test.total_marks }}</p>
+                    </div>
+                    <div class="stat-box rounded-lg p-1.5 sm:p-2 text-center">
+                        <p class="text-[8px] sm:text-[10px] text-gray-500">Negative</p>
+                        <p
+                            class="text-xs sm:text-sm font-bold 
+                            {% if test.negative_marking_type != 'no_negative' %}text-rose-400{% else %}text-green-400{% endif %}">
+                            {% if test.negative_marking_type != 'no_negative' %}Yes{% else %}No{% endif %}
                         </p>
-                        
-                        <!-- Test Stats Grid -->
-                        <div class="grid grid-cols-2 gap-3 mb-6">
-                            <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
-                                <div class="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    Questions
-                                </div>
-                                <div class="text-lg font-bold text-white">{{ test.total_questions }}</div>
-                            </div>
-                            
-                            <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
-                                <div class="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    Duration
-                                </div>
-                                <div class="text-lg font-bold text-white">{{ test.duration }} min</div>
-                            </div>
-                            
-                            <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
-                                <div class="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                                    </svg>
-                                    Max Marks
-                                </div>
-                                <div class="text-lg font-bold text-white">{{ test.total_marks }}</div>
-                            </div>
-                            
-                            <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
-                                <div class="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                                    </svg>
-                                    Negative
-                                </div>
-                                <div class="text-lg font-bold 
-                                    {% if test.negative_marking_type != 'no_negative' %}text-rose-400{% else %}text-green-400{% endif %}">
-                                    {% if test.negative_marking_type != 'no_negative' %}Yes{% else %}No{% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Negative Marking Info (if applicable) -->
-                        {% if test.negative_marking_type != 'no_negative' %}
-                        <div class="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl">
-                            <div class="flex items-center gap-2 text-xs text-rose-400">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                                <span class="font-medium">
-                                    {% if test.negative_marking_type == 'fixed_per_question' %}
-                                        Negative Marking: -{{ test.negative_marking_value }} per wrong answer
-                                    {% elif test.negative_marking_type == 'percentage_of_marks' %}
-                                        Negative Marking: {{ test.negative_marking_value }}% of marks deducted per wrong answer
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        <!-- Action Button -->
-                        <a href="{% url 'subject_mocktests:pretest_detail' test.id %}" 
-                           class="block w-full bg-gradient-to-r 
-                                  {% if test.difficulty == 'Easy' %}from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700
-                                  {% elif test.difficulty == 'Medium' %}from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700
-                                  {% else %}from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700{% endif %} 
-                                  text-white font-semibold py-3.5 px-4 rounded-xl transition-all transform group-hover:scale-[1.02] text-center">
-                            <span class="flex items-center justify-center gap-2">
-                                Start Test
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </span>
-                        </a>
                     </div>
                 </div>
+
+                <!-- Negative Marking Info (if applicable) - COMPACT -->
+                {% if test.negative_marking_type != 'no_negative' %}
+                <div class="mb-2.5 p-1.5 sm:p-2 bg-rose-500/10 border border-rose-500/30 rounded-lg">
+                    <p class="text-[8px] sm:text-[10px] text-rose-400 flex items-center gap-1.5">
+                        <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>
+                            {% if test.negative_marking_type == 'fixed_per_question' %}
+                            -{{ test.negative_marking_value }} per wrong
+                            {% elif test.negative_marking_type == 'percentage_of_marks' %}
+                            {{ test.negative_marking_value }}% deducted
+                            {% endif %}
+                        </span>
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Action Button - COMPACT -->
+                <a href="{% url 'subject_mocktests:pretest_detail' test.id %}" class="block w-full text-center text-[10px] sm:text-xs bg-gradient-to-r 
+                          {% if test.difficulty == 'Easy' %}from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700
+                          {% elif test.difficulty == 'Medium' %}from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700
+                          {% elif test.difficulty == 'Hard' %}from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700
+                          {% else %}from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700{% endif %} 
+                          text-white font-semibold py-2 px-3 rounded-lg transition-all transform hover:scale-[1.02]">
+                    <span class="flex items-center justify-center gap-1.5">
+                        Start Test
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </span>
+                </a>
             </div>
             {% endfor %}
         </div>
-        
+
         <!-- Test Count Footer -->
-        <div class="mt-8 text-center">
-            <p class="text-gray-500 text-sm">
-                Showing <span class="text-purple-400 font-medium">{{ tests|length }}</span> mock tests for 
+        <div class="mt-6 text-center">
+            <p class="text-gray-500 text-[10px] sm:text-xs">
+                Showing <span class="text-purple-400 font-medium" id="visibleTestCount">{{ tests|length }}</span> mock
+                tests for
                 <span class="text-white font-medium">{{ topic.name }}</span>
             </p>
         </div>
     </div>
     {% else %}
-    <!-- Empty State with Animation -->
-    <div class="relative text-center py-20 px-4">
-        <!-- Animated Background -->
+    <!-- Empty State - COMPACT -->
+    <div class="relative text-center py-12 sm:py-16 px-4">
         <div class="absolute inset-0 bg-gradient-to-b from-gray-900/50 to-gray-950/50 rounded-3xl"></div>
-        
+
         <div class="relative">
-            <!-- Animated Icon -->
-            <div class="relative w-32 h-32 mx-auto mb-6">
-                <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl animate-pulse"></div>
-                <div class="absolute inset-2 bg-gray-900 rounded-2xl flex items-center justify-center">
-                    <svg class="w-16 h-16 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            <div class="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4">
+                <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl animate-pulse">
+                </div>
+                <div class="absolute inset-1.5 bg-gray-900 rounded-xl flex items-center justify-center">
+                    <svg class="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
             </div>
-            
-            <h2 class="text-3xl font-bold text-white mb-3">No Tests Available</h2>
-            <p class="text-gray-400 mb-8 max-w-md mx-auto">There are no mock tests for {{ topic.name }} yet. Check back soon for new content!</p>
-            
-            <div class="flex flex-wrap justify-center gap-4">
-                <a href="{% url 'subject_mocktests:subject_detail' topic.subject.slug %}" 
-                   class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3.5 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+
+            <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">No Tests Available</h2>
+            <p class="text-gray-400 text-sm mb-6 max-w-md mx-auto">There are no mock tests for {{ topic.name }} yet.
+                Check back soon for new content!</p>
+
+            <div class="flex flex-wrap justify-center gap-3">
+                <a href="{% url 'subject_mocktests:subject_detail' topic.subject.slug %}"
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    Browse {{ topic.subject.name }} Topics
+                    Browse {{ topic.subject.name }}
                 </a>
-                
-                <button onclick="showToast('We\'ll notify you when new tests are added!')" 
-                        class="inline-flex items-center gap-2 bg-gray-800 text-gray-300 px-8 py-3.5 rounded-xl font-semibold hover:bg-gray-700 transition-all border border-gray-700">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+
+                <button onclick="showToast('We\'ll notify you when new tests are added!')"
+                    class="inline-flex items-center gap-2 bg-gray-800 text-gray-300 px-5 py-2.5 rounded-lg font-semibold hover:bg-gray-700 transition-all border border-gray-700 text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     Notify Me
                 </button>
@@ -360,83 +701,141 @@
     {% endif %}
 </div>
 
-<!-- Floating Action Buttons -->
-<div class="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
-    <!-- Scroll to Top -->
-    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" 
-            class="group relative p-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-110">
-        <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-        <svg class="relative w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+<!-- Floating Action Buttons - COMPACT -->
+<div class="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
+    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+        class="group relative p-2.5 sm:p-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-110">
+        <div
+            class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur-lg opacity-50 group-hover:opacity-75 transition-opacity">
+        </div>
+        <svg class="relative w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
     </button>
 </div>
 
-<!-- Custom Animations -->
-<style>
-    @keyframes blob {
-        0% { transform: translate(0px, 0px) scale(1); }
-        33% { transform: translate(30px, -50px) scale(1.1); }
-        66% { transform: translate(-20px, 20px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
-    }
-    
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-    
-    .animation-delay-2000 {
-        animation-delay: 2s;
-    }
-    
-    .animation-delay-4000 {
-        animation-delay: 4s;
-    }
-    
-    .card-hover-effect {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .card-hover-effect:hover {
-        transform: translateY(-4px);
-    }
-    
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #1F2937;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: #4F46E5;
-        border-radius: 4px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: #7C3AED;
-    }
-</style>
-
 <!-- JavaScript for Interactions -->
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // ===== SEARCH FUNCTIONALITY =====
+        const searchInput = document.getElementById('testSearch');
+        const clearBtn = document.getElementById('clearSearch');
+        const testCards = document.querySelectorAll('.test-card');
+        const testCountSpan = document.getElementById('testCount');
+        const visibleTestCountSpan = document.getElementById('visibleTestCount');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function (e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+
+                if (searchTerm.length > 0) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                }
+
+                let visibleCount = 0;
+
+                testCards.forEach(card => {
+                    const title = card.dataset.title || '';
+                    const description = card.dataset.description || '';
+
+                    if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                        card.style.display = '';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                if (testCountSpan) testCountSpan.textContent = visibleCount;
+                if (visibleTestCountSpan) visibleTestCountSpan.textContent = visibleCount;
+
+                // Show no results message
+                const container = document.getElementById('testsContainer');
+                let noResultsMsg = document.getElementById('noSearchResults');
+
+                if (visibleCount === 0 && testCards.length > 0) {
+                    if (!noResultsMsg) {
+                        noResultsMsg = document.createElement('div');
+                        noResultsMsg.id = 'noSearchResults';
+                        noResultsMsg.className = 'col-span-full text-center py-6';
+                        noResultsMsg.innerHTML = `
+                            <div class="text-gray-400">
+                                <svg class="w-10 h-10 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <p class="text-sm">No tests found</p>
+                                <button onclick="document.getElementById('clearSearch').click()" class="mt-1 text-xs text-purple-400 hover:text-purple-300">
+                                    Clear search
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(noResultsMsg);
+                    }
+                } else if (noResultsMsg) {
+                    noResultsMsg.remove();
+                }
+            });
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    searchInput.value = '';
+                    searchInput.dispatchEvent(new Event('input'));
+                    searchInput.focus();
+                });
+            }
+        }
+
+        // ===== FILTER TABS =====
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const filter = this.dataset.filter;
+                let visibleCount = 0;
+
+                testCards.forEach(card => {
+                    const difficulty = card.dataset.difficulty || '';
+
+                    if (filter === 'all' || difficulty === filter) {
+                        card.style.display = '';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                if (testCountSpan) testCountSpan.textContent = visibleCount;
+                if (visibleTestCountSpan) visibleTestCountSpan.textContent = visibleCount;
+
+                // Clear search when filtering
+                if (searchInput) {
+                    searchInput.value = '';
+                    clearBtn.classList.add('hidden');
+                }
+            });
+        });
+    });
+
+    // Toast notification
     function showToast(message) {
         const toast = document.createElement('div');
-        toast.className = 'fixed bottom-6 left-6 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl border border-gray-800 transform transition-all duration-500 z-50';
+        toast.className = 'fixed bottom-4 left-4 bg-gray-900 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg shadow-xl border border-gray-800 transform transition-all duration-500 z-50 text-[10px] sm:text-sm';
         toast.style.animation = 'slideIn 0.3s ease-out';
         toast.innerHTML = message;
-        
+
         document.body.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.style.animation = 'slideOut 0.3s ease-out';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
-    
+
     // Add slide animations
     const style = document.createElement('style');
     style.textContent = `
@@ -451,7 +850,4 @@
     `;
     document.head.appendChild(style);
 </script>
-
-<!-- Alpine.js for dropdown functionality -->
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 {% endblock %}

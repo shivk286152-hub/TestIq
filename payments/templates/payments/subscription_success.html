@@ -1,0 +1,28 @@
+<!-- payments/templates/payments/subscription_success.html -->
+{% extends "payments/base.html" %}
+
+{% block title %}Subscription Successful{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    
+    <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
+        <div class="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-crown text-5xl text-yellow-500"></i>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">You're a Premium Member! 👑</h1>
+        <p class="text-gray-500 mb-6">You now have full access to all premium content.</p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'payments:subscription_status' %}" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                <i class="fas fa-crown mr-2"></i> View Subscription
+            </a>
+            <a href="{% url 'payments:dashboard' %}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                <i class="fas fa-home mr-2"></i> Go to Dashboard
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

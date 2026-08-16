@@ -1,108 +1,407 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
+{% load socialaccount %}  <!-- IMPORTANT: Add this line -->
 
 {% block title %}Register{% endblock %}
 
 {% block content %}
-<div class="relative min-h-screen flex items-center justify-center bg-gray-100">
-
-<div class="bg-white w-full max-w-md rounded-xl shadow-xl p-8">
-
-    <!-- ICON -->
-    <div class="text-center mb-4">
-        <div class="text-blue-600 text-4xl">👤</div>
-    </div>
-
-    <!-- TITLE -->
-    <h2 class="text-2xl font-bold text-center">
-        Create account!
-    </h2>
-
-    <!-- FORM -->
-    <form method="POST" class="mt-6 space-y-5">
-        {% csrf_token %}
-
-        <!-- Name -->
-        <div>
-            <input type="text" name="username" placeholder="Name" required
-            class="w-full border-b py-3 focus:outline-none focus:border-blue-600">
-        </div>
-
-        <!-- Email -->
-        <div>
-            <input type="email" name="email" placeholder="E-mail" required
-            class="w-full border-b py-3 focus:outline-none focus:border-blue-600">
-        </div>
-
-        <!-- Password -->
-        <div>
-            <input type="password" name="password" placeholder="Password" required
-            class="w-full border-b py-3 focus:outline-none focus:border-blue-600">
-        </div>
-
-        <!-- Confirm Password -->
-        <div>
-            <input type="password" name="confirm_password" placeholder="Confirm Password" required
-            class="w-full border-b py-3 focus:outline-none focus:border-blue-600">
-        </div>
-
-        <!-- Button -->
-        <button type="submit"
-        class="w-2/3 mx-auto block bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-medium transition">
-            Create →
-        </button>
-    </form>
-
-    <!-- Thin Line -->
-    <div class="border-t mt-8 mb-4"></div>
-
-    <!-- Social Text -->
-    <p class="text-center text-gray-500 text-sm mb-4">
-        Create account using social media!
-    </p>
-
-    <!-- Google Label -->
-    <p class="text-center text-sm text-gray-400 mb-3">
-        Register / Sign-up with Google
-    </p>
-
-    <!-- GOOGLE BUTTON -->
-    <div class="relative group w-full">
-
-        <!-- Animated Border -->
-        <div class="absolute inset-0 rounded-md
-        bg-gradient-to-r from-red-500 via-yellow-500 to-green-500
-        opacity-0 group-hover:opacity-100
-        transition duration-700 animate-border"></div>
-
-        <!-- Inner Box -->
-        <a href="#"
-        class="relative flex justify-center items-center
-        border rounded-md py-3 bg-white
-        group-hover:bg-red-500 transition duration-700">
-
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
-            class="w-6 h-6">
-        </a>
-    </div>
-
-    <!-- Messages -->
-    {% for message in messages %}
-        <p class="text-red-500 text-center mt-4">{{ message }}</p>
-    {% endfor %}
-
-</div>
-</div>
-
-<!-- Animation Style -->
 <style>
-@keyframes borderRun {
-    0% {clip-path: inset(0 100% 0 0);}
-    100% {clip-path: inset(0 0 0 0);}
-}
-.animate-border{
-    animation: borderRun 0.8s linear forwards;
-}
+    .register-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== GOOGLE BUTTON STYLES ===== */
+    .google-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: 100%;
+        padding: 12px 16px;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .google-btn:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .google-btn:active {
+        transform: translateY(0);
+    }
+
+    /* Google Logo with Multicolor G */
+    .google-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .google-logo svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Ripple effect on click */
+    .google-btn .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(99, 102, 241, 0.15);
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    /* Google Button Text Gradient */
+    .google-btn .btn-text {
+        position: relative;
+        z-index: 1;
+    }
+
+    .google-btn .btn-text span {
+        background: linear-gradient(135deg, #4285f4, #34a853, #fbbc05, #ea4335);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+    }
+
+    /* Divider with "OR" */
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 20px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+    }
+
+    .divider span {
+        color: #9ca3af;
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        padding: 0 4px;
+    }
+
+    /* Google Button Pulse Animation */
+    .google-btn {
+        animation: pulse-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
+        50% { box-shadow: 0 0 20px 0 rgba(66, 133, 244, 0.1); }
+    }
+
+    /* Password Strength Colors */
+    .strength-bar {
+        transition: all 0.3s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+        .google-btn {
+            padding: 10px 14px;
+            font-size: 14px;
+        }
+        .google-logo {
+            width: 20px;
+            height: 20px;
+        }
+        .google-logo svg {
+            width: 20px;
+            height: 20px;
+        }
+    }
 </style>
 
+<div class="relative min-h-screen flex items-center justify-center bg-gray-50 py-8">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md register-card">
+        
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <div class="text-blue-600 text-4xl mb-2">👤</div>
+            <h2 class="text-2xl font-bold text-gray-800">Create Account</h2>
+            <p class="text-gray-500 text-sm mt-1">Join us and start your journey</p>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="space-y-2 mb-4">
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'error' %}bg-red-50 border-red-500 text-red-700{% elif message.tags == 'success' %}bg-green-50 border-green-500 text-green-700{% else %}bg-blue-50 border-blue-500 text-blue-700{% endif %} border-l-4 px-4 py-3 rounded">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Form -->
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            
+            <!-- Username -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-1">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.username.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+                <small class="text-gray-500 text-xs">3-30 characters, letters, numbers, and underscores only</small>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-1">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.email.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Password -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-1">Password</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.password.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+                <small class="text-gray-500 text-xs">{{ form.password.help_text }}</small>
+                
+                <!-- Password Strength -->
+                <div class="mt-2">
+                    <div class="flex space-x-1">
+                        <div class="h-1 flex-1 bg-gray-200 rounded strength-bar" id="strength-1"></div>
+                        <div class="h-1 flex-1 bg-gray-200 rounded strength-bar" id="strength-2"></div>
+                        <div class="h-1 flex-1 bg-gray-200 rounded strength-bar" id="strength-3"></div>
+                        <div class="h-1 flex-1 bg-gray-200 rounded strength-bar" id="strength-4"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1" id="strength-text"></p>
+                </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-1">Confirm Password</label>
+                {{ form.confirm_password }}
+                {% if form.confirm_password.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.confirm_password.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+                <div id="password-match-message" class="text-xs mt-1"></div>
+            </div>
+
+            <!-- Non-field errors -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-300 text-red-700 px-4 py-2 rounded text-sm">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Submit -->
+            <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition duration-200 transform hover:scale-[1.02]">
+                Create Account →
+            </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="divider">
+            <span>or continue with</span>
+        </div>
+
+        <!-- ===== FIXED: Google Sign-Up Button using allauth ===== -->
+        <a href="{% provider_login_url 'google' %}" 
+           class="google-btn" 
+           id="googleBtn"
+           onclick="handleGoogleClick(event)">
+            
+            <!-- Google Logo with Multicolor G -->
+            <div class="google-logo">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+            </div>
+            
+            <!-- Button Text -->
+            <span class="btn-text">
+                Sign up with <span>Google</span>
+            </span>
+        </a>
+
+        <!-- Login Link -->
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+                Already have an account?
+                <a href="{% url 'login' %}" class="text-blue-600 font-medium hover:underline">
+                    Sign in
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const password = document.getElementById('id_password');
+    const confirmPassword = document.getElementById('id_confirm_password');
+    const strengthBars = [
+        document.getElementById('strength-1'),
+        document.getElementById('strength-2'),
+        document.getElementById('strength-3'),
+        document.getElementById('strength-4')
+    ];
+    const strengthText = document.getElementById('strength-text');
+    const matchMessage = document.getElementById('password-match-message');
+
+    function checkPasswordStrength(pwd) {
+        let score = 0;
+        let messages = [];
+        if (pwd.length >= 8) score++;
+        else messages.push('8+ chars');
+        if (/[A-Z]/.test(pwd)) score++;
+        else messages.push('Uppercase');
+        if (/[a-z]/.test(pwd)) score++;
+        else messages.push('Lowercase');
+        if (/\d/.test(pwd)) score++;
+        else messages.push('Number');
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) score++;
+        return { score: Math.min(score, 4), messages };
+    }
+
+    password.addEventListener('input', function() {
+        const pwd = this.value;
+        if (pwd.length === 0) {
+            strengthBars.forEach(bar => bar.className = 'h-1 flex-1 bg-gray-200 rounded strength-bar');
+            strengthText.textContent = '';
+            return;
+        }
+        const result = checkPasswordStrength(pwd);
+        const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
+        const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+        strengthBars.forEach((bar, index) => {
+            bar.className = `h-1 flex-1 strength-bar ${index < result.score ? colors[index] : 'bg-gray-200'} rounded`;
+        });
+        strengthText.innerHTML = `<span class="font-medium ${result.score === 4 ? 'text-green-500' : result.score === 3 ? 'text-yellow-600' : result.score === 2 ? 'text-orange-500' : 'text-red-500'}">${labels[result.score-1]}</span>`;
+        
+        // Show requirements if password is weak
+        if (result.score < 3 && pwd.length > 0) {
+            const missing = result.messages.join(', ');
+            strengthText.innerHTML += ` <span class="text-gray-500 text-xs">(Need: ${missing})</span>`;
+        }
+    });
+
+    confirmPassword.addEventListener('input', function() {
+        const pwd = password.value;
+        const confirm = this.value;
+        if (confirm.length === 0) {
+            matchMessage.textContent = '';
+            matchMessage.className = 'text-xs mt-1';
+            this.className = 'mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm';
+            return;
+        }
+        if (pwd === confirm) {
+            matchMessage.textContent = '✓ Passwords match!';
+            matchMessage.className = 'text-xs mt-1 text-green-600';
+            this.className = 'mt-1 block w-full px-3 py-2 border border-green-400 rounded-lg shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm';
+        } else {
+            matchMessage.textContent = '✗ Passwords do not match';
+            matchMessage.className = 'text-xs mt-1 text-red-600';
+            this.className = 'mt-1 block w-full px-3 py-2 border border-red-400 rounded-lg shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm';
+        }
+    });
+});
+
+// ===== RIPPLE EFFECT ON GOOGLE BUTTON =====
+function handleGoogleClick(e) {
+    const button = e.currentTarget;
+    
+    // Create ripple
+    const ripple = document.createElement('span');
+    ripple.classList.add('ripple');
+    
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+    
+    button.appendChild(ripple);
+    
+    // Remove ripple after animation
+    setTimeout(() => {
+        ripple.remove();
+    }, 600);
+}
+
+// ===== GOOGLE BUTTON HOVER TILT EFFECT =====
+document.addEventListener('DOMContentLoaded', function() {
+    const googleBtn = document.getElementById('googleBtn');
+    if (googleBtn) {
+        googleBtn.addEventListener('mousemove', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = (y - centerY) / centerY * -5;
+            const rotateY = (x - centerX) / centerX * 5;
+            
+            this.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-2px)`;
+        });
+        
+        googleBtn.addEventListener('mouseleave', function() {
+            this.style.transform = 'perspective(500px) rotateX(0) rotateY(0) translateY(0)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+    }
+});
+</script>
 {% endblock %}

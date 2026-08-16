@@ -28,6 +28,7 @@
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
         overflow: hidden;
+        cursor: pointer;
     }
     
     .subject-card::before {
@@ -82,12 +83,68 @@
         gap: 0.2rem;
     }
 
+    /* ===== PAYMENT BADGES ===== */
+    .badge-locked {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 0.1rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+
+    .badge-free {
+        background: #dcfce7;
+        color: #16a34a;
+        padding: 0.1rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+    
+    .badge-subscribed {
+        background: #dbeafe;
+        color: #2563eb;
+        padding: 0.1rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+
     /* ===== LINE CLAMP ===== */
     .line-clamp-2 {
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+    }
+
+    /* ===== SUBSCRIPTION BANNER ===== */
+    .subscription-banner {
+        background: linear-gradient(135deg, #1e1b4b, #312e81, #4f46e5);
+        border-radius: 1rem;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        box-shadow: 0 8px 32px rgba(79, 70, 229, 0.25);
+    }
+    
+    .subscription-banner .text-white {
+        color: #ffffff;
+    }
+    
+    .subscription-banner .text-indigo-200 {
+        color: #c7d2fe;
     }
 
     /* ===== RESPONSIVE - MOBILE OPTIMIZED ===== */
@@ -107,6 +164,13 @@
         .subject-card .counter-badge { font-size: 0.55rem; padding: 0.05rem 0.4rem; }
         .subject-card .text-sm { font-size: 0.7rem; }
         .subject-card .pt-3 { padding-top: 0.5rem; }
+        
+        .subscription-banner {
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+        }
+        .subscription-banner .text-sm { font-size: 0.75rem; }
+        .subscription-banner .text-xs { font-size: 0.6rem; }
         
         .feature-footer { margin-top: 1.5rem; gap: 0.5rem; }
         .feature-footer .p-3 { padding: 0.5rem !important; }
@@ -143,9 +207,8 @@
 <div class="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/20 to-purple-50/20 py-4 sm:py-8">
     <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         
-        <!-- Header - Compact -->
+        <!-- ===== HEADER ===== -->
         <div class="text-center mb-5 sm:mb-8 relative">
-            <!-- Decorative elements -->
             <div class="absolute top-0 left-1/4 w-24 h-24 bg-indigo-200/20 rounded-full blur-2xl -z-10"></div>
             <div class="absolute bottom-0 right-1/4 w-28 h-28 bg-purple-200/20 rounded-full blur-2xl -z-10"></div>
             
@@ -166,63 +229,142 @@
                 Choose a subject to start your learning journey
             </p>
             
-            <!-- Decorative line - Compact -->
             <div class="header-line flex justify-center mt-2 sm:mt-3">
                 <div class="w-10 sm:w-16 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
             </div>
         </div>
 
-        <!-- Subject Grid - Compact -->
+        <!-- ===== SUBSCRIPTION BANNER - SHOW ONLY IF USER IS LOGGED IN ===== -->
+        {% if user.is_authenticated %}
+        <div class="subscription-banner">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-crown text-yellow-400 text-sm sm:text-base"></i>
+                </div>
+                <div>
+                    {% if is_subscribed %}
+                        <p class="text-white font-semibold text-sm sm:text-base flex items-center gap-2">
+                            <span class="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                            Active Subscription
+                        </p>
+                        <p class="text-indigo-200 text-xs">You have access to all locked content</p>
+                    {% else %}
+                        <p class="text-white font-semibold text-sm sm:text-base">Subscribe for Full Access</p>
+                        <p class="text-indigo-200 text-xs">Get access to all locked subjects and content</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                {% if not is_subscribed %}
+                    <a href="{% url 'payments:subscription_plans' %}" 
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-700 font-semibold rounded-lg hover:bg-indigo-50 transition-all text-sm shadow-lg">
+                        <i class="fa-solid fa-rocket"></i>
+                        Subscribe Now
+                    </a>
+                {% else %}
+                    <a href="{% url 'payments:subscription_status' %}" 
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/30 text-white font-semibold rounded-lg hover:bg-indigo-500/40 transition-all text-sm">
+                        <i class="fa-solid fa-chevron-right"></i>
+                        View Status
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ===== SUBJECT GRID ===== -->
         <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-            {% for subject in subjects %}
-            <a href="{% url 'qa:topic_list' subject.slug %}" 
-               class="subject-card block bg-white rounded-xl sm:rounded-2xl shadow-sm hover:shadow-lg p-3 sm:p-4 md:p-5 transition-all duration-300 border border-gray-100/80 hover:border-indigo-200 animate-fade-in-up delay-{{ forloop.counter }}"
-               style="animation-delay: {{ forloop.counter|add:"0"|stringformat:"d" }}0ms;">
+            {% for item in subjects %}
+            <div class="subject-card block bg-white rounded-xl sm:rounded-2xl shadow-sm hover:shadow-lg p-3 sm:p-4 md:p-5 transition-all duration-300 border border-gray-100/80 hover:border-indigo-200 animate-fade-in-up delay-{{ forloop.counter }}"
+                 style="animation-delay: {{ forloop.counter|add:"0"|stringformat:"d" }}0ms;">
                 
-                <!-- Icon - Smaller -->
+                <!-- ===== ICON ===== -->
                 <div class="icon-wrapper w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center text-xl sm:text-2xl md:text-3xl mb-1.5 sm:mb-2 md:mb-3 shadow-sm">
-                    {% if subject.icon %}
-                        <i class="fa-solid {{ subject.icon }} text-indigo-600"></i>
+                    {% if item.subject.icon %}
+                        <i class="fa-solid {{ item.subject.icon }} text-indigo-600"></i>
                     {% else %}
                         <span class="text-xl sm:text-2xl">📖</span>
                     {% endif %}
                 </div>
                 
-                <h3 class="text-sm sm:text-base md:text-lg font-bold text-gray-800 mb-0.5 sm:mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                    {{ subject.name }}
+                <!-- ===== TITLE ===== -->
+                <h3 class="text-sm sm:text-base md:text-lg font-bold text-gray-800 mb-0.5 sm:mb-1 line-clamp-1">
+                    {{ item.subject.name }}
                 </h3>
                 
+                <!-- ===== DESCRIPTION ===== -->
                 <p class="text-gray-500 text-[10px] sm:text-xs md:text-sm mb-1.5 sm:mb-2 md:mb-3 line-clamp-2 leading-relaxed">
-                    {{ subject.description|default:"Explore this subject"|truncatechars:60 }}
+                    {{ item.subject.description|default:"Explore this subject"|truncatechars:60 }}
                 </p>
                 
+                <!-- ===== BADGES ===== -->
                 <div class="flex items-center justify-between text-[10px] sm:text-xs pt-1.5 sm:pt-2 md:pt-3 border-t border-gray-100">
+                    <!-- Topics Count -->
                     <span class="counter-badge text-[9px] sm:text-[10px] md:text-xs">
                         <i class="fa-regular fa-folder-open text-[8px] sm:text-[9px]"></i>
-                        {{ subject.topics_count }}
+                        {{ item.topics_count }}
                     </span>
-                    <span class="text-indigo-600 font-medium text-[10px] sm:text-xs flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                        Explore 
-                        <i class="fa-solid fa-chevron-right text-[8px] sm:text-[9px] arrow-icon"></i>
-                    </span>
+                    
+                    <!-- Payment Status -->
+                    {% if item.is_locked %}
+                        {% if user.is_authenticated and is_subscribed %}
+                            <span class="badge-subscribed text-[9px] sm:text-[10px] md:text-xs">
+                                <i class="fa-solid fa-check-circle text-[8px] sm:text-[9px]"></i> Accessible
+                            </span>
+                        {% else %}
+                            <span class="badge-locked text-[9px] sm:text-[10px] md:text-xs">
+                                <i class="fa-solid fa-lock text-[8px] sm:text-[9px]"></i> ₹{{ item.price }}
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge-free text-[9px] sm:text-[10px] md:text-xs">
+                            <i class="fa-solid fa-unlock text-[8px] sm:text-[9px]"></i> Free
+                        </span>
+                    {% endif %}
                 </div>
-            </a>
+                
+                <!-- ===== ACTION BUTTON ===== -->
+                <div class="mt-2">
+                    {% if item.is_locked %}
+                        {% if user.is_authenticated and is_subscribed %}
+                            <a href="{% url 'qa:topic_list' subject_slug=item.subject.slug %}" 
+                               class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white text-[10px] sm:text-xs font-medium rounded-lg transition-all duration-300">
+                                <i class="fa-solid fa-play"></i> Access
+                            </a>
+                        {% else %}
+                            <a href="{% url 'payments:locked_content' content_type='qa_subject' content_id=item.subject.id %}" 
+                               class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-[10px] sm:text-xs font-medium rounded-lg transition-all duration-300">
+                                <i class="fa-solid fa-crown"></i> Unlock ₹{{ item.price }}
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'qa:topic_list' subject_slug=item.subject.slug %}" 
+                           class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-[10px] sm:text-xs font-medium rounded-lg transition-all duration-300">
+                            Explore <i class="fa-solid fa-chevron-right text-[8px] sm:text-[9px] arrow-icon"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
             {% empty %}
+            
+            <!-- ===== EMPTY STATE ===== -->
             <div class="col-span-full">
                 <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-12 text-center border-2 border-dashed border-gray-200">
                     <div class="text-4xl sm:text-6xl mb-2 sm:mb-4">📭</div>
                     <h3 class="text-base sm:text-xl font-semibold text-gray-700 mb-1 sm:mb-2">No Subjects Available</h3>
                     <p class="text-gray-500 text-sm sm:text-base max-w-sm mx-auto">Start by adding your first subject to begin creating content.</p>
+                    {% if user.is_staff %}
                     <a href="/admin/QA/subject/add/" class="inline-flex items-center gap-2 mt-3 sm:mt-4 px-4 sm:px-6 py-1.5 sm:py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg sm:rounded-xl hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-300 text-xs sm:text-sm">
                         <i class="fa-solid fa-plus"></i>
                         Add Subject
                     </a>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
         
-        <!-- Feature Footer - Compact -->
+        <!-- ===== FEATURE FOOTER ===== -->
         <div class="feature-footer mt-4 sm:mt-6 md:mt-10 grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 md:gap-3">
             <div class="bg-white/70 backdrop-blur-sm rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-3 flex items-center gap-1.5 sm:gap-2 md:gap-3 shadow-sm border border-gray-100/50">
                 <div class="w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
