@@ -448,42 +448,156 @@
     }
 
     /* ===== MOBILE RESPONSIVE ===== */
-    @media (max-width: 640px) {
-        .q-card { padding: 1rem !important; }
-        .q-card .answer-box { padding: 12px 14px; font-size: 0.9rem; }
-        .q-card .answer-box .text-sm { font-size: 0.85rem !important; }
-        
-        .question-images { grid-template-columns: 1fr !important; }
-        .question-images .image-item img { max-height: 200px; }
-        
-        .table-container table { min-width: 400px; font-size: 0.7rem; }
-        .table-container th, .table-container td { padding: 0.4rem 0.6rem; font-size: 0.7rem; }
-        
-        .page-btn { padding: 6px 12px; font-size: 12px; }
-        .search-wrapper { max-width: 100%; }
-        .search-input { padding: 8px 14px 8px 40px; font-size: 13px; }
-        
-        .footer-badge { font-size: 9px; padding: 2px 8px; }
-        .breadcrumb-link { font-size: 0.8rem; }
-        
-        .content-section-wrapper { padding: 12px !important; }
-        .content-section-wrapper ul li, .content-section-wrapper ol li { font-size: 0.85rem; }
-        
-        .footer-badges { gap: 4px; }
-        .footer-badge { font-size: 8px; padding: 2px 6px; }
+    /* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 640px) {
+    /* === REDUCE SIDE PADDING ON MOBILE === */
+    .max-w-4xl {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
     }
-
-    @media (min-width: 641px) and (max-width: 1024px) {
-        .question-images { grid-template-columns: repeat(2, 1fr); }
-        .table-container table { min-width: 500px; }
-        .search-wrapper { max-width: 260px; }
+    
+    /* === REDUCE PADDING IN ALL CARDS === */
+    .bg-white.rounded-2xl.shadow-lg {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
     }
+    
+    .q-card { 
+        padding: 12px !important; 
+        border-radius: 12px !important;
+    }
+    
+    .q-card .answer-box { 
+        padding: 10px 12px; 
+        font-size: 0.9rem; 
+    }
+    
+    .q-card .answer-box .text-sm { 
+        font-size: 0.85rem !important; 
+    }
+    
+    /* === REDUCE PADDING IN CONTENT SECTIONS === */
+    .bg-white.rounded-2xl.shadow-lg.overflow-hidden {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    .bg-white.rounded-2xl.shadow-lg.overflow-hidden .p-4.md\:p-6 {
+        padding: 12px !important;
+    }
+    
+    .content-section-wrapper {
+        padding: 10px !important;
+    }
+    
+    /* === FIX IMAGE GRID === */
+    .question-images { 
+        grid-template-columns: 1fr !important; 
+        gap: 8px !important;
+    }
+    
+    .question-images .image-item img { 
+        max-height: 200px; 
+    }
+    
+    /* === FIX TABLE === */
+    .table-container { 
+        border-radius: 8px;
+        margin: 8px 0;
+    }
+    
+    .table-container table { 
+        min-width: 350px; 
+        font-size: 0.7rem; 
+    }
+    
+    .table-container th, 
+    .table-container td { 
+        padding: 0.3rem 0.5rem; 
+        font-size: 0.7rem; 
+    }
+    
+    /* === PAGINATION === */
+    .page-btn { 
+        padding: 6px 12px; 
+        font-size: 12px; 
+    }
+    
+    /* === SEARCH === */
+    .search-wrapper { 
+        max-width: 100%; 
+    }
+    
+    .search-input { 
+        padding: 8px 14px 8px 40px; 
+        font-size: 13px; 
+    }
+    
+    /* === BADGES === */
+    .footer-badge { 
+        font-size: 8px; 
+        padding: 2px 6px; 
+    }
+    
+    .breadcrumb-link { 
+        font-size: 0.75rem; 
+    }
+    
+    .footer-badges { 
+        gap: 3px; 
+    }
+    
+    /* === HEADER === */
+    .bg-white.rounded-2xl.shadow-lg.p-5.mb-6 {
+        padding: 12px !important;
+    }
+    
+    h1.text-xl.sm\:text-2xl {
+        font-size: 1.1rem !important;
+    }
+    
+    /* === BREADCRUMB === */
+    nav.text-sm.mb-6 {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+    }
+    
+    /* === CONTENT RENDERED === */
+    .rendered-content {
+        font-size: 0.9rem !important;
+        line-height: 1.7 !important;
+    }
+    
+    .rendered-content p {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .rendered-content .code-block {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .rendered-content blockquote {
+        padding: 0.4rem 0.8rem !important;
+        margin: 0.5rem 0 !important;
+    }
+    
+    .rendered-content ul,
+    .rendered-content ol {
+        padding-left: 1.2rem !important;
+    }
+    
+    /* === BACK BUTTON === */
+    .mt-6 {
+        margin-top: 1rem !important;
+    }
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto px-2 sm:px-6 lg:px-8">
 
         <!-- ===== BREADCRUMB ===== -->
         <nav class="text-sm mb-6" aria-label="Breadcrumb">
