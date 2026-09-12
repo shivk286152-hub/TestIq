@@ -4,7 +4,7 @@
     <!-- Question Text -->
     <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6">
         <p class="text-lg font-medium text-gray-800 leading-relaxed">
-            {{ question.get_question_text|safe }}
+            {{ question.localized_question|safe }}
         </p>
         
         <!-- Question Metadata -->
@@ -41,7 +41,6 @@
                             {% else %}
                                 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/50 group-hover:shadow
                             {% endif %}">
-                    <!-- Radio Button -->
                     <div class="relative">
                         <input type="radio" 
                                name="question_{{ question.id }}" 
@@ -54,13 +53,11 @@
                                       {% endif %}">
                     </div>
                     
-                    <!-- Option Text -->
                     <span class="ml-4 text-gray-700 text-base flex-1
                                  {% if selected_option == option.id %}font-medium text-indigo-900{% endif %}">
-                        {{ option.get_text|safe }}
+                        {{ option.localized_text|safe }}
                     </span>
                     
-                    <!-- Selected Check Icon -->
                     {% if selected_option == option.id %}
                     <svg class="w-6 h-6 text-indigo-600 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -70,7 +67,6 @@
             </label>
             {% endfor %}
         {% else %}
-            <!-- No options available -->
             <div class="text-center py-8 bg-gray-50 rounded-xl">
                 <svg class="w-16 h-16 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
@@ -84,14 +80,12 @@
     {% if question.topic %}
     <script>
         (function() {
-            // Update topic in header
             const topicElement = document.getElementById('current-topic');
             if (topicElement) {
                 topicElement.textContent = '{{ question.topic }}';
                 topicElement.classList.remove('hidden');
             }
             
-            // Update question number in header if needed
             const currentQElement = document.getElementById('current-q');
             if (currentQElement) {
                 currentQElement.textContent = '{{ question_number }}';
@@ -101,11 +95,11 @@
     {% endif %}
 </div>
 
-<!-- Debug Info (Remove in production) -->
 {% if debug %}
 <div class="mt-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
     <p>Question ID: {{ question.id }}</p>
     <p>Options Count: {{ question.options.count }}</p>
     <p>Selected Option: {{ selected_option }}</p>
+    <p>Language: {{ language }}</p>
 </div>
 {% endif %}
