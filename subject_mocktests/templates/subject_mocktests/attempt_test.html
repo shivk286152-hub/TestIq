@@ -48,9 +48,11 @@
                     </div>
                     <div class="p-2">
                         <div class="grid grid-cols-5 gap-1 max-h-[340px] overflow-y-auto" id="desktop-palette">
-                            {% for i in mocktest.questions.all %}
+                            {% for q in mocktest.questions.all %}
                             <button class="question-nav-item w-full aspect-square rounded-md text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-600 hover:border-indigo-400"
-                                    data-q="{{ forloop.counter }}" id="desktop-nav-q-{{ forloop.counter }}">
+                                    data-index="{{ forloop.counter }}"
+                                    data-qid="{{ q.id }}"
+                                    id="desktop-nav-qid-{{ q.id }}">
                                 {{ forloop.counter }}
                             </button>
                             {% endfor %}
@@ -93,9 +95,11 @@
                     <!-- Mobile inline palette -->
                     <div id="mobile-palette-body" class="lg:hidden hidden bg-gray-50 border-b px-2 py-2">
                         <div class="grid grid-cols-10 gap-1" id="mobile-palette">
-                            {% for i in mocktest.questions.all %}
+                            {% for q in mocktest.questions.all %}
                             <button class="question-nav-item aspect-square rounded text-[10px] font-medium transition-all border border-gray-200 bg-white text-gray-600"
-                                    data-q="{{ forloop.counter }}" id="mobile-nav-q-{{ forloop.counter }}">
+                                    data-index="{{ forloop.counter }}"
+                                    data-qid="{{ q.id }}"
+                                    id="mobile-nav-qid-{{ q.id }}">
                                 {{ forloop.counter }}
                             </button>
                             {% endfor %}
@@ -140,7 +144,7 @@
                         </div>
                     </div>
 
-                    <!-- MOBILE buttons (inside card, scroll with content) -->
+                    <!-- MOBILE buttons -->
                     <div class="lg:hidden border-t bg-gray-50 px-2 py-2">
                         <div class="grid grid-cols-4 gap-1.5">
                             <button id="prev-btn-mobile"
@@ -160,7 +164,6 @@
                                 <span id="save-next-label-mobile">Save &amp; Next</span>
                             </button>
                         </div>
-                        <!-- Compact Submit button — CENTERED -->
                         <div class="mt-2 flex justify-center">
                             <form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="submit-form-mobile">
                                 {% csrf_token %}
@@ -248,16 +251,30 @@
         }
     }
 </style>
+
+<!-- Ordered question DB ids: index 0 => palette button 1 -->
+<script>
+    const QUESTION_IDS = [
+        {% for q in mocktest.questions.all %}{{ q.id }}{% if not forloop.last %},{% endif %}{% endfor %}
+    ];
+</script>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    let currentQuestion = 1;
-    let totalQuestions = {{ total_questions }};
-    let mocktestId = {{ mocktest.id }};
+    const totalQuestions = QUESTION_IDS.length;
+    const mocktestId = {{ mocktest.id }};
+
+    // currentIndex = 0-based position (palette number = currentIndex + 1)
+    let currentIndex = 0;
+
+    // keyed by DB id
     const answeredQuestions = new Set();
     const skippedQuestions = new Set();
 
+    const currentQid = () => QUESTION_IDS[currentIndex];
+
+    // ---------- timer ----------
     function updateTimer() {
         const el = document.getElementById('timer');
         if (!el) return;
@@ -271,34 +288,29 @@
     }
     const timerInterval = setInterval(updateTimer, 1000);
 
+    // ---------- mobile palette toggle ----------
     document.getElementById('mobile-palette-toggle').addEventListener('click', function () {
-        const body = document.getElementById('mobile-palette-body');
-        const chevron = document.getElementById('palette-chevron');
-        if (body.classList.contains('hidden')) {
-            body.classList.remove('hidden');
-            chevron.classList.add('rotate-180');
-        } else {
-            body.classList.add('hidden');
-            chevron.classList.remove('rotate-180');
-        }
+        document.getElementById('mobile-palette-body').classList.toggle('hidden');
+        document.getElementById('palette-chevron').classList.toggle('rotate-180');
     });
 
-    function updatePaletteButton(qNum) {
-        [`desktop-nav-q-${qNum}`, `mobile-nav-q-${qNum}`].forEach(id => {
+    // ---------- palette ----------
+    function updatePaletteButton(qid) {
+        [`desktop-nav-qid-${qid}`, `mobile-nav-qid-${qid}`].forEach(id => {
             const btn = document.getElementById(id);
             if (!btn) return;
             btn.classList.remove('answered','skipped','current');
-            if (qNum === currentQuestion) btn.classList.add('current');
-            else if (answeredQuestions.has(qNum)) btn.classList.add('answered');
-            else if (skippedQuestions.has(qNum)) btn.classList.add('skipped');
+            if (qid === currentQid())            btn.classList.add('current');
+            else if (answeredQuestions.has(qid)) btn.classList.add('answered');
+            else if (skippedQuestions.has(qid))  btn.classList.add('skipped');
         });
     }
     function refreshAllPaletteButtons() {
-        for (let i = 1; i <= totalQuestions; i++) updatePaletteButton(i);
+        QUESTION_IDS.forEach(id => updatePaletteButton(id));
     }
 
     function updateSaveNextLabel() {
-        const isLast = currentQuestion === totalQuestions;
+        const isLast = currentIndex === totalQuestions - 1;
         const ld = document.getElementById('save-next-label-desktop');
         const lm = document.getElementById('save-next-label-mobile');
         const arrow = document.getElementById('save-next-arrow-desktop');
@@ -313,9 +325,13 @@
         }
     }
 
-    function loadQuestion(qNumber) {
-        currentQuestion = qNumber;
-        document.getElementById('current-q').textContent = qNumber;
+    // ---------- load by index ----------
+    function loadQuestionAt(index) {
+        if (index < 0 || index >= totalQuestions) return;
+        currentIndex = index;
+        const qid = currentQid();
+
+        document.getElementById('current-q').textContent = index + 1;
         refreshAllPaletteButtons();
         updateSaveNextLabel();
 
@@ -324,38 +340,37 @@
             <div class="text-center py-8">
                 <div class="inline-block animate-spin rounded-full h-6 w-6 border-3 border-indigo-600 border-t-transparent"></div>
                 <p class="mt-2 text-gray-500 text-xs">Loading...</p>
-            </div>
-        `;
+            </div>`;
 
-        fetch(`/subject-mocktests/ajax/question/${mocktestId}/?q=${qNumber}`)
-            .then(r => { if (!r.ok) throw new Error('err'); return r.text(); })
+        fetch(`/subject-mocktests/ajax/question/${mocktestId}/?q=${qid}`)
+            .then(r => { if (!r.ok) throw new Error(); return r.text(); })
             .then(html => {
                 container.innerHTML = html;
-                const saved = localStorage.getItem(`q_${mocktestId}_${qNumber}`);
+                const saved = localStorage.getItem(`q_${mocktestId}_${qid}`);
                 if (saved) {
-                    const radio = document.querySelector(`input[name="question_${qNumber}"][value="${saved}"]`);
+                    const radio = document.querySelector(`input[name="question_${qid}"][value="${saved}"]`);
                     if (radio) {
                         radio.checked = true;
                         const item = radio.closest('.option-item');
                         if (item) item.classList.add('selected');
                     }
                 }
-                container.scrollTop = 0;
             })
-            .catch(err => {
-                console.error(err);
+            .catch(() => {
                 container.innerHTML = `<div class="text-center py-8 text-red-500 text-sm">Error loading.</div>`;
             });
 
+        const isFirst = index === 0;
         ['prev-btn-desktop','prev-btn-mobile'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.disabled = (qNumber === 1);
+            if (el) el.disabled = isFirst;
         });
     }
 
-    function saveAnswer(questionId, optionId) {
+    // ---------- save / skip / clear (by DB id) ----------
+    function saveAnswer(qid, optionId) {
         const fd = new FormData();
-        fd.append(`question_${questionId}`, optionId);
+        fd.append(`question_${qid}`, optionId);
         return fetch('{% url "subject_mocktests:save_answer" %}', {
             method: 'POST',
             body: fd,
@@ -365,33 +380,35 @@
         .then(data => {
             if (data.status === 'ok') {
                 if (optionId) {
-                    answeredQuestions.add(parseInt(questionId));
-                    skippedQuestions.delete(parseInt(questionId));
-                    localStorage.setItem(`q_${mocktestId}_${questionId}`, optionId);
+                    answeredQuestions.add(qid);
+                    skippedQuestions.delete(qid);
+                    localStorage.setItem(`q_${mocktestId}_${qid}`, optionId);
                 } else {
-                    answeredQuestions.delete(parseInt(questionId));
-                    skippedQuestions.delete(parseInt(questionId));
-                    localStorage.removeItem(`q_${mocktestId}_${questionId}`);
+                    answeredQuestions.delete(qid);
+                    skippedQuestions.delete(qid);
+                    localStorage.removeItem(`q_${mocktestId}_${qid}`);
                 }
-                updatePaletteButton(parseInt(questionId));
+                updatePaletteButton(qid);
                 updateCounts();
             }
             return data;
         });
     }
 
-    function skipQuestion(questionId) {
-        return saveAnswer(questionId, '').then(() => {
-            skippedQuestions.add(parseInt(questionId));
-            answeredQuestions.delete(parseInt(questionId));
-            updatePaletteButton(parseInt(questionId));
+    function skipCurrent() {
+        const qid = currentQid();
+        return saveAnswer(qid, '').then(() => {
+            skippedQuestions.add(qid);
+            answeredQuestions.delete(qid);
+            updatePaletteButton(qid);
             updateCounts();
         });
     }
 
-    function clearResponse(questionId) {
-        return saveAnswer(questionId, '').then(() => {
-            document.querySelectorAll(`input[name="question_${questionId}"]`).forEach(r => r.checked = false);
+    function clearCurrent() {
+        const qid = currentQid();
+        return saveAnswer(qid, '').then(() => {
+            document.querySelectorAll(`input[name="question_${qid}"]`).forEach(r => r.checked = false);
             document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
         });
     }
@@ -400,14 +417,14 @@
         const a = answeredQuestions.size;
         const s = skippedQuestions.size;
         const rem = totalQuestions - a - s;
-        const pct = totalQuestions > 0 ? Math.round((a / totalQuestions) * 100) : 0;
-        const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-        setText('answered-count', a);
-        setText('skipped-count', s);
-        setText('mobile-palette-count', a + '/' + totalQuestions);
-        setText('desktop-answered', a);
-        setText('desktop-skipped', s);
-        setText('desktop-remaining', rem);
+        const pct = totalQuestions ? Math.round((a / totalQuestions) * 100) : 0;
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        set('answered-count', a);
+        set('skipped-count', s);
+        set('mobile-palette-count', a + '/' + totalQuestions);
+        set('desktop-answered', a);
+        set('desktop-skipped', s);
+        set('desktop-remaining', rem);
         const bar = document.getElementById('desktop-progress');
         if (bar) bar.style.width = pct + '%';
     }
@@ -417,32 +434,35 @@
         let msg = 'Submit the test? You cannot change answers after submission.';
         if (unanswered > 0) msg = `You have ${unanswered} unanswered questions. ${msg}`;
         if (confirm(msg)) {
-            if (timerInterval) clearInterval(timerInterval);
-            for (let i = 1; i <= totalQuestions; i++) localStorage.removeItem(`q_${mocktestId}_${i}`);
+            clearInterval(timerInterval);
+            QUESTION_IDS.forEach(id => localStorage.removeItem(`q_${mocktestId}_${id}`));
             document.getElementById(device === 'mobile' ? 'submit-form-mobile' : 'submit-form-desktop').submit();
         }
     };
 
+    // ---------- wire up ----------
     document.addEventListener('DOMContentLoaded', function () {
-        loadQuestion(1);
-        for (let i = 1; i <= totalQuestions; i++) {
-            if (localStorage.getItem(`q_${mocktestId}_${i}`)) answeredQuestions.add(i);
-        }
-        refreshAllPaletteButtons();
+        QUESTION_IDS.forEach(id => {
+            if (localStorage.getItem(`q_${mocktestId}_${id}`)) answeredQuestions.add(id);
+        });
+
+        loadQuestionAt(0);
         updateCounts();
 
+        // Palette click: use data-index to get position
         document.addEventListener('click', function (e) {
             const navItem = e.target.closest('.question-nav-item');
             if (navItem) {
                 e.preventDefault();
-                const qNum = parseInt(navItem.dataset.q);
-                if (!isNaN(qNum)) loadQuestion(qNum);
+                const idx = parseInt(navItem.dataset.index, 10) - 1;
+                if (!isNaN(idx)) loadQuestionAt(idx);
             }
         });
 
+        // Radio change: use DB id from name
         document.addEventListener('change', function (e) {
             if (e.target.name && e.target.name.startsWith('question_')) {
-                const qid = e.target.name.replace('question_', '');
+                const qid = parseInt(e.target.name.replace('question_', ''), 10);
                 document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
                 const item = e.target.closest('.option-item');
                 if (item) item.classList.add('selected');
@@ -450,35 +470,40 @@
             }
         });
 
+        // Prev
         ['prev-btn-desktop','prev-btn-mobile'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.addEventListener('click', () => {
-                if (currentQuestion > 1) loadQuestion(currentQuestion - 1);
-            });
+            if (el) el.addEventListener('click', () => loadQuestionAt(currentIndex - 1));
         });
 
+        // Clear
         ['clear-btn-desktop','clear-btn-mobile'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('click', () => {
-                if (confirm('Clear your response?')) clearResponse(currentQuestion);
+                if (confirm('Clear your response?')) clearCurrent();
             });
         });
 
+        // Skip
         ['skip-btn-desktop','skip-btn-mobile'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('click', () => {
-                skipQuestion(currentQuestion).then(() => {
-                    if (currentQuestion < totalQuestions) loadQuestion(currentQuestion + 1);
+                skipCurrent().then(() => {
+                    if (currentIndex < totalQuestions - 1) loadQuestionAt(currentIndex + 1);
                 });
             });
         });
 
+        // Save & Next
         ['save-next-btn-desktop','save-next-btn-mobile'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('click', () => {
-                const checked = document.querySelector(`input[name="question_${currentQuestion}"]:checked`);
-                const advance = () => { if (currentQuestion < totalQuestions) loadQuestion(currentQuestion + 1); };
-                if (checked) saveAnswer(currentQuestion, checked.value).then(advance);
+                const qid = currentQid();
+                const checked = document.querySelector(`input[name="question_${qid}"]:checked`);
+                const advance = () => {
+                    if (currentIndex < totalQuestions - 1) loadQuestionAt(currentIndex + 1);
+                };
+                if (checked) saveAnswer(qid, checked.value).then(advance);
                 else advance();
             });
         });
