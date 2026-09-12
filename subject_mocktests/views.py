@@ -454,92 +454,166 @@ def attempt_test(request, mocktest_id):
     })
 
 
+# from django.http import JsonResponse
+# from django.shortcuts import get_object_or_404, render
+# from django.contrib.auth.decorators import login_required
+# from .models import MockTest, MockTestAttempt, Question
+
+
 @login_required
 def ajax_question(request, mocktest_id):
-    """AJAX endpoint to load question content"""
+    """
+    AJAX endpoint to load one question.
+
+    Contract (important for future):
+      * `?q=`  →  Question DB id (NOT a 1-based position).
+      * Response HTML renders radio inputs with name="question_<db_id>".
+      * `question_number` in the template = display position (1..N).
+    """
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
-    
+
     attempt = MockTestAttempt.objects.filter(
         user=request.user,
         mock_test=mocktest,
-        is_completed=False
+        is_completed=False,
     ).first()
-    
     if not attempt:
         return JsonResponse({'error': 'No active attempt'}, status=400)
-    
-    # ✅ FIX: session-first language (was: attempt.language)
+
+    # language: session first, fall back to attempt
     language = request.session.get(
         f'subject_test_{mocktest.id}_language',
-        attempt.language or 'en'
+        attempt.language or 'en',
     )
-    
-    # ✅ FIX: prefetch options
-    questions = list(
-        mocktest.questions
-        .prefetch_related('options')
-        .order_by('order', 'id')
-    )
-    
-    total = len(questions)
-    if total == 0:
-        return JsonResponse({'error': 'No questions found'}, status=404)
-    
-    q_number = request.GET.get('q', 1)
+
+    # --- 1. parse DB id ---
+    raw_q = request.GET.get('q')
     try:
-        q_number = int(q_number)
+        question_id = int(raw_q)
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'Invalid question id'}, status=400)
+
+    # --- 2. fetch question by DB id, scoped to this mocktest ---
+    #    Adjust the filter if your relation is via a through-model
+    question = get_object_or_404(
+        Question.objects.prefetch_related('options'),
+        id=question_id,
+        mock_test=mocktest,
+    )
+
+    # --- 3. display position (for "Q x / N" header) ---
+    ordered_ids = list(
+        mocktest.questions
+        .order_by('order', 'id')
+        .values_list('id', flat=True)
+    )
+    total = len(ordered_ids)
+    try:
+        position = ordered_ids.index(question.id) + 1
     except ValueError:
-        q_number = 1
-    
-    q_number = max(1, min(q_number, total))
-    question = questions[q_number - 1]
-    
-    # ✅ FIX: attach localized text before rendering
+        # question exists but isn't part of this mocktest's ordered list
+        return JsonResponse({'error': 'Question not in this mocktest'}, status=404)
+
+    # --- 4. localization ---
     question.localized_question = question.get_question_text(language)
     question.localized_explanation = question.get_explanation_text(language)
     for opt in question.options.all():
         opt.localized_text = opt.get_text(language)
-    
+
+    # --- 5. previously selected option (from session) ---
     saved_answers = request.session.get(f'subject_answers_{mocktest.id}', {})
     selected_option = saved_answers.get(str(question.id))
-    
+
     return render(request, 'subject_mocktests/ajax_question.html', {
         'question': question,
-        'question_number': q_number,
+        'question_number': position,   # display only
         'total_questions': total,
         'selected_option': selected_option,
         'language': language,
     })
-
     
+import logging
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_POST
+
+from .models import MockTest, MockTestAttempt, Question
+
+logger = logging.getLogger(__name__)
+
+
 @login_required
+@require_POST
 def save_answer(request):
-    """Save answer to session (AJAX)"""
-    if request.method == 'POST':
-        try:
-            for key, value in request.POST.items():
-                if key.startswith('question_'):
-                    qid = int(key.replace('question_', ''))
-                    question = get_object_or_404(Question, id=qid)
-                    
-                    answers = request.session.get(
-                        f'subject_answers_{question.mock_test.id}', {}
-                    )
-                    
-                    if value == '':
-                        answers.pop(str(qid), None)
-                    else:
-                        answers[str(qid)] = int(value)
-                    
-                    request.session[f'subject_answers_{question.mock_test.id}'] = answers
-            
-            return JsonResponse({'status': 'ok'})
-        except Exception as e:
-            logger.error(f"Error saving answer: {e}")
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    
-    return JsonResponse({'status': 'error'}, status=400)
+    """
+    Save / clear a single answer into the session.
 
+    Contract:
+      * POST body has EXACTLY one key of the form  question_<db_id> = <option_id>
+      * Empty option value  →  clear the answer.
+      * Session storage: subject_answers_<mocktest_id> = { "<qid>": option_id, ... }
+    """
+    # --- 1. find the question_<id> key ---
+    question_id = None
+    option_id = None
+    for key, val in request.POST.items():
+        if key.startswith('question_'):
+            try:
+                question_id = int(key.replace('question_', ''))
+            except (TypeError, ValueError):
+                return JsonResponse(
+                    {'status': 'error', 'message': 'Invalid question key'},
+                    status=400,
+                )
+            option_id = (val or '').strip() or None
+            break  # only one answer per request
+
+    if question_id is None:
+        return JsonResponse(
+            {'status': 'error', 'message': 'No question key in payload'},
+            status=400,
+        )
+
+    # --- 2. verify question exists AND belongs to an active attempt of this user ---
+    #    This prevents users from saving answers for questions from other tests
+    #    by forging ?question_<id> values.
+    attempt = (
+        MockTestAttempt.objects
+        .filter(user=request.user, is_completed=False)
+        .select_related('mock_test')
+        .filter(mock_test__questions__id=question_id)
+        .first()
+    )
+    if not attempt:
+        return JsonResponse(
+            {'status': 'error', 'message': 'Question not part of an active attempt'},
+            status=403,
+        )
+
+    mocktest = attempt.mock_test
+    question = get_object_or_404(Question, id=question_id, mock_test=mocktest)
+
+    # --- 3. update session ---
+    session_key = f'subject_answers_{mocktest.id}'
+    answers = request.session.get(session_key, {})
+
+    if option_id is None:
+        answers.pop(str(question.id), None)   # clear
+    else:
+        try:
+            answers[str(question.id)] = int(option_id)
+        except (TypeError, ValueError):
+            return JsonResponse(
+                {'status': 'error', 'message': 'Invalid option id'},
+                status=400,
+            )
+
+    request.session[session_key] = answers
+    request.session.modified = True
+
+    return JsonResponse({'status': 'ok'})
 
 # ============================================
 # SUBMIT TEST
