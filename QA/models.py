@@ -120,6 +120,19 @@ class Subject(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+    def get_name(self, language='en'):
+        """Get subject name in selected language"""
+        if language == 'hi' and self.name_hi:
+            return self.name_hi
+        return self.name
+
+    def get_description(self, language='en'):
+        """Get description in selected language"""
+        if language == 'hi' and self.description_hi:
+            return self.description_hi
+        return self.description
 
     def get_topics_count(self):
         return self.topics.filter(is_active=True).count()
@@ -249,6 +262,17 @@ class Topic(models.Model):
 
     def __str__(self):
         return f"{self.subject.name} - {self.name}"
+    
+
+    def get_name(self, language='en'):
+        if language == 'hi' and self.name_hi:
+            return self.name_hi
+        return self.name
+
+    def get_description(self, language='en'):
+        if language == 'hi' and self.description_hi:
+            return self.description_hi
+        return self.description
 
     def get_parts_count(self):
         return self.parts.filter(is_active=True).count()
@@ -439,6 +463,17 @@ class Part(models.Model):
 
     def __str__(self):
         return f"{self.topic.name} - {self.name}"
+
+
+    def get_name(self, language='en'):
+        if language == 'hi' and self.name_hi:
+            return self.name_hi
+        return self.name
+
+    def get_description(self, language='en'):
+        if language == 'hi' and self.description_hi:
+            return self.description_hi
+        return self.description
 
     def get_questions_count(self):
         return self.questions.filter(is_active=True).count()
@@ -679,6 +714,11 @@ class QuestionCategory(models.Model):
     def __str__(self):
         return self.name
 
+    def get_name(self, language='en'):
+        if language == 'hi' and self.name_hi:
+            return self.name_hi
+        return self.name
+
     def get_question_count(self):
         return self.questions.filter(is_active=True).count()
 
@@ -738,7 +778,19 @@ class Question(models.Model):
 
     def get_tags_list(self):
         return self.tags if isinstance(self.tags, list) else []
+    
 
+    def get_question_text(self, language='en'):
+        """Get question text in selected language"""
+        if language == 'hi' and self.question_hi:
+            return self.question_hi
+        return self.question
+
+    def get_answer_text(self, language='en'):
+        """Get answer in selected language"""
+        if language == 'hi' and self.answer_hi:
+            return self.answer_hi
+        return self.answer
 
 class QuestionImage(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='images')
@@ -798,3 +850,13 @@ class ComprehensiveContent(models.Model):
 
     def __str__(self):
         return f"{self.get_content_type_display()}: {self.heading}"
+
+    def get_heading(self, language='en'):
+        if language == 'hi' and self.heading_hi:
+            return self.heading_hi
+        return self.heading
+
+    def get_content(self, language='en'):
+        if language == 'hi' and self.content_hi:
+            return self.content_hi
+        return self.content    
