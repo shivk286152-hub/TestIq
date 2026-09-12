@@ -247,46 +247,66 @@ def mocktest_list_by_topic(request, topic_id):
 # ============================================
 # PRETEST AND TEST START
 # ============================================
+# =========================================================
+# Add near the top of your views.py (module-level constant)
+# =========================================================
+ALLOWED_LANGUAGES = [
+    {'code': 'en', 'name': 'English'},
+    {'code': 'hi', 'name': 'हिन्दी (Hindi)'},
+]
+VALID_LANGUAGE_CODES = [lang['code'] for lang in ALLOWED_LANGUAGES]
+
 
 @login_required
 def pretest_detail(request, mocktest_id):
     """Pretest page with instructions and language selection"""
     mocktest = get_object_or_404(MockTest, id=mocktest_id, is_active=True)
-    
     mocktest = prepare_mocktest_data(mocktest)
-    
+
+    # ✅ Safe fetch — avoids MultipleObjectsReturned
     existing_attempt = MockTestAttempt.objects.filter(
         user=request.user,
         mock_test=mocktest,
-        is_completed=False
-    ).first()
-    
+        is_completed=False,
+    ).order_by('-started_at').first()
+
     previous_attempts = MockTestAttempt.objects.filter(
         user=request.user,
         mock_test=mocktest,
-        is_completed=True
+        is_completed=True,
     ).count()
-    
+
     previous_best = None
     if previous_attempts > 0:
         best_attempt = MockTestAttempt.objects.filter(
             user=request.user,
             mock_test=mocktest,
-            is_completed=True
+            is_completed=True,
         ).order_by('-score').first()
-        
         if best_attempt:
             previous_best = f"{best_attempt.percentage}%"
-    
+
+    # ✅ FIX #1: Determine which language should be pre-selected
+    # Priority: 1) existing attempt's language  2) session  3) default 'en'
+    selected_language = None
+    if existing_attempt and existing_attempt.language:
+        selected_language = existing_attempt.language
+    else:
+        selected_language = request.session.get(
+            f'subject_test_{mocktest.id}_language', 'en'
+        )
+
+    # Safety: fall back if somehow invalid
+    if selected_language not in VALID_LANGUAGE_CODES:
+        selected_language = 'en'
+
     context = {
         'mocktest': mocktest,
         'existing_attempt': existing_attempt,
         'previous_attempts': previous_attempts,
         'previous_best': previous_best,
-        'languages': [
-            {'code': 'en', 'name': 'English'},
-            {'code': 'hi', 'name': 'हिन्दी (Hindi)'},
-        ]
+        'languages': ALLOWED_LANGUAGES,
+        'selected_language': selected_language,   # ✅ FIX #2: WAS MISSING
     }
     return render(request, 'subject_mocktests/pretest_detail.html', context)
 
@@ -294,53 +314,86 @@ def pretest_detail(request, mocktest_id):
 @login_required
 def start_test(request, mocktest_id):
     """Start or resume a test after language selection"""
-    if request.method == 'POST':
-        mocktest = get_object_or_404(MockTest, id=mocktest_id, is_active=True)
-        
-        terms_accepted = request.POST.get('terms_accepted')
-        selected_language = request.POST.get('language')
-        
+    if request.method != 'POST':
+        return redirect('subject_mocktests:pretest_detail', mocktest_id=mocktest_id)
+
+    mocktest = get_object_or_404(MockTest, id=mocktest_id, is_active=True)
+
+    is_resume = request.POST.get('resume') == 'true'
+    terms_accepted = request.POST.get('terms_accepted')
+    selected_language = request.POST.get('language')
+
+    # ✅ Safe fetch — no get_or_create crash
+    existing_attempt = MockTestAttempt.objects.filter(
+        user=request.user,
+        mock_test=mocktest,
+        is_completed=False,
+    ).order_by('-started_at').first()
+
+    # ---------------------------------------------------------
+    # RESUME PATH: skip checkbox, trust stored language
+    # ---------------------------------------------------------
+    if is_resume:
+        if not existing_attempt or not existing_attempt.language:
+            messages.error(request, 'Cannot resume — no valid attempt found.')
+            return redirect('subject_mocktests:pretest_detail', mocktest_id=mocktest.id)
+        if existing_attempt.language not in VALID_LANGUAGE_CODES:
+            messages.error(request, 'Stored language is invalid. Please start a new test.')
+            return redirect('subject_mocktests:pretest_detail', mocktest_id=mocktest.id)
+        selected_language = existing_attempt.language
+
+    # ---------------------------------------------------------
+    # FRESH START: validate everything
+    # ---------------------------------------------------------
+    else:
         if not terms_accepted:
             messages.error(request, 'You must accept the terms to start the test.')
             return redirect('subject_mocktests:pretest_detail', mocktest_id=mocktest.id)
-        
+
         if not selected_language:
             messages.error(request, 'Please select your preferred language.')
             return redirect('subject_mocktests:pretest_detail', mocktest_id=mocktest.id)
-        
-        request.session[f'subject_test_{mocktest.id}_language'] = selected_language
-        
-        is_paid = check_if_paid_user(request.user)
-        
-        attempt, created = MockTestAttempt.objects.get_or_create(
+
+        # ✅ Validate against whitelist
+        if selected_language not in VALID_LANGUAGE_CODES:
+            messages.error(request, 'Invalid language selected.')
+            return redirect('subject_mocktests:pretest_detail', mocktest_id=mocktest.id)
+
+    # ✅ Save to session so pretest page preselects correctly
+    request.session[f'subject_test_{mocktest.id}_language'] = selected_language
+
+    is_paid = check_if_paid_user(request.user)
+
+    # ---------------------------------------------------------
+    # ✅ Create new OR update existing (safe, no get_or_create)
+    # ---------------------------------------------------------
+    if existing_attempt:
+        if not existing_attempt.started_at:
+            existing_attempt.started_at = timezone.now()
+        existing_attempt.language = selected_language
+        existing_attempt.total_marks = mocktest.total_questions
+        existing_attempt.is_paid_user = is_paid
+        existing_attempt.save(update_fields=[
+            'started_at', 'language', 'total_marks', 'is_paid_user',
+        ])
+    else:
+        MockTestAttempt.objects.create(
             user=request.user,
             mock_test=mocktest,
             is_completed=False,
-            defaults={
-                'started_at': timezone.now(),
-                'language': selected_language,
-                'is_paid_user': is_paid,
-                'has_detailed_data': True,
-                'total_marks': mocktest.total_questions,
-            }
+            started_at=timezone.now(),
+            language=selected_language,
+            is_paid_user=is_paid,
+            has_detailed_data=True,
+            total_marks=mocktest.total_questions,
         )
-        
-        if not created:
-            if not attempt.started_at:
-                attempt.started_at = timezone.now()
-            attempt.language = selected_language
-            attempt.total_marks = mocktest.total_questions
-            attempt.save()
-        
-        return redirect('subject_mocktests:attempt_test', mocktest_id=mocktest.id)
-    
-    return redirect('subject_mocktests:pretest_detail', mocktest_id=mocktest_id)
+
+    return redirect('subject_mocktests:attempt_test', mocktest_id=mocktest.id)
 
 
 # ============================================
 # TEST ATTEMPT VIEWS
 # ============================================
-
 @login_required
 def attempt_test(request, mocktest_id):
     """Main test-taking interface"""
@@ -356,7 +409,11 @@ def attempt_test(request, mocktest_id):
         messages.error(request, 'No active test found. Please start a new test.')
         return redirect('subject_mocktests:pretest_detail', mocktest_id=mocktest.id)
     
-    language = request.session.get(f'subject_test_{mocktest.id}_language', attempt.language)
+    # ✅ Session-first language resolution with safe fallback
+    language = request.session.get(
+        f'subject_test_{mocktest.id}_language',
+        attempt.language or 'en'
+    )
     
     duration = mocktest.duration * 60
     elapsed = (timezone.now() - attempt.started_at).total_seconds()
@@ -365,7 +422,19 @@ def attempt_test(request, mocktest_id):
     if remaining_seconds <= 0:
         return redirect('subject_mocktests:submit_test', mocktest_id=mocktest.id)
     
-    questions = mocktest.questions.all().order_by('order', 'id')
+    # ✅ Convert to list + prefetch options (avoids N+1 queries)
+    questions = list(
+        mocktest.questions
+        .prefetch_related('options')
+        .order_by('order', 'id')
+    )
+    
+    # ✅ Attach localized text to each question and its options
+    for q in questions:
+        q.localized_question = q.get_question_text(language)
+        q.localized_explanation = q.get_explanation_text(language)
+        for opt in q.options.all():
+            opt.localized_text = opt.get_text(language)
     
     topics = {}
     for q in questions:
@@ -381,7 +450,7 @@ def attempt_test(request, mocktest_id):
         'remaining_seconds': remaining_seconds,
         'language': language,
         'attempt': attempt,
-        'total_questions': questions.count(),
+        'total_questions': len(questions),
     })
 
 
@@ -399,7 +468,22 @@ def ajax_question(request, mocktest_id):
     if not attempt:
         return JsonResponse({'error': 'No active attempt'}, status=400)
     
-    questions = mocktest.questions.all().order_by('order', 'id')
+    # ✅ FIX: session-first language (was: attempt.language)
+    language = request.session.get(
+        f'subject_test_{mocktest.id}_language',
+        attempt.language or 'en'
+    )
+    
+    # ✅ FIX: prefetch options
+    questions = list(
+        mocktest.questions
+        .prefetch_related('options')
+        .order_by('order', 'id')
+    )
+    
+    total = len(questions)
+    if total == 0:
+        return JsonResponse({'error': 'No questions found'}, status=404)
     
     q_number = request.GET.get('q', 1)
     try:
@@ -407,12 +491,14 @@ def ajax_question(request, mocktest_id):
     except ValueError:
         q_number = 1
     
-    q_number = max(1, min(q_number, questions.count()))
-    
-    if questions.count() == 0:
-        return JsonResponse({'error': 'No questions found'}, status=404)
-    
+    q_number = max(1, min(q_number, total))
     question = questions[q_number - 1]
+    
+    # ✅ FIX: attach localized text before rendering
+    question.localized_question = question.get_question_text(language)
+    question.localized_explanation = question.get_explanation_text(language)
+    for opt in question.options.all():
+        opt.localized_text = opt.get_text(language)
     
     saved_answers = request.session.get(f'subject_answers_{mocktest.id}', {})
     selected_option = saved_answers.get(str(question.id))
@@ -420,12 +506,12 @@ def ajax_question(request, mocktest_id):
     return render(request, 'subject_mocktests/ajax_question.html', {
         'question': question,
         'question_number': q_number,
-        'total_questions': questions.count(),
+        'total_questions': total,
         'selected_option': selected_option,
-        'language': attempt.language,
+        'language': language,
     })
 
-
+    
 @login_required
 def save_answer(request):
     """Save answer to session (AJAX)"""
