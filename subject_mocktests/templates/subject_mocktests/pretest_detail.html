@@ -3,25 +3,26 @@
 {% block title %}{{ mocktest.title }} - Test Instructions{% endblock %}
 
 {% block content %}
-<!-- Breadcrumb -->
+<!-- Breadcrumb - mobile optimized -->
 <div class="bg-gray-50 border-b">
-    <div class="container mx-auto px-4 py-3">
+    <div class="w-full px-[2mm] sm:px-4 py-3">
         <nav class="flex" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <ol class="inline-flex items-center flex-wrap gap-y-1 space-x-1 md:space-x-3 text-sm sm:text-base">
                 <li class="inline-flex items-center">
                     <a href="{% url 'subject_mocktests:subject_list' %}" class="text-gray-700 hover:text-indigo-600 inline-flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
                         </svg>
-                        Subjects
+                        <span class="hidden xs:inline">Subjects</span>
+                        <span class="xs:hidden">Home</span>
                     </a>
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                         </svg>
-                        <a href="{% url 'subject_mocktests:subject_detail' mocktest.subject.slug %}" class="text-gray-700 hover:text-indigo-600 ml-1 md:ml-2">
+                        <a href="{% url 'subject_mocktests:subject_detail' mocktest.subject.slug %}" class="text-gray-700 hover:text-indigo-600 ml-1 md:ml-2 max-w-[80px] sm:max-w-none truncate">
                             {{ mocktest.subject.name }}
                         </a>
                     </div>
@@ -29,10 +30,10 @@
                 {% if mocktest.topic %}
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                         </svg>
-                        <a href="{% url 'subject_mocktests:topic_detail' mocktest.topic.id %}" class="text-gray-700 hover:text-indigo-600 ml-1 md:ml-2">
+                        <a href="{% url 'subject_mocktests:topic_detail' mocktest.topic.id %}" class="text-gray-700 hover:text-indigo-600 ml-1 md:ml-2 max-w-[80px] sm:max-w-none truncate">
                             {{ mocktest.topic.name }}
                         </a>
                     </div>
@@ -40,7 +41,7 @@
                 {% endif %}
                 <li aria-current="page">
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                         </svg>
                         <span class="text-gray-500 ml-1 md:ml-2">Instructions</span>
@@ -51,56 +52,56 @@
     </div>
 </div>
 
-<!-- Main Content -->
-<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-8">
-    <div class="container mx-auto px-4 max-w-4xl">
-        <!-- Test Title Card -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6">
-                <h1 class="text-3xl font-bold text-white mb-2">{{ mocktest.title }}</h1>
-                <p class="text-indigo-100 flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<!-- Main Content - full width mobile -->
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-4 sm:py-8">
+    <div class="w-full px-[2mm] sm:px-4 lg:px-0 lg:max-w-4xl lg:mx-auto">
+        <!-- Test Title Card - edge to edge mobile -->
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden mb-4 sm:mb-6">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 sm:px-8 py-4 sm:py-6">
+                <h1 class="text-xl sm:text-3xl font-bold text-white mb-1 sm:mb-2 leading-tight">{{ mocktest.title }}</h1>
+                <p class="text-indigo-100 flex items-center text-sm sm:text-base">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
-                    {{ mocktest.subject.name }}{% if mocktest.topic %} › {{ mocktest.topic.name }}{% endif %}
+                    <span class="truncate">{{ mocktest.subject.name }}{% if mocktest.topic %} › {{ mocktest.topic.name }}{% endif %}</span>
                 </p>
             </div>
 
-            <!-- Quick Stats Grid -->
+            <!-- Quick Stats Grid - 2 columns mobile -->
             <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 border-b">
-                <div class="p-6 text-center">
-                    <div class="text-3xl font-bold text-indigo-600 mb-1">{{ mocktest.total_questions|default:mocktest.questions.count|default:0 }}</div>
-                    <div class="text-sm text-gray-500">Total Questions</div>
+                <div class="p-3 sm:p-6 text-center">
+                    <div class="text-2xl sm:text-3xl font-bold text-indigo-600 mb-0.5 sm:mb-1">{{ mocktest.total_questions|default:mocktest.questions.count|default:0 }}</div>
+                    <div class="text-xs sm:text-sm text-gray-500">Questions</div>
                 </div>
-                <div class="p-6 text-center">
-                    <div class="text-3xl font-bold text-indigo-600 mb-1">{{ mocktest.duration }}</div>
-                    <div class="text-sm text-gray-500">Minutes</div>
+                <div class="p-3 sm:p-6 text-center">
+                    <div class="text-2xl sm:text-3xl font-bold text-indigo-600 mb-0.5 sm:mb-1">{{ mocktest.duration }}</div>
+                    <div class="text-xs sm:text-sm text-gray-500">Minutes</div>
                 </div>
-                <div class="p-6 text-center">
-                    <div class="text-3xl font-bold text-indigo-600 mb-1">{{ mocktest.total_marks|default:mocktest.questions.count }}</div>
-                    <div class="text-sm text-gray-500">Total Marks</div>
+                <div class="p-3 sm:p-6 text-center">
+                    <div class="text-2xl sm:text-3xl font-bold text-indigo-600 mb-0.5 sm:mb-1">{{ mocktest.total_marks|default:mocktest.questions.count }}</div>
+                    <div class="text-xs sm:text-sm text-gray-500">Marks</div>
                 </div>
-                <div class="p-6 text-center">
-                    <div class="text-3xl font-bold 
+                <div class="p-3 sm:p-6 text-center">
+                    <div class="text-2xl sm:text-3xl font-bold 
                         {% if mocktest.difficulty == 'Easy' %}text-green-600
                         {% elif mocktest.difficulty == 'Medium' %}text-yellow-600
-                        {% else %}text-red-600{% endif %} mb-1">
+                        {% else %}text-red-600{% endif %} mb-0.5 sm:mb-1">
                         {{ mocktest.difficulty }}
                     </div>
-                    <div class="text-sm text-gray-500">Difficulty</div>
+                    <div class="text-xs sm:text-sm text-gray-500">Difficulty</div>
                 </div>
             </div>
 
-            <!-- Previous Attempts Alert -->
+            <!-- Previous Attempts Alert - tighter padding mobile -->
             {% if previous_attempts > 0 %}
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 m-6 rounded-lg">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-3 sm:p-4 m-4 sm:m-6 rounded-lg">
                 <div class="flex items-start">
-                    <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 mr-2 sm:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <div>
+                    <div class="text-sm sm:text-base">
                         <p class="text-blue-700 font-medium">You've taken this test {{ previous_attempts }} time{{ previous_attempts|pluralize }} before.</p>
-                        <p class="text-blue-600 text-sm mt-1">Your previous best: {{ previous_best|default:"Practice makes perfect!" }}</p>
+                        <p class="text-blue-600 text-xs sm:text-sm mt-1">Your previous best: {{ previous_best|default:"Practice makes perfect!" }}</p>
                     </div>
                 </div>
             </div>
@@ -108,19 +109,19 @@
 
             <!-- Resume Incomplete Attempt -->
             {% if existing_attempt %}
-            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 m-6 rounded-lg">
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-3 sm:p-4 m-4 sm:m-6 rounded-lg">
                 <div class="flex items-start">
-                    <svg class="w-5 h-5 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mt-0.5 mr-2 sm:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <div class="flex-1">
+                    <div class="flex-1 text-sm sm:text-base">
                         <p class="text-yellow-700 font-medium">You have an incomplete attempt!</p>
-                        <p class="text-yellow-600 text-sm mb-3">Started on {{ existing_attempt.started_at|date:"F j, Y, g:i a" }}</p>
+                        <p class="text-yellow-600 text-xs sm:text-sm mb-2 sm:mb-3">Started on {{ existing_attempt.started_at|date:"F j, Y, g:i a" }}</p>
                         <form method="post" action="{% url 'subject_mocktests:start_test' mocktest.id %}">
                             {% csrf_token %}
                             <input type="hidden" name="language" value="{{ existing_attempt.language }}">
                             <input type="hidden" name="terms_accepted" value="true">
-                            <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
+                            <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1.5 sm:py-2 px-3 sm:px-4 rounded-lg transition-colors text-xs sm:text-sm">
                                 Resume Test
                             </button>
                         </form>
@@ -131,50 +132,50 @@
         </div>
 
         <!-- Main Instructions Card -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
-            <div class="border-b px-8 py-5 bg-gray-50">
-                <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                    <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden mb-4 sm:mb-6">
+            <div class="border-b px-4 sm:px-8 py-3 sm:py-5 bg-gray-50">
+                <h2 class="text-lg sm:text-xl font-bold text-gray-800 flex items-center">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Test Instructions
                 </h2>
             </div>
             
-            <div class="p-8">
+            <div class="p-4 sm:p-8">
                 <!-- Instructions List -->
-                <div class="space-y-4 mb-8">
+                <div class="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
                     <div class="flex items-start">
-                        <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
-                            <span class="text-indigo-600 font-semibold">1</span>
+                        <div class="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-2 sm:mr-4">
+                            <span class="text-indigo-600 font-semibold text-xs sm:text-sm">1</span>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-800">Duration</h3>
-                            <p class="text-gray-600">You have <span class="font-bold text-indigo-600">{{ mocktest.duration }} minutes</span> to complete the test. The timer starts once you begin.</p>
+                            <h3 class="font-semibold text-gray-800 text-sm sm:text-base">Duration</h3>
+                            <p class="text-gray-600 text-xs sm:text-sm">You have <span class="font-bold text-indigo-600">{{ mocktest.duration }} minutes</span> to complete the test.</p>
                         </div>
                     </div>
                     
                     <div class="flex items-start">
-                        <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
-                            <span class="text-indigo-600 font-semibold">2</span>
+                        <div class="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-2 sm:mr-4">
+                            <span class="text-indigo-600 font-semibold text-xs sm:text-sm">2</span>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-800">Marking Scheme</h3>
-                            <p class="text-gray-600">Each question carries <span class="font-bold">{{ mocktest.total_marks|floatformat:"0"|default:"1" }} mark{% if mocktest.total_marks > 1 %}s{% endif %}</span>.</p>
+                            <h3 class="font-semibold text-gray-800 text-sm sm:text-base">Marking Scheme</h3>
+                            <p class="text-gray-600 text-xs sm:text-sm">Each question carries <span class="font-bold">{{ mocktest.total_marks|floatformat:"0"|default:"1" }} mark{% if mocktest.total_marks > 1 %}s{% endif %}</span>.</p>
                             {% if mocktest.negative_marking_type != 'no_negative' %}
-                                <p class="text-red-600 mt-1 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <p class="text-red-600 mt-1 flex items-center text-xs sm:text-sm">
+                                    <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                     </svg>
                                     {% if mocktest.negative_marking_type == 'fixed_per_question' %}
-                                        Negative Marking: -{{ mocktest.negative_marking_value }} per wrong answer
+                                        Negative: -{{ mocktest.negative_marking_value }} per wrong
                                     {% elif mocktest.negative_marking_type == 'percentage_of_marks' %}
-                                        Negative Marking: {{ mocktest.negative_marking_value }}% of marks deducted per wrong answer
+                                        Negative: {{ mocktest.negative_marking_value }}% per wrong
                                     {% endif %}
                                 </p>
                             {% else %}
-                                <p class="text-green-600 mt-1 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <p class="text-green-600 mt-1 flex items-center text-xs sm:text-sm">
+                                    <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     No negative marking
@@ -184,75 +185,75 @@
                     </div>
                     
                     <div class="flex items-start">
-                        <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
-                            <span class="text-indigo-600 font-semibold">3</span>
+                        <div class="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-2 sm:mr-4">
+                            <span class="text-indigo-600 font-semibold text-xs sm:text-sm">3</span>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-800">Navigation</h3>
-                            <p class="text-gray-600">You can navigate between questions freely. Use the question palette to jump to any question.</p>
+                            <h3 class="font-semibold text-gray-800 text-sm sm:text-base">Navigation</h3>
+                            <p class="text-gray-600 text-xs sm:text-sm">Navigate freely between questions using the palette.</p>
                         </div>
                     </div>
                     
                     <div class="flex items-start">
-                        <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
-                            <span class="text-indigo-600 font-semibold">4</span>
+                        <div class="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-2 sm:mr-4">
+                            <span class="text-indigo-600 font-semibold text-xs sm:text-sm">4</span>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-800">Saving Answers</h3>
-                            <p class="text-gray-600">Your answers are automatically saved. You can change your answers anytime before submission.</p>
+                            <h3 class="font-semibold text-gray-800 text-sm sm:text-base">Saving Answers</h3>
+                            <p class="text-gray-600 text-xs sm:text-sm">Answers auto-saved. Change anytime before submission.</p>
                         </div>
                     </div>
                     
                     <div class="flex items-start">
-                        <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
-                            <span class="text-indigo-600 font-semibold">5</span>
+                        <div class="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-2 sm:mr-4">
+                            <span class="text-indigo-600 font-semibold text-xs sm:text-sm">5</span>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-800">Submission</h3>
-                            <p class="text-gray-600">The test will be automatically submitted when the timer runs out. You can also submit manually.</p>
+                            <h3 class="font-semibold text-gray-800 text-sm sm:text-base">Submission</h3>
+                            <p class="text-gray-600 text-xs sm:text-sm">Auto-submit when timer ends. Manual submit allowed.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Detailed Instructions (from model) -->
+                <!-- Detailed Instructions -->
                 {% if mocktest.instructions %}
-                <div class="bg-gray-50 rounded-xl p-6 mb-8">
-                    <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-6 mb-6 sm:mb-8">
+                    <h3 class="font-semibold text-gray-800 mb-2 sm:mb-3 flex items-center text-sm sm:text-base">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         Additional Instructions
                     </h3>
-                    <p class="text-gray-700 whitespace-pre-line">{{ mocktest.instructions }}</p>
+                    <p class="text-gray-700 whitespace-pre-line text-xs sm:text-sm">{{ mocktest.instructions }}</p>
                 </div>
                 {% endif %}
 
                 <!-- Language Selection Form -->
-                <form method="post" action="{% url 'subject_mocktests:start_test' mocktest.id %}" class="space-y-6">
+                <form method="post" action="{% url 'subject_mocktests:start_test' mocktest.id %}" class="space-y-4 sm:space-y-6">
                     {% csrf_token %}
                     
-                    <!-- Language Selection - UPDATED -->
+                    <!-- Language Selection -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
                             Select your preferred language:
                         </label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-4">
                             {% for lang in languages %}
-                            <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-colors 
+                            <label class="relative border rounded-lg p-3 sm:p-4 cursor-pointer hover:border-indigo-400 transition-colors 
                                   {% if lang.code == selected_language %}border-indigo-600 bg-indigo-50{% endif %}">
                                 <input type="radio" name="language" value="{{ lang.code }}" 
                                        class="sr-only" {% if lang.code == selected_language %}checked{% endif %} required>
                                 <div class="flex items-center">
-                                    <div class="w-5 h-5 rounded-full border-2 
+                                    <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 
                                           {% if lang.code == selected_language %}border-indigo-600 bg-indigo-600{% else %}border-gray-300{% endif %} 
-                                          flex items-center justify-center mr-3">
+                                          flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
                                         {% if lang.code == selected_language %}
-                                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                                        <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full"></div>
                                         {% endif %}
                                     </div>
-                                    <div>
-                                        <span class="font-medium text-gray-900">{{ lang.name }}</span>
-                                        <p class="text-xs text-gray-500">{{ lang.code|upper }}</p>
+                                    <div class="min-w-0">
+                                        <span class="font-medium text-gray-900 text-sm sm:text-base block truncate">{{ lang.name }}</span>
+                                        <p class="text-[10px] sm:text-xs text-gray-500">{{ lang.code|upper }}</p>
                                     </div>
                                 </div>
                             </label>
@@ -261,31 +262,31 @@
                     </div>
 
                     <!-- Terms and Conditions -->
-                    <div class="bg-gray-50 rounded-xl p-6">
+                    <div class="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-6">
                         <div class="flex items-start">
                             <div class="flex items-center h-5">
                                 <input type="checkbox" name="terms_accepted" id="terms" required 
-                                       class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                       class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 flex-shrink-0">
                             </div>
-                            <div class="ml-3 text-sm">
+                            <div class="ml-2 sm:ml-3 text-xs sm:text-sm">
                                 <label for="terms" class="font-medium text-gray-700">
                                     I confirm that I have read and understood all the instructions
                                 </label>
-                                <p class="text-gray-500 mt-1">
+                                <p class="text-gray-500 mt-1 text-[10px] sm:text-xs">
                                     By starting the test, you agree to follow the test rules and guidelines.
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <!-- Action Buttons - stacked on mobile, full width -->
+                    <div class="flex flex-col gap-3 sm:flex-row sm:gap-4 pt-2 sm:pt-4">
                         <a href="{% if mocktest.topic %}{% url 'subject_mocktests:topic_detail' mocktest.topic.id %}{% else %}{% url 'subject_mocktests:subject_detail' mocktest.subject.slug %}{% endif %}" 
-                           class="flex-1 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-4 px-6 rounded-xl transition-colors text-center">
+                           class="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-colors text-center text-sm sm:text-base">
                             Cancel
                         </a>
                         <button type="submit" 
-                                class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
+                                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-xl text-sm sm:text-base">
                             {% if existing_attempt %}
                                 Resume Test
                             {% else %}
@@ -298,38 +299,38 @@
         </div>
 
         <!-- Tips Card -->
-        <div class="bg-indigo-600 rounded-2xl shadow-xl overflow-hidden">
-            <div class="p-8">
-                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-indigo-600 rounded-xl sm:rounded-2xl shadow-xl overflow-hidden mb-4 sm:mb-0">
+            <div class="p-4 sm:p-8">
+                <h3 class="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 flex items-center">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                     </svg>
                     Pro Tips
                 </h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-indigo-100">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-indigo-100">
                     <div class="flex items-start">
-                        <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span class="text-sm">Manage your time wisely. Don't spend too long on one question.</span>
+                        <span class="text-xs sm:text-sm">Manage your time wisely. Don't spend too long on one question.</span>
                     </div>
                     <div class="flex items-start">
-                        <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span class="text-sm">Mark difficult questions to review later.</span>
+                        <span class="text-xs sm:text-sm">Mark difficult questions to review later.</span>
                     </div>
                     <div class="flex items-start">
-                        <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span class="text-sm">Read each question carefully before answering.</span>
+                        <span class="text-xs sm:text-sm">Read each question carefully before answering.</span>
                     </div>
                     <div class="flex items-start">
-                        <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                         </svg>
-                        <span class="text-sm">Review your answers before final submission.</span>
+                        <span class="text-xs sm:text-sm">Review your answers before final submission.</span>
                     </div>
                 </div>
             </div>
