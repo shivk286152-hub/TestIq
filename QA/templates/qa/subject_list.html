@@ -1,271 +1,109 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Subjects | QA Platform{% endblock %}
-
-{% block extra_css %}
-<style>
-    /* ===== ANIMATIONS ===== */
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .animate-fade-in-up {
-        animation: fadeInUp 0.5s ease-out forwards;
-        opacity: 0;
-    }
-    
-    .delay-1 { animation-delay: 0.05s; }
-    .delay-2 { animation-delay: 0.1s; }
-    .delay-3 { animation-delay: 0.15s; }
-    .delay-4 { animation-delay: 0.2s; }
-    .delay-5 { animation-delay: 0.25s; }
-    .delay-6 { animation-delay: 0.3s; }
-
-    /* ===== SUBJECT CARD - COMPACT ===== */
-    .subject-card {
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-        overflow: hidden;
-        cursor: pointer;
-    }
-    
-    .subject-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2.5px;
-        background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    
-    .subject-card:hover::before {
-        opacity: 1;
-    }
-    
-    .subject-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 28px -8px rgba(99, 102, 241, 0.12);
-        border-color: #c7d2fe;
-    }
-    
-    .subject-card .icon-wrapper {
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    
-    .subject-card:hover .icon-wrapper {
-        transform: scale(1.05);
-    }
-    
-    .subject-card .arrow-icon {
-        transition: all 0.3s ease;
-    }
-    
-    .subject-card:hover .arrow-icon {
-        transform: translateX(3px);
-        color: #6366f1;
-    }
-
-    /* ===== COUNTER BADGE - COMPACT ===== */
-    .counter-badge {
-        background: linear-gradient(135deg, #eef2ff, #ede9fe);
-        color: #4f46e5;
-        font-weight: 600;
-        padding: 0.1rem 0.6rem;
-        border-radius: 9999px;
-        font-size: 0.65rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.2rem;
-    }
-
-    /* ===== PAYMENT BADGES ===== */
-    .badge-locked {
-        background: #fef2f2;
-        color: #dc2626;
-        padding: 0.1rem 0.6rem;
-        border-radius: 9999px;
-        font-size: 0.65rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.2rem;
-    }
-
-    .badge-free {
-        background: #dcfce7;
-        color: #16a34a;
-        padding: 0.1rem 0.6rem;
-        border-radius: 9999px;
-        font-size: 0.65rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.2rem;
-    }
-    
-    .badge-subscribed {
-        background: #dbeafe;
-        color: #2563eb;
-        padding: 0.1rem 0.6rem;
-        border-radius: 9999px;
-        font-size: 0.65rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.2rem;
-    }
-
-    /* ===== LINE CLAMP ===== */
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    /* ===== SUBSCRIPTION BANNER ===== */
-    .subscription-banner {
-        background: linear-gradient(135deg, #1e1b4b, #312e81, #4f46e5);
-        border-radius: 1rem;
-        padding: 1rem 1.5rem;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        box-shadow: 0 8px 32px rgba(79, 70, 229, 0.25);
-    }
-    
-    .subscription-banner .text-white {
-        color: #ffffff;
-    }
-    
-    .subscription-banner .text-indigo-200 {
-        color: #c7d2fe;
-    }
-
-    /* ===== RESPONSIVE - MOBILE OPTIMIZED ===== */
-    @media (max-width: 640px) {
-        .subjects-title { font-size: 1.6rem; }
-        .subjects-subtitle { font-size: 0.8rem; }
-        
-        .subject-card { padding: 0.75rem !important; }
-        .subject-card .icon-wrapper { 
-            width: 2.5rem; 
-            height: 2.5rem; 
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-        }
-        .subject-card h3 { font-size: 0.95rem; }
-        .subject-card p { font-size: 0.75rem; margin-bottom: 0.5rem; }
-        .subject-card .counter-badge { font-size: 0.55rem; padding: 0.05rem 0.4rem; }
-        .subject-card .text-sm { font-size: 0.7rem; }
-        .subject-card .pt-3 { padding-top: 0.5rem; }
-        
-        .subscription-banner {
-            padding: 0.75rem 1rem;
-            border-radius: 0.75rem;
-        }
-        .subscription-banner .text-sm { font-size: 0.75rem; }
-        .subscription-banner .text-xs { font-size: 0.6rem; }
-        
-        .feature-footer { margin-top: 1.5rem; gap: 0.5rem; }
-        .feature-footer .p-3 { padding: 0.5rem !important; }
-        .feature-footer .w-8 { width: 1.75rem; height: 1.75rem; }
-        .feature-footer .text-xs { font-size: 0.65rem; }
-        .feature-footer .text-[10px] { font-size: 0.55rem; }
-        
-        .header-decoration { 
-            padding: 0.25rem 0.75rem; 
-            font-size: 0.55rem;
-            margin-bottom: 0.5rem;
-        }
-        .header-line { margin-top: 0.5rem; width: 2rem; }
-        .gap-4 { gap: 0.5rem; }
-    }
-    
-    @media (max-width: 480px) {
-        .subjects-title { font-size: 1.3rem; }
-        .subject-card { padding: 0.6rem !important; }
-        .subject-card .icon-wrapper { 
-            width: 2rem; 
-            height: 2rem; 
-            font-size: 1rem;
-        }
-        .subject-card h3 { font-size: 0.85rem; }
-        .subject-card p { font-size: 0.65rem; }
-        .subject-card .counter-badge { font-size: 0.5rem; padding: 0.05rem 0.3rem; }
-        .grid { gap: 0.5rem; }
-    }
-</style>
+{% block title %}
+    {% if language == 'hi' %}विषय{% else %}Subjects{% endif %} | QA Platform
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/20 to-purple-50/20 py-4 sm:py-8">
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/30 to-purple-50/20 py-4 sm:py-8">
     <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-        
-        <!-- ===== HEADER ===== -->
-        <div class="text-center mb-5 sm:mb-8 relative">
-            <div class="absolute top-0 left-1/4 w-24 h-24 bg-indigo-200/20 rounded-full blur-2xl -z-10"></div>
-            <div class="absolute bottom-0 right-1/4 w-28 h-28 bg-purple-200/20 rounded-full blur-2xl -z-10"></div>
-            
-            <div class="header-decoration inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-[10px] sm:text-xs font-semibold tracking-wider uppercase mb-2 sm:mb-3">
-                <i class="fa-solid fa-graduation-cap mr-1"></i> Learning Hub
-            </div>
-            
-            <h1 class="subjects-title text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center justify-center gap-2 sm:gap-3">
-                <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    📚 Subjects
-                </span>
-                <span class="text-[10px] sm:text-xs bg-gray-200 text-gray-600 px-2 sm:px-3 py-0.5 rounded-full font-medium">
-                    {{ subjects|length }}
-                </span>
-            </h1>
-            
-            <p class="subjects-subtitle text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2 max-w-md mx-auto">
-                Choose a subject to start your learning journey
-            </p>
-            
-            <div class="header-line flex justify-center mt-2 sm:mt-3">
-                <div class="w-10 sm:w-16 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+
+        <!-- ===== TOP BAR: Language Selector ===== -->
+        <div class="flex justify-end mb-3 sm:mb-4">
+            <div class="inline-flex items-center gap-0.5 bg-slate-100 border border-slate-200 rounded-xl p-0.5 shadow-inner">
+                <a href="?lang=en"
+                   class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold no-underline inline-flex items-center gap-1.5 transition-all duration-200
+                          {% if language == 'en' %}bg-white text-indigo-600 shadow-sm{% else %}text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/60{% endif %}">
+                    <span class="text-sm">🌐</span>
+                    <span>English</span>
+                </a>
+                <a href="?lang=hi"
+                   class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold no-underline inline-flex items-center gap-1.5 transition-all duration-200
+                          {% if language == 'hi' %}bg-white text-indigo-600 shadow-sm{% else %}text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/60{% endif %}">
+                    <span class="text-sm">🇮🇳</span>
+                    <span>हिंदी</span>
+                </a>
             </div>
         </div>
 
-        <!-- ===== SUBSCRIPTION BANNER - SHOW ONLY IF USER IS LOGGED IN ===== -->
+        <!-- ===== HEADER ===== -->
+        <div class="text-center mb-6 sm:mb-10 relative">
+            <div class="absolute top-0 left-1/4 w-32 h-32 bg-indigo-200/30 rounded-full blur-3xl -z-10"></div>
+            <div class="absolute bottom-0 right-1/4 w-36 h-36 bg-purple-200/30 rounded-full blur-3xl -z-10"></div>
+
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/70 backdrop-blur-sm border border-indigo-100 text-indigo-700 rounded-full text-[10px] sm:text-xs font-semibold tracking-wider uppercase mb-3 shadow-sm">
+                <i class="fa-solid fa-graduation-cap"></i>
+                {% if language == 'hi' %}लर्निंग हब{% else %}Learning Hub{% endif %}
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 flex items-center justify-center gap-3 flex-wrap">
+                <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    {% if language == 'hi' %}📚 विषय{% else %}📚 Subjects{% endif %}
+                </span>
+                <span class="inline-flex items-center justify-center min-w-[2rem] h-7 sm:h-8 px-2.5 bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-700 rounded-full text-xs sm:text-sm font-bold border border-indigo-200/50">
+                    {{ subjects|length }}
+                </span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="text-gray-500 text-sm sm:text-base mt-2 sm:mt-3 max-w-lg mx-auto leading-relaxed">
+                {% if language == 'hi' %}
+                    अपनी सीखने की यात्रा शुरू करने के लिए एक विषय चुनें
+                {% else %}
+                    Choose a subject to start your learning journey
+                {% endif %}
+            </p>
+
+            <!-- Divider -->
+            <div class="flex justify-center mt-4">
+                <div class="w-16 sm:w-24 h-1 bg-gradient-to-r from-transparent via-indigo-400 to-transparent rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- ===== SUBSCRIPTION BANNER ===== -->
         {% if user.is_authenticated %}
-        <div class="subscription-banner">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="fa-solid fa-crown text-yellow-400 text-sm sm:text-base"></i>
+        <div class="relative overflow-hidden bg-gradient-to-br from-indigo-950 via-indigo-900 to-indigo-600 rounded-2xl p-4 sm:p-6 mb-6 shadow-2xl shadow-indigo-500/25 flex items-center justify-between flex-wrap gap-3">
+            <!-- Glow -->
+            <div class="absolute -top-1/2 -right-10 w-52 h-52 bg-purple-500/30 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex items-center gap-3 relative z-10">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-crown text-yellow-400 text-base sm:text-lg"></i>
                 </div>
                 <div>
                     {% if is_subscribed %}
-                        <p class="text-white font-semibold text-sm sm:text-base flex items-center gap-2">
+                        <p class="text-white font-bold text-sm sm:text-base flex items-center gap-2">
                             <span class="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                            Active Subscription
+                            {% if language == 'hi' %}सक्रिय सदस्यता{% else %}Active Subscription{% endif %}
                         </p>
-                        <p class="text-indigo-200 text-xs">You have access to all locked content</p>
+                        <p class="text-indigo-200 text-xs sm:text-sm mt-0.5">
+                            {% if language == 'hi' %}आपके पास सभी लॉक कंटेंट तक पहुंच है{% else %}You have access to all locked content{% endif %}
+                        </p>
                     {% else %}
-                        <p class="text-white font-semibold text-sm sm:text-base">Subscribe for Full Access</p>
-                        <p class="text-indigo-200 text-xs">Get access to all locked subjects and content</p>
+                        <p class="text-white font-bold text-sm sm:text-base">
+                            {% if language == 'hi' %}पूरी पहुंच के लिए सब्सक्राइब करें{% else %}Subscribe for Full Access{% endif %}
+                        </p>
+                        <p class="text-indigo-200 text-xs sm:text-sm mt-0.5">
+                            {% if language == 'hi' %}सभी लॉक विषयों और सामग्री तक पहुंच प्राप्त करें{% else %}Get access to all locked subjects and content{% endif %}
+                        </p>
                     {% endif %}
                 </div>
             </div>
-            <div>
+            <div class="relative z-10">
                 {% if not is_subscribed %}
-                    <a href="{% url 'payments:subscription_plans' %}" 
-                       class="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-700 font-semibold rounded-lg hover:bg-indigo-50 transition-all text-sm shadow-lg">
+                    <a href="{% url 'payments:subscription_plans' %}"
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-700 font-semibold rounded-lg hover:bg-indigo-50 transition-all text-sm shadow-lg hover:shadow-xl hover:scale-105">
                         <i class="fa-solid fa-rocket"></i>
-                        Subscribe Now
+                        {% if language == 'hi' %}अभी सब्सक्राइब करें{% else %}Subscribe Now{% endif %}
                     </a>
                 {% else %}
-                    <a href="{% url 'payments:subscription_status' %}" 
-                       class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/30 text-white font-semibold rounded-lg hover:bg-indigo-500/40 transition-all text-sm">
-                        <i class="fa-solid fa-chevron-right"></i>
-                        View Status
+                    <a href="{% url 'payments:subscription_status' %}"
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-lg hover:bg-white/30 transition-all text-sm border border-white/20">
+                        <i class="fa-solid fa-chart-line"></i>
+                        {% if language == 'hi' %}स्टेटस देखें{% else %}View Status{% endif %}
                     </a>
                 {% endif %}
             </div>
@@ -273,128 +111,148 @@
         {% endif %}
 
         <!-- ===== SUBJECT GRID ===== -->
-        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             {% for item in subjects %}
-            <div class="subject-card block bg-white rounded-xl sm:rounded-2xl shadow-sm hover:shadow-lg p-3 sm:p-4 md:p-5 transition-all duration-300 border border-gray-100/80 hover:border-indigo-200 animate-fade-in-up delay-{{ forloop.counter }}"
-                 style="animation-delay: {{ forloop.counter|add:"0"|stringformat:"d" }}0ms;">
-                
-                <!-- ===== ICON ===== -->
-                <div class="icon-wrapper w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center text-xl sm:text-2xl md:text-3xl mb-1.5 sm:mb-2 md:mb-3 shadow-sm">
+            <div class="group relative flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 hover:border-indigo-200 p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+                <!-- Top gradient bar (hover) -->
+                <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                <!-- ICON -->
+                <div class="w-12 sm:w-14 h-12 sm:h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100/50 flex items-center justify-center text-2xl sm:text-3xl mb-3 shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
                     {% if item.subject.icon %}
                         <i class="fa-solid {{ item.subject.icon }} text-indigo-600"></i>
                     {% else %}
-                        <span class="text-xl sm:text-2xl">📖</span>
+                        <span>📖</span>
                     {% endif %}
                 </div>
-                
-                <!-- ===== TITLE ===== -->
-                <h3 class="text-sm sm:text-base md:text-lg font-bold text-gray-800 mb-0.5 sm:mb-1 line-clamp-1">
-                    {{ item.subject.name }}
+
+                <!-- TITLE -->
+                <h3 class="text-sm sm:text-base md:text-lg font-bold text-gray-800 mb-1 truncate leading-tight">
+                    {{ item.subject.localized_name }}
                 </h3>
-                
-                <!-- ===== DESCRIPTION ===== -->
-                <p class="text-gray-500 text-[10px] sm:text-xs md:text-sm mb-1.5 sm:mb-2 md:mb-3 line-clamp-2 leading-relaxed">
-                    {{ item.subject.description|default:"Explore this subject"|truncatechars:60 }}
+
+                <!-- DESCRIPTION -->
+                <p class="text-gray-500 text-xs sm:text-sm mb-3 line-clamp-2 leading-relaxed grow">
+                    {{ item.subject.localized_description|default:"Explore this subject"|truncatechars:60 }}
                 </p>
-                
-                <!-- ===== BADGES ===== -->
-                <div class="flex items-center justify-between text-[10px] sm:text-xs pt-1.5 sm:pt-2 md:pt-3 border-t border-gray-100">
-                    <!-- Topics Count -->
-                    <span class="counter-badge text-[9px] sm:text-[10px] md:text-xs">
-                        <i class="fa-regular fa-folder-open text-[8px] sm:text-[9px]"></i>
+
+                <!-- BADGES -->
+                <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 mb-3">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 border border-indigo-100 rounded-full text-[10px] sm:text-xs font-semibold">
+                        <i class="fa-regular fa-folder-open"></i>
                         {{ item.topics_count }}
                     </span>
-                    
-                    <!-- Payment Status -->
+
                     {% if item.is_locked %}
                         {% if user.is_authenticated and is_subscribed %}
-                            <span class="badge-subscribed text-[9px] sm:text-[10px] md:text-xs">
-                                <i class="fa-solid fa-check-circle text-[8px] sm:text-[9px]"></i> Accessible
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-full text-[10px] sm:text-xs font-semibold">
+                                <i class="fa-solid fa-check-circle"></i>
+                                {% if language == 'hi' %}सुलभ{% else %}Accessible{% endif %}
                             </span>
                         {% else %}
-                            <span class="badge-locked text-[9px] sm:text-[10px] md:text-xs">
-                                <i class="fa-solid fa-lock text-[8px] sm:text-[9px]"></i> ₹{{ item.price }}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-red-50 text-red-600 border border-red-100 rounded-full text-[10px] sm:text-xs font-semibold">
+                                <i class="fa-solid fa-lock"></i> ₹{{ item.price }}
                             </span>
                         {% endif %}
                     {% else %}
-                        <span class="badge-free text-[9px] sm:text-[10px] md:text-xs">
-                            <i class="fa-solid fa-unlock text-[8px] sm:text-[9px]"></i> Free
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-50 text-green-600 border border-green-100 rounded-full text-[10px] sm:text-xs font-semibold">
+                            <i class="fa-solid fa-unlock"></i>
+                            {% if language == 'hi' %}मुफ्त{% else %}Free{% endif %}
                         </span>
                     {% endif %}
                 </div>
-                
-                <!-- ===== ACTION BUTTON ===== -->
-                <div class="mt-2">
+
+                <!-- ACTION BUTTON -->
+                <div>
                     {% if item.is_locked %}
                         {% if user.is_authenticated and is_subscribed %}
-                            <a href="{% url 'qa:topic_list' subject_slug=item.subject.slug %}" 
-                               class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white text-[10px] sm:text-xs font-medium rounded-lg transition-all duration-300">
-                                <i class="fa-solid fa-play"></i> Access
+                            <a href="{% url 'qa:topic_list' subject_slug=item.subject.slug %}?lang={{ language }}"
+                               class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white text-xs font-semibold rounded-lg transition-all duration-300 shadow-sm hover:shadow-md">
+                                <i class="fa-solid fa-play"></i>
+                                {% if language == 'hi' %}एक्सेस{% else %}Access{% endif %}
                             </a>
                         {% else %}
-                            <a href="{% url 'payments:locked_content' content_type='qa_subject' content_id=item.subject.id %}" 
-                               class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-[10px] sm:text-xs font-medium rounded-lg transition-all duration-300">
-                                <i class="fa-solid fa-crown"></i> Unlock ₹{{ item.price }}
+                            <a href="{% url 'payments:locked_content' content_type='qa_subject' content_id=item.subject.id %}"
+                               class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-semibold rounded-lg transition-all duration-300 shadow-sm hover:shadow-md">
+                                <i class="fa-solid fa-crown"></i>
+                                {% if language == 'hi' %}अनलॉक ₹{{ item.price }}{% else %}Unlock ₹{{ item.price }}{% endif %}
                             </a>
                         {% endif %}
                     {% else %}
-                        <a href="{% url 'qa:topic_list' subject_slug=item.subject.slug %}" 
-                           class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-[10px] sm:text-xs font-medium rounded-lg transition-all duration-300">
-                            Explore <i class="fa-solid fa-chevron-right text-[8px] sm:text-[9px] arrow-icon"></i>
+                        <a href="{% url 'qa:topic_list' subject_slug=item.subject.slug %}?lang={{ language }}"
+                           class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-semibold rounded-lg transition-all duration-300 shadow-sm hover:shadow-md">
+                            {% if language == 'hi' %}देखें{% else %}Explore{% endif %}
+                            <i class="fa-solid fa-chevron-right text-[10px] transition-transform duration-300 group-hover:translate-x-1"></i>
                         </a>
                     {% endif %}
                 </div>
             </div>
             {% empty %}
-            
+
             <!-- ===== EMPTY STATE ===== -->
             <div class="col-span-full">
-                <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-12 text-center border-2 border-dashed border-gray-200">
-                    <div class="text-4xl sm:text-6xl mb-2 sm:mb-4">📭</div>
-                    <h3 class="text-base sm:text-xl font-semibold text-gray-700 mb-1 sm:mb-2">No Subjects Available</h3>
-                    <p class="text-gray-500 text-sm sm:text-base max-w-sm mx-auto">Start by adding your first subject to begin creating content.</p>
+                <div class="bg-white rounded-2xl shadow-sm p-8 sm:p-12 text-center border-2 border-dashed border-gray-200">
+                    <div class="text-5xl sm:text-7xl mb-4 animate-bounce">📭</div>
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-700 mb-2">
+                        {% if language == 'hi' %}कोई विषय उपलब्ध नहीं{% else %}No Subjects Available{% endif %}
+                    </h3>
+                    <p class="text-gray-500 text-sm max-w-sm mx-auto">
+                        {% if language == 'hi' %}अपना पहला विषय जोड़कर सामग्री बनाना शुरू करें।{% else %}Start by adding your first subject to begin creating content.{% endif %}
+                    </p>
                     {% if user.is_staff %}
-                    <a href="/admin/QA/subject/add/" class="inline-flex items-center gap-2 mt-3 sm:mt-4 px-4 sm:px-6 py-1.5 sm:py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg sm:rounded-xl hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-300 text-xs sm:text-sm">
+                    <a href="/admin/QA/subject/add/" class="inline-flex items-center gap-2 mt-4 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-300 text-sm">
                         <i class="fa-solid fa-plus"></i>
-                        Add Subject
+                        {% if language == 'hi' %}विषय जोड़ें{% else %}Add Subject{% endif %}
                     </a>
                     {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
-        
+
         <!-- ===== FEATURE FOOTER ===== -->
-        <div class="feature-footer mt-4 sm:mt-6 md:mt-10 grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 md:gap-3">
-            <div class="bg-white/70 backdrop-blur-sm rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-3 flex items-center gap-1.5 sm:gap-2 md:gap-3 shadow-sm border border-gray-100/50">
-                <div class="w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="fa-solid fa-clock text-indigo-500 text-[10px] sm:text-xs md:text-sm"></i>
+        <div class="mt-8 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 flex items-center gap-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-clock text-indigo-500"></i>
                 </div>
                 <div>
-                    <p class="text-[10px] sm:text-xs font-semibold text-gray-700">Learn at your pace</p>
-                    <p class="text-[8px] sm:text-[9px] md:text-[10px] text-gray-400 hidden sm:block">Self-paced learning</p>
+                    <p class="text-sm font-semibold text-gray-700">
+                        {% if language == 'hi' %}अपनी गति से सीखें{% else %}Learn at your pace{% endif %}
+                    </p>
+                    <p class="text-xs text-gray-400">
+                        {% if language == 'hi' %}स्व-गति सीखना{% else %}Self-paced learning{% endif %}
+                    </p>
                 </div>
             </div>
-            <div class="bg-white/70 backdrop-blur-sm rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-3 flex items-center gap-1.5 sm:gap-2 md:gap-3 shadow-sm border border-gray-100/50">
-                <div class="w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="fa-solid fa-check-circle text-emerald-500 text-[10px] sm:text-xs md:text-sm"></i>
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 flex items-center gap-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-check-circle text-emerald-500"></i>
                 </div>
                 <div>
-                    <p class="text-[10px] sm:text-xs font-semibold text-gray-700">Track progress</p>
-                    <p class="text-[8px] sm:text-[9px] md:text-[10px] text-gray-400 hidden sm:block">Monitor your growth</p>
+                    <p class="text-sm font-semibold text-gray-700">
+                        {% if language == 'hi' %}प्रगति ट्रैक करें{% else %}Track progress{% endif %}
+                    </p>
+                    <p class="text-xs text-gray-400">
+                        {% if language == 'hi' %}अपनी वृद्धि देखें{% else %}Monitor your growth{% endif %}
+                    </p>
                 </div>
             </div>
-            <div class="bg-white/70 backdrop-blur-sm rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-3 flex items-center gap-1.5 sm:gap-2 md:gap-3 shadow-sm border border-gray-100/50">
-                <div class="w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="fa-solid fa-star text-purple-500 text-[10px] sm:text-xs md:text-sm"></i>
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 flex items-center gap-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-star text-purple-500"></i>
                 </div>
                 <div>
-                    <p class="text-[10px] sm:text-xs font-semibold text-gray-700">Quality content</p>
-                    <p class="text-[8px] sm:text-[9px] md:text-[10px] text-gray-400 hidden sm:block">Expert curated material</p>
+                    <p class="text-sm font-semibold text-gray-700">
+                        {% if language == 'hi' %}गुणवत्ता सामग्री{% else %}Quality content{% endif %}
+                    </p>
+                    <p class="text-xs text-gray-400">
+                        {% if language == 'hi' %}विशेषज्ञ द्वारा तैयार{% else %}Expert curated material{% endif %}
+                    </p>
                 </div>
             </div>
         </div>
-        
+
     </div>
 </div>
 {% endblock %}
