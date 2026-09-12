@@ -4,388 +4,247 @@
 {% block title %}{{ mocktest.title }} - Test in Progress{% endblock %}
 
 {% block content %}
-<!-- Top Bar with Timer - Fixed at top with proper width -->
-<div class="bg-white border-b shadow-sm fixed top-16 left-0 right-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-            <div class="flex items-center space-x-2 md:space-x-4 min-w-0">
-                <h1 class="text-base md:text-lg font-semibold text-gray-800 truncate">
+
+<!-- ============================================ -->
+<!-- MAIN WRAPPER -->
+<!-- ============================================ -->
+<div class="bg-gray-50 pb-6" style="min-height: calc(100vh - 60px);">
+    <div class="px-[2mm] lg:max-w-7xl lg:mx-auto lg:px-6 pt-0">
+
+        <!-- ============================================ -->
+        <!-- TIMER STRIP — flush under base header -->
+        <!-- ============================================ -->
+        <div class="bg-white border-b border-gray-400 shadow-sm px-3 sm:px-4 py-2 flex items-center justify-between mb-3">
+            <div class="min-w-0 flex-1">
+                <h1 class="text-sm sm:text-base font-semibold text-gray-800 truncate">
                     {{ mocktest.title }}
                 </h1>
                 {% if mocktest.topic %}
-                <span class="hidden md:inline-block px-2 py-0.5 md:px-3 md:py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs md:text-sm flex-shrink-0">
-                    {{ mocktest.topic.name }}
-                </span>
+                <p class="text-[10px] text-gray-500 truncate">{{ mocktest.topic.name }}</p>
                 {% endif %}
             </div>
-            <div class="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
-                <div class="text-right">
-                    <div class="text-xs md:text-sm text-gray-500">Time Left</div>
-                    <div id="timer" class="text-lg md:text-2xl font-mono font-bold text-indigo-600"
-                        data-remaining="{{ remaining_seconds }}">
-                        {{ remaining_seconds|time:"H:i:s" }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Main Content Area with proper spacing for fixed header -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8">
-    <div class="flex flex-col lg:flex-row gap-6">
-        <!-- Left Sidebar - Question Navigation -->
-        <div class="lg:w-72 flex-shrink-0 order-2 lg:order-1">
-            <div class="bg-white rounded-xl shadow-lg sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto">
-                <!-- Timer Card (Mobile) -->
-                <div class="lg:hidden p-4 border-b">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Time Left:</span>
-                        <span id="mobile-timer" class="text-lg font-mono font-bold text-indigo-600"></span>
-                    </div>
-                </div>
-
-                <!-- Question Grid -->
-                <div class="p-4">
-                    <h3 class="font-semibold text-gray-700 mb-3 flex items-center text-sm md:text-base">
-                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                        Questions
-                    </h3>
-                    <div class="grid grid-cols-5 gap-2 max-h-[300px] md:max-h-[400px] overflow-y-auto p-1">
-                        {% for i in mocktest.questions.all %}
-                        <button
-                            class="question-nav-item w-9 h-9 md:w-10 md:h-10 rounded-lg text-xs md:text-sm font-medium transition-all
-                                border-2 hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                            data-q="{{ forloop.counter }}" id="nav-q-{{ forloop.counter }}">
-                            {{ forloop.counter }}
-                        </button>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Legend -->
-                    <div class="mt-4 pt-4 border-t grid grid-cols-2 gap-2 text-xs">
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                            <span class="text-gray-600">Answered</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
-                            <span class="text-gray-600">Skipped</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 bg-indigo-600 rounded-full mr-2"></span>
-                            <span class="text-gray-600">Current</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 bg-gray-200 rounded-full mr-2"></span>
-                            <span class="text-gray-600">Not Visited</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Test Status (Desktop) -->
-                <div class="hidden lg:block p-4 border-t bg-gray-50 rounded-b-xl">
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Started:</span>
-                            <span class="font-medium">{{ attempt.started_at|time }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Answered:</span>
-                            <span class="font-medium"><span id="answered-count">0</span>/{{ total_questions }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Skipped:</span>
-                            <span class="font-medium"><span id="skipped-count">0</span></span>
-                        </div>
-                    </div>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div id="timer" class="text-base sm:text-lg font-mono font-bold text-indigo-600"
+                     data-remaining="{{ remaining_seconds }}">
+                    {{ remaining_seconds|time:"H:i:s" }}
                 </div>
             </div>
         </div>
 
-        <!-- Main Content - Question Area -->
-        <div class="flex-1 order-1 lg:order-2">
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col min-h-[600px] lg:min-h-[700px]">
-                <!-- Question Header -->
-                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex-shrink-0">
-                    <div class="flex items-center justify-between text-white">
-                        <h2 class="text-base md:text-lg font-semibold" id="question-header">
-                            Question <span id="current-q">1</span> of {{ total_questions }}
+        <!-- ============================================ -->
+        <!-- 3-COLUMN LAYOUT -->
+        <!-- ============================================ -->
+        <div class="flex gap-3">
+
+            <!-- LEFT SIDEBAR (Desktop) -->
+            <aside class="hidden lg:block lg:w-60 flex-shrink-0">
+                <div class="bg-white rounded-lg shadow-sm sticky top-28">
+                    <div class="px-3 py-2 border-b flex items-center justify-between">
+                        <h3 class="font-semibold text-gray-700 text-xs">Questions</h3>
+                        <span class="text-[10px] text-gray-500"><span id="answered-count">0</span>/{{ total_questions }}</span>
+                    </div>
+                    <div class="p-2">
+                        <div class="grid grid-cols-5 gap-1 max-h-[340px] overflow-y-auto" id="desktop-palette">
+                            {% for i in mocktest.questions.all %}
+                            <button class="question-nav-item w-full aspect-square rounded-md text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-600 hover:border-indigo-400"
+                                    data-q="{{ forloop.counter }}" id="desktop-nav-q-{{ forloop.counter }}">
+                                {{ forloop.counter }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-2 pt-2 border-t grid grid-cols-2 gap-1 text-[10px]">
+                            <div class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span><span class="text-gray-600">Answered</span></div>
+                            <div class="flex items-center"><span class="w-2 h-2 bg-yellow-500 rounded-full mr-1"></span><span class="text-gray-600">Skipped</span></div>
+                            <div class="flex items-center"><span class="w-2 h-2 bg-indigo-600 rounded-full mr-1"></span><span class="text-gray-600">Current</span></div>
+                            <div class="flex items-center"><span class="w-2 h-2 bg-gray-200 rounded-full mr-1"></span><span class="text-gray-600">Not Visited</span></div>
+                        </div>
+                    </div>
+                    <div class="px-3 py-2 border-t bg-gray-50 rounded-b-lg text-[11px] space-y-1">
+                        <div class="flex justify-between"><span class="text-gray-600">Started</span><span class="font-medium">{{ attempt.started_at|time }}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Skipped</span><span class="font-medium"><span id="skipped-count">0</span></span></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- QUESTION CARD -->
+            <section class="flex-1 min-w-0">
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+
+                    <!-- Header: question number + mobile palette icon -->
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-3 py-2 flex items-center justify-between gap-2">
+                        <h2 class="text-sm font-semibold text-white truncate">
+                            Q <span id="current-q">1</span> / {{ total_questions }}
                         </h2>
-                        <span class="bg-white/20 px-3 py-1 rounded-full text-xs md:text-sm" id="current-topic"></span>
-                    </div>
-                </div>
-
-                <!-- Question Container - Scrollable -->
-                <div class="p-6 overflow-y-auto flex-1" id="question-container" style="max-height: 600px;">
-                    <!-- Loading State -->
-                    <div class="text-center py-12">
-                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
-                        <p class="mt-4 text-gray-500">Loading question...</p>
-                    </div>
-                </div>
-
-                <!-- Navigation Footer -->
-                <div class="border-t px-6 py-4 bg-gray-50 flex-shrink-0">
-                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <button id="prev-btn"
-                            class="w-full sm:w-auto px-6 py-2 border-2 border-gray-300 text-gray-600 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center text-sm md:text-base">
-                            <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        <button type="button" id="mobile-palette-toggle"
+                                class="lg:hidden text-white flex items-center gap-1.5 text-[11px] bg-white/20 hover:bg-white/30 rounded-full pl-1.5 pr-2 py-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
                             </svg>
-                            Previous
-                        </button>
-
-                        <button id="skip-btn"
-                            class="w-full sm:w-auto px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
-                            <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Skip
-                        </button>
-
-                        <button id="next-btn"
-                            class="w-full sm:w-auto px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center justify-center text-sm md:text-base">
-                            Next
-                            <svg class="w-4 h-4 md:w-5 md:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            <span id="mobile-palette-count" class="font-semibold">0/{{ total_questions }}</span>
+                            <svg id="palette-chevron" class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Right Sidebar - Test Status (Mobile Only) -->
-        <div class="lg:hidden order-3">
-            <div class="bg-white rounded-xl shadow-lg p-4">
-                <h3 class="font-semibold text-gray-700 mb-3 text-sm md:text-base">Test Status</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-xs md:text-sm text-gray-500">Answered</p>
-                        <p class="text-lg md:text-2xl font-bold text-indigo-600"><span id="mobile-answered">0</span>/{{ total_questions }}</p>
+                    <!-- Mobile inline palette -->
+                    <div id="mobile-palette-body" class="lg:hidden hidden bg-gray-50 border-b px-2 py-2">
+                        <div class="grid grid-cols-10 gap-1" id="mobile-palette">
+                            {% for i in mocktest.questions.all %}
+                            <button class="question-nav-item aspect-square rounded text-[10px] font-medium transition-all border border-gray-200 bg-white text-gray-600"
+                                    data-q="{{ forloop.counter }}" id="mobile-nav-q-{{ forloop.counter }}">
+                                {{ forloop.counter }}
+                            </button>
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-xs md:text-sm text-gray-500">Skipped</p>
-                        <p class="text-lg md:text-2xl font-bold text-yellow-600"><span id="mobile-skipped">0</span></p>
+
+                    <!-- Question content -->
+                    <div class="px-3 py-3 sm:px-4 sm:py-4" id="question-container">
+                        <div class="text-center py-8">
+                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-3 border-indigo-600 border-t-transparent"></div>
+                            <p class="mt-2 text-gray-500 text-xs">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- DESKTOP buttons -->
+                    <div class="hidden lg:flex border-t px-3 py-2 bg-gray-50 items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <button id="prev-btn-desktop"
+                                class="px-3 py-1.5 border border-gray-300 bg-white text-gray-600 rounded-md hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                Previous
+                            </button>
+                            <button id="clear-btn-desktop"
+                                class="px-3 py-1.5 border border-gray-300 bg-white text-gray-600 rounded-md hover:bg-gray-100 text-xs font-medium">
+                                Clear Response
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button id="skip-btn-desktop"
+                                class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md text-xs font-medium">
+                                Skip
+                            </button>
+                            <button id="save-next-btn-desktop"
+                                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-medium flex items-center gap-1">
+                                <span id="save-next-label-desktop">Save &amp; Next</span>
+                                <svg id="save-next-arrow-desktop" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- MOBILE buttons (inside card, scroll with content) -->
+                    <div class="lg:hidden border-t bg-gray-50 px-2 py-2">
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button id="prev-btn-mobile"
+                                class="py-2 border border-gray-300 bg-white text-gray-700 rounded disabled:opacity-40 text-[11px] font-medium">
+                                Previous
+                            </button>
+                            <button id="clear-btn-mobile"
+                                class="py-2 border border-gray-300 bg-white text-gray-700 rounded text-[11px] font-medium">
+                                Clear
+                            </button>
+                            <button id="skip-btn-mobile"
+                                class="py-2 bg-yellow-500 text-white rounded text-[11px] font-medium">
+                                Skip
+                            </button>
+                            <button id="save-next-btn-mobile"
+                                class="py-2 bg-indigo-600 text-white rounded text-[11px] font-medium">
+                                <span id="save-next-label-mobile">Save &amp; Next</span>
+                            </button>
+                        </div>
+                        <!-- Compact Submit button — CENTERED -->
+                        <div class="mt-2 flex justify-center">
+                            <form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="submit-form-mobile">
+                                {% csrf_token %}
+                                <button type="button" onclick="confirmSubmit('mobile')"
+                                    class="px-4 py-1.5 bg-red-600 text-white rounded text-[11px] font-semibold flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Submit Test
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-                <!-- Submit Button for Mobile -->
-                <form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="submit-form-mobile" class="mt-4">
-                    {% csrf_token %}
-                    <button type="button" onclick="confirmSubmit('mobile')"
-                        class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-sm md:text-base">
-                        Submit Test
-                    </button>
-                </form>
-            </div>
-        </div>
+            </section>
 
-        <!-- Right Sidebar - Test Status (Desktop Only) - WITH SUBMIT BUTTON -->
-        <div class="hidden lg:block order-3 lg:w-72">
-            <div class="bg-white rounded-xl shadow-lg p-5 sticky top-28">
-                <h3 class="font-semibold text-gray-700 mb-4 text-lg">Test Summary</h3>
-                
-                <!-- Stats -->
-                <div class="space-y-4 mb-6">
-                    <div class="flex justify-between items-center pb-2 border-b border-gray-100">
-                        <span class="text-sm text-gray-600">Total Questions:</span>
-                        <span class="font-bold text-gray-800">{{ total_questions }}</span>
+            <!-- RIGHT SIDEBAR (Desktop) -->
+            <aside class="hidden lg:block lg:w-60 flex-shrink-0">
+                <div class="bg-white rounded-lg shadow-sm p-3 sticky top-28">
+                    <h3 class="font-semibold text-gray-700 mb-2 text-xs">Summary</h3>
+                    <div class="space-y-1.5 text-xs mb-3">
+                        <div class="flex justify-between"><span class="text-gray-600">Total</span><span class="font-bold">{{ total_questions }}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Answered</span><span class="font-semibold text-green-600"><span id="desktop-answered">0</span></span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Skipped</span><span class="font-semibold text-yellow-600"><span id="desktop-skipped">0</span></span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Remaining</span><span class="font-semibold text-gray-600"><span id="desktop-remaining">{{ total_questions }}</span></span></div>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Answered:</span>
-                        <span class="font-semibold text-green-600 text-lg"><span id="desktop-answered">0</span>/{{ total_questions }}</span>
+                    <div class="mb-3">
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div id="desktop-progress" class="bg-indigo-600 h-1.5 rounded-full transition-all" style="width: 0%"></div>
+                        </div>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Skipped:</span>
-                        <span class="font-semibold text-yellow-600 text-lg"><span id="desktop-skipped">0</span></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Remaining:</span>
-                        <span class="font-semibold text-gray-600 text-lg"><span id="desktop-remaining">{{ total_questions }}</span></span>
-                    </div>
-                </div>
-
-                <!-- Progress Bar -->
-                <div class="mb-6">
-                    <div class="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Progress</span>
-                        <span><span id="desktop-progress-percent">0</span>%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-3">
-                        <div id="desktop-progress" class="bg-indigo-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <!-- Time Info -->
-                <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-600 flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    <form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="submit-form-desktop">
+                        {% csrf_token %}
+                        <button type="button" onclick="confirmSubmit('desktop')"
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-md text-xs flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Started:
-                        </span>
-                        <span class="font-medium">{{ attempt.started_at|time }}</span>
-                    </div>
+                            Submit Test
+                        </button>
+                    </form>
                 </div>
-
-                <!-- Submit Button for Desktop - THIS WAS MISSING -->
-                <form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="submit-form-desktop">
-                    {% csrf_token %}
-                    <button type="button" onclick="confirmSubmit('desktop')"
-                        class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-sm flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Submit Test
-                    </button>
-                </form>
-
-                <!-- Warning Message -->
-                <p class="text-xs text-gray-400 mt-3 text-center">
-                    ⚠️ You cannot change answers after submission
-                </p>
-            </div>
+            </aside>
         </div>
     </div>
 </div>
 
-<!-- Hidden form for auto-submit -->
+<!-- Hidden auto-submit -->
 <form method="post" action="{% url 'subject_mocktests:submit_test' mocktest.id %}" id="auto-submit-form" class="hidden">
     {% csrf_token %}
 </form>
 
 <style>
-    /* Base styles */
-    .question-nav-item.answered {
-        background-color: #10b981;
-        color: white;
-        border-color: #10b981;
-    }
-    .question-nav-item.answered:hover {
-        background-color: #059669;
-    }
+    .question-nav-item { display: flex; align-items: center; justify-content: center; }
+    .question-nav-item.answered { background-color: #10b981 !important; color: #fff !important; border-color: #10b981 !important; }
+    .question-nav-item.skipped { background-color: #f59e0b !important; color: #fff !important; border-color: #f59e0b !important; }
+    .question-nav-item.current { background-color: #4f46e5 !important; color: #fff !important; border-color: #4f46e5 !important; }
 
-    .question-nav-item.current {
-        background-color: #4f46e5;
-        color: white;
-        border-color: #4f46e5;
-        ring: 2px solid #c7d2fe;
-    }
+    .timer-danger { color: #dc2626; animation: pulse 2s infinite; font-weight: 700; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
 
-    .question-nav-item.skipped {
-        background-color: #f59e0b;
-        color: white;
-        border-color: #f59e0b;
-    }
-    .question-nav-item.skipped:hover {
-        background-color: #d97706;
-    }
-
-    .timer-danger {
-        color: #dc2626;
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        font-weight: 700;
-    }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-
-    /* Option styles */
     .option-item {
-        padding: 0.75rem;
-        margin-bottom: 0.5rem;
+        padding: 0.6rem;
+        margin-bottom: 0.4rem;
         border: 2px solid #e5e7eb;
-        border-radius: 0.75rem;
+        border-radius: 0.6rem;
         cursor: pointer;
         transition: all 0.2s;
         display: flex;
         align-items: center;
-        min-height: 3rem;
+        min-height: 2.5rem;
     }
-    .option-item:hover {
-        border-color: #818cf8;
-        background-color: #eef2ff;
-    }
-    .option-item.selected {
-        border-color: #4f46e5;
-        background-color: #eef2ff;
-    }
-    .option-item input[type="radio"] {
-        margin-right: 0.75rem;
-        accent-color: #4f46e5;
-        flex-shrink: 0;
-    }
+    .option-item:hover { border-color: #818cf8; background-color: #eef2ff; }
+    .option-item.selected { border-color: #4f46e5; background-color: #eef2ff; }
+    .option-item input[type="radio"] { margin-right: 0.6rem; accent-color: #4f46e5; flex-shrink: 0; }
 
-    /* Question text styles */
-    .question-text {
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #1f2937;
-        background-color: #f9fafb;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid #4f46e5;
-    }
-    @media (min-width: 768px) {
-        .question-text {
-            font-size: 1.125rem;
-            padding: 1.25rem;
-            margin-bottom: 2rem;
-        }
-    }
-
-    /* Options container */
-    .options-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    @media (min-width: 768px) {
-        .options-container {
-            gap: 0.75rem;
-        }
-    }
-
-    /* Scrollbar styling */
-    #question-container {
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e0 #f1f5f9;
-    }
-    #question-container::-webkit-scrollbar {
-        width: 6px;
-    }
-    #question-container::-webkit-scrollbar-track {
-        background: #f1f5f9;
-    }
-    #question-container::-webkit-scrollbar-thumb {
-        background: #cbd5e0;
-        border-radius: 3px;
-    }
-    #question-container::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-
-    /* Question navigation buttons */
-    .question-nav-item {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Desktop specific adjustments */
-    @media (min-width: 1024px) {
-        #question-container {
-            max-height: 600px !important;
-        }
-        .lg\:w-72 {
-            width: 18rem;
+    @media (max-width: 1023.98px) {
+        #question-container .question-text,
+        #question-container p,
+        #question-container .option-item,
+        #question-container span,
+        #question-container label {
+            font-size: 13px !important;
+            line-height: 1.4 !important;
         }
     }
 </style>
@@ -393,263 +252,242 @@
 
 {% block extra_js %}
 <script>
-    // Initialize variables
     let currentQuestion = 1;
     let totalQuestions = {{ total_questions }};
     let mocktestId = {{ mocktest.id }};
-    let language = '{{ language }}';
-    let answeredQuestions = new Set();
-    let skippedQuestions = new Set();
+    const answeredQuestions = new Set();
+    const skippedQuestions = new Set();
 
-    // Timer functionality
     function updateTimer() {
-        let timerElement = document.getElementById('timer');
-        let mobileTimer = document.getElementById('mobile-timer');
+        const el = document.getElementById('timer');
+        if (!el) return;
+        let r = parseInt(el.dataset.remaining);
+        if (r <= 0) { document.getElementById('auto-submit-form').submit(); return; }
+        r -= 1;
+        el.dataset.remaining = r;
+        const h = Math.floor(r/3600), m = Math.floor((r%3600)/60), s = r%60;
+        el.textContent = String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+        if (r < 300) el.classList.add('timer-danger');
+    }
+    const timerInterval = setInterval(updateTimer, 1000);
 
-        if (!timerElement) return;
-
-        let remaining = parseInt(timerElement.dataset.remaining);
-
-        if (remaining <= 0) {
-            document.getElementById('auto-submit-form').submit();
-            return;
+    document.getElementById('mobile-palette-toggle').addEventListener('click', function () {
+        const body = document.getElementById('mobile-palette-body');
+        const chevron = document.getElementById('palette-chevron');
+        if (body.classList.contains('hidden')) {
+            body.classList.remove('hidden');
+            chevron.classList.add('rotate-180');
+        } else {
+            body.classList.add('hidden');
+            chevron.classList.remove('rotate-180');
         }
+    });
 
-        remaining -= 1;
-        timerElement.dataset.remaining = remaining;
+    function updatePaletteButton(qNum) {
+        [`desktop-nav-q-${qNum}`, `mobile-nav-q-${qNum}`].forEach(id => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.classList.remove('answered','skipped','current');
+            if (qNum === currentQuestion) btn.classList.add('current');
+            else if (answeredQuestions.has(qNum)) btn.classList.add('answered');
+            else if (skippedQuestions.has(qNum)) btn.classList.add('skipped');
+        });
+    }
+    function refreshAllPaletteButtons() {
+        for (let i = 1; i <= totalQuestions; i++) updatePaletteButton(i);
+    }
 
-        let hours = Math.floor(remaining / 3600);
-        let minutes = Math.floor((remaining % 3600) / 60);
-        let seconds = remaining % 60;
-
-        let timeString = String(hours).padStart(2, '0') + ':' +
-            String(minutes).padStart(2, '0') + ':' +
-            String(seconds).padStart(2, '0');
-
-        timerElement.textContent = timeString;
-        if (mobileTimer) mobileTimer.textContent = timeString;
-
-        if (remaining < 300) {
-            timerElement.classList.add('timer-danger');
-            if (mobileTimer) mobileTimer.classList.add('timer-danger');
+    function updateSaveNextLabel() {
+        const isLast = currentQuestion === totalQuestions;
+        const ld = document.getElementById('save-next-label-desktop');
+        const lm = document.getElementById('save-next-label-mobile');
+        const arrow = document.getElementById('save-next-arrow-desktop');
+        if (isLast) {
+            if (ld) ld.textContent = 'Save';
+            if (lm) lm.textContent = 'Save';
+            if (arrow) arrow.style.display = 'none';
+        } else {
+            if (ld) ld.innerHTML = 'Save &amp; Next';
+            if (lm) lm.innerHTML = 'Save &amp; Next';
+            if (arrow) arrow.style.display = '';
         }
     }
 
-    let timerInterval = setInterval(updateTimer, 1000);
-
-    // Load question via AJAX
     function loadQuestion(qNumber) {
         currentQuestion = qNumber;
         document.getElementById('current-q').textContent = qNumber;
+        refreshAllPaletteButtons();
+        updateSaveNextLabel();
 
-        document.querySelectorAll('.question-nav-item').forEach(el => {
-            el.classList.remove('current', 'bg-indigo-600', 'text-white', 'border-indigo-600');
-        });
-
-        let navItem = document.getElementById('nav-q-' + qNumber);
-        if (navItem) {
-            navItem.classList.add('current', 'bg-indigo-600', 'text-white', 'border-indigo-600');
-        }
-
-        document.getElementById('question-container').innerHTML = `
-            <div class="text-center py-12">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
-                <p class="mt-4 text-gray-500">Loading question...</p>
+        const container = document.getElementById('question-container');
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-6 w-6 border-3 border-indigo-600 border-t-transparent"></div>
+                <p class="mt-2 text-gray-500 text-xs">Loading...</p>
             </div>
         `;
 
         fetch(`/subject-mocktests/ajax/question/${mocktestId}/?q=${qNumber}`)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.text();
-            })
+            .then(r => { if (!r.ok) throw new Error('err'); return r.text(); })
             .then(html => {
-                document.getElementById('question-container').innerHTML = html;
-                let savedAnswer = localStorage.getItem(`q_${mocktestId}_${qNumber}`);
-                if (savedAnswer) {
-                    let radio = document.querySelector(`input[name="question_${qNumber}"][value="${savedAnswer}"]`);
+                container.innerHTML = html;
+                const saved = localStorage.getItem(`q_${mocktestId}_${qNumber}`);
+                if (saved) {
+                    const radio = document.querySelector(`input[name="question_${qNumber}"][value="${saved}"]`);
                     if (radio) {
                         radio.checked = true;
-                        let optionItem = radio.closest('.option-item');
-                        if (optionItem) optionItem.classList.add('selected');
+                        const item = radio.closest('.option-item');
+                        if (item) item.classList.add('selected');
                     }
                 }
-                document.getElementById('question-container').scrollTop = 0;
+                container.scrollTop = 0;
             })
-            .catch(error => {
-                console.error('Error loading question:', error);
-                document.getElementById('question-container').innerHTML = `
-                    <div class="text-center py-12 text-red-500">
-                        <p>Error loading question. Please refresh the page.</p>
-                    </div>
-                `;
+            .catch(err => {
+                console.error(err);
+                container.innerHTML = `<div class="text-center py-8 text-red-500 text-sm">Error loading.</div>`;
             });
 
-        document.getElementById('prev-btn').disabled = (qNumber === 1);
-        document.getElementById('next-btn').disabled = (qNumber === totalQuestions);
+        ['prev-btn-desktop','prev-btn-mobile'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = (qNumber === 1);
+        });
     }
 
-    // Save answer
     function saveAnswer(questionId, optionId) {
-        let formData = new FormData();
-        formData.append(`question_${questionId}`, optionId);
-
-        fetch('{% url "subject_mocktests:save_answer" %}', {
+        const fd = new FormData();
+        fd.append(`question_${questionId}`, optionId);
+        return fetch('{% url "subject_mocktests:save_answer" %}', {
             method: 'POST',
-            body: formData,
+            body: fd,
             headers: { 'X-CSRFToken': '{{ csrf_token }}' }
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
             if (data.status === 'ok') {
-                let navBtn = document.getElementById(`nav-q-${questionId}`);
-                if (navBtn) {
-                    navBtn.classList.remove('skipped', 'bg-yellow-500');
-                    navBtn.classList.add('answered', 'bg-green-500', 'text-white', 'border-green-500');
+                if (optionId) {
+                    answeredQuestions.add(parseInt(questionId));
+                    skippedQuestions.delete(parseInt(questionId));
+                    localStorage.setItem(`q_${mocktestId}_${questionId}`, optionId);
+                } else {
+                    answeredQuestions.delete(parseInt(questionId));
+                    skippedQuestions.delete(parseInt(questionId));
+                    localStorage.removeItem(`q_${mocktestId}_${questionId}`);
                 }
-                answeredQuestions.add(parseInt(questionId));
-                skippedQuestions.delete(parseInt(questionId));
+                updatePaletteButton(parseInt(questionId));
                 updateCounts();
-                localStorage.setItem(`q_${mocktestId}_${questionId}`, optionId);
             }
-        })
-        .catch(error => console.error('Error saving answer:', error));
+            return data;
+        });
     }
 
-    // Skip question
     function skipQuestion(questionId) {
-        let formData = new FormData();
-        formData.append(`question_${questionId}`, '');
+        return saveAnswer(questionId, '').then(() => {
+            skippedQuestions.add(parseInt(questionId));
+            answeredQuestions.delete(parseInt(questionId));
+            updatePaletteButton(parseInt(questionId));
+            updateCounts();
+        });
+    }
 
-        fetch('{% url "subject_mocktests:save_answer" %}', {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'ok') {
-                let navBtn = document.getElementById(`nav-q-${questionId}`);
-                if (navBtn) {
-                    navBtn.classList.remove('answered', 'bg-green-500');
-                    navBtn.classList.add('skipped', 'bg-yellow-500', 'text-white', 'border-yellow-500');
-                }
-                skippedQuestions.add(parseInt(questionId));
-                answeredQuestions.delete(parseInt(questionId));
-                updateCounts();
-                localStorage.removeItem(`q_${mocktestId}_${questionId}`);
-            }
-        })
-        .catch(error => console.error('Error skipping question:', error));
+    function clearResponse(questionId) {
+        return saveAnswer(questionId, '').then(() => {
+            document.querySelectorAll(`input[name="question_${questionId}"]`).forEach(r => r.checked = false);
+            document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+        });
     }
 
     function updateCounts() {
-        let answered = answeredQuestions.size;
-        let skipped = skippedQuestions.size;
-        let remaining = totalQuestions - answered - skipped;
-        let progressPercent = totalQuestions > 0 ? Math.round((answered / totalQuestions) * 100) : 0;
-        
-        // Update all counters
-        document.getElementById('answered-count').textContent = answered;
-        document.getElementById('skipped-count').textContent = skipped;
-        document.getElementById('mobile-answered').textContent = answered;
-        document.getElementById('mobile-skipped').textContent = skipped;
-        
-        // Desktop counters
-        if (document.getElementById('desktop-answered')) {
-            document.getElementById('desktop-answered').textContent = answered;
-            document.getElementById('desktop-skipped').textContent = skipped;
-            document.getElementById('desktop-remaining').textContent = remaining;
-            document.getElementById('desktop-progress').style.width = progressPercent + '%';
-            document.getElementById('desktop-progress-percent').textContent = progressPercent;
-        }
+        const a = answeredQuestions.size;
+        const s = skippedQuestions.size;
+        const rem = totalQuestions - a - s;
+        const pct = totalQuestions > 0 ? Math.round((a / totalQuestions) * 100) : 0;
+        const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        setText('answered-count', a);
+        setText('skipped-count', s);
+        setText('mobile-palette-count', a + '/' + totalQuestions);
+        setText('desktop-answered', a);
+        setText('desktop-skipped', s);
+        setText('desktop-remaining', rem);
+        const bar = document.getElementById('desktop-progress');
+        if (bar) bar.style.width = pct + '%';
     }
 
-    window.confirmSubmit = function(device = 'mobile') {
-        let message = 'Are you sure you want to submit the test? You cannot change your answers after submission.';
-        
-        // Add warning if questions are unanswered
-        let answered = answeredQuestions.size;
-        let skipped = skippedQuestions.size;
-        let unanswered = totalQuestions - answered - skipped;
-        
-        if (unanswered > 0) {
-            message = `You have ${unanswered} unanswered questions. ${message}`;
-        }
-        
-        if (confirm(message)) {
+    window.confirmSubmit = function (device) {
+        const unanswered = totalQuestions - answeredQuestions.size - skippedQuestions.size;
+        let msg = 'Submit the test? You cannot change answers after submission.';
+        if (unanswered > 0) msg = `You have ${unanswered} unanswered questions. ${msg}`;
+        if (confirm(msg)) {
             if (timerInterval) clearInterval(timerInterval);
-            for (let i = 1; i <= totalQuestions; i++) {
-                localStorage.removeItem(`q_${mocktestId}_${i}`);
-            }
-            
-            // Submit the appropriate form
-            if (device === 'mobile') {
-                document.getElementById('submit-form-mobile').submit();
-            } else {
-                document.getElementById('submit-form-desktop').submit();
-            }
+            for (let i = 1; i <= totalQuestions; i++) localStorage.removeItem(`q_${mocktestId}_${i}`);
+            document.getElementById(device === 'mobile' ? 'submit-form-mobile' : 'submit-form-desktop').submit();
         }
     };
 
-    // Event Listeners
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         loadQuestion(1);
-
-        // Load saved answers from localStorage
         for (let i = 1; i <= totalQuestions; i++) {
-            let saved = localStorage.getItem(`q_${mocktestId}_${i}`);
-            if (saved) {
-                answeredQuestions.add(i);
-                let navBtn = document.getElementById(`nav-q-${i}`);
-                if (navBtn) {
-                    navBtn.classList.add('answered', 'bg-green-500', 'text-white', 'border-green-500');
-                }
-            }
+            if (localStorage.getItem(`q_${mocktestId}_${i}`)) answeredQuestions.add(i);
         }
+        refreshAllPaletteButtons();
         updateCounts();
 
-        // Question navigation
-        document.addEventListener('click', function(e) {
-            let navItem = e.target.closest('.question-nav-item');
+        document.addEventListener('click', function (e) {
+            const navItem = e.target.closest('.question-nav-item');
             if (navItem) {
                 e.preventDefault();
-                let qNum = parseInt(navItem.dataset.q);
+                const qNum = parseInt(navItem.dataset.q);
                 if (!isNaN(qNum)) loadQuestion(qNum);
             }
         });
 
-        // Answer selection
-        document.addEventListener('change', function(e) {
+        document.addEventListener('change', function (e) {
             if (e.target.name && e.target.name.startsWith('question_')) {
-                let questionId = e.target.name.replace('question_', '');
+                const qid = e.target.name.replace('question_', '');
                 document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
-                let optionItem = e.target.closest('.option-item');
-                if (optionItem) optionItem.classList.add('selected');
-                saveAnswer(questionId, e.target.value);
+                const item = e.target.closest('.option-item');
+                if (item) item.classList.add('selected');
+                saveAnswer(qid, e.target.value);
             }
         });
 
-        // Navigation buttons
-        document.getElementById('prev-btn').addEventListener('click', function() {
-            if (currentQuestion > 1) loadQuestion(currentQuestion - 1);
+        ['prev-btn-desktop','prev-btn-mobile'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('click', () => {
+                if (currentQuestion > 1) loadQuestion(currentQuestion - 1);
+            });
         });
 
-        document.getElementById('next-btn').addEventListener('click', function() {
-            if (currentQuestion < totalQuestions) loadQuestion(currentQuestion + 1);
+        ['clear-btn-desktop','clear-btn-mobile'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('click', () => {
+                if (confirm('Clear your response?')) clearResponse(currentQuestion);
+            });
         });
 
-        document.getElementById('skip-btn').addEventListener('click', function() {
-            skipQuestion(currentQuestion);
-            if (currentQuestion < totalQuestions) loadQuestion(currentQuestion + 1);
+        ['skip-btn-desktop','skip-btn-mobile'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('click', () => {
+                skipQuestion(currentQuestion).then(() => {
+                    if (currentQuestion < totalQuestions) loadQuestion(currentQuestion + 1);
+                });
+            });
+        });
+
+        ['save-next-btn-desktop','save-next-btn-mobile'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('click', () => {
+                const checked = document.querySelector(`input[name="question_${currentQuestion}"]:checked`);
+                const advance = () => { if (currentQuestion < totalQuestions) loadQuestion(currentQuestion + 1); };
+                if (checked) saveAnswer(currentQuestion, checked.value).then(advance);
+                else advance();
+            });
         });
     });
 
-    // Warn user before leaving
-    window.addEventListener('beforeunload', function(e) {
+    window.addEventListener('beforeunload', function (e) {
         if (answeredQuestions.size > 0 || skippedQuestions.size > 0) {
             e.preventDefault();
-            e.returnValue = 'You have unsaved answers. Are you sure you want to leave?';
+            e.returnValue = 'You have unsaved answers.';
         }
     });
 </script>
