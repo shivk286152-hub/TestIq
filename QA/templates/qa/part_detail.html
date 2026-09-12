@@ -1,599 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ part.name }} | QA Platform{% endblock %}
-
-{% block extra_css %}
-<style>
-    /* ===== BASE STYLES ===== */
-    .break-word {
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-        word-break: break-word !important;
-    }
-
-    .max-w-full {
-        max-width: 100%;
-    }
-
-    .overflow-hidden {
-        overflow: hidden;
-    }
-
-    .overflow-x-auto {
-        overflow-x: auto;
-    }
-
-    /* ===== CLEAN QUESTION CARD DESIGN ===== */
-    .q-card {
-        transition: all 0.3s ease;
-        border: 1px solid #e5e7eb;
-    }
-
-    .q-card:hover {
-        border-color: #6366f1;
-        box-shadow: 0 8px 30px rgba(99, 102, 241, 0.08);
-        transform: translateY(-2px);
-    }
-
-    .answer-box {
-        background: #f8fafc;
-        border-left: 4px solid #6366f1;
-        padding: 16px 20px;
-        border-radius: 0 8px 8px 0;
-    }
-
-    .q-divider {
-        border: none;
-        border-top: 2px dashed #e5e7eb;
-        margin: 20px 0;
-    }
-
-    .q-divider::after {
-        content: '◆';
-        display: block;
-        text-align: center;
-        color: #9ca3af;
-        font-size: 12px;
-        margin-top: -10px;
-        background: #f9fafb;
-        width: 30px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    /* ===== PAGINATION ===== */
-    .page-btn {
-        padding: 8px 16px;
-        border-radius: 8px;
-        border: 1px solid #e5e7eb;
-        background: white;
-        color: #374151;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-block;
-    }
-
-    .page-btn:hover {
-        background: #f3f4f6;
-        border-color: #9ca3af;
-    }
-
-    .page-btn.active {
-        background: #6366f1;
-        color: white;
-        border-color: #6366f1;
-    }
-
-    .page-btn.active:hover {
-        background: #4f46e5;
-    }
-
-    .page-btn.disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
-
-    .page-btn.disabled:hover {
-        background: white;
-    }
-
-    /* ===== BREADCRUMB ===== */
-    .breadcrumb-link {
-        position: relative;
-    }
-
-    .breadcrumb-link::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        width: 0;
-        height: 2px;
-        background: linear-gradient(90deg, #6366f1, #a855f7);
-        transition: all 0.3s ease;
-        transform: translateX(-50%);
-        border-radius: 2px;
-    }
-
-    .breadcrumb-link:hover::after {
-        width: 70%;
-    }
-
-    /* ===== DIFFICULTY BADGES ===== */
-    .diff-easy {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .diff-medium {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .diff-hard {
-        background: #fecaca;
-        color: #991b1b;
-    }
-
-    .diff-expert {
-        background: #fce4ec;
-        color: #880e4f;
-    }
-
-    /* ===== SEARCH BAR ===== */
-    .search-wrapper {
-        position: relative;
-        display: inline-block;
-        width: 100%;
-        max-width: 320px;
-    }
-
-    .search-wrapper .search-icon {
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #9ca3af;
-        font-size: 15px;
-        pointer-events: none;
-        transition: color 0.3s;
-    }
-
-    .search-input {
-        width: 100%;
-        padding: 10px 18px 10px 46px;
-        border: 2px solid #e5e7eb;
-        border-radius: 30px;
-        font-size: 14px;
-        background: white;
-        transition: all 0.3s ease;
-        outline: none;
-        font-family: inherit;
-        color: #1e293b;
-    }
-
-    .search-input::placeholder {
-        color: #9ca3af;
-        font-size: 13px;
-        font-weight: 400;
-    }
-
-    .search-input:focus {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
-    }
-
-    .search-input:focus+.search-icon,
-    .search-wrapper:focus-within .search-icon {
-        color: #6366f1;
-    }
-
-    /* ===== FOOTER BADGES ===== */
-    .footer-badges {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .footer-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 3px 12px;
-        border-radius: 14px;
-        font-size: 10px;
-        font-weight: 500;
-        background: #f1f5f9;
-        color: #475569;
-        border: 1px solid #e2e8f0;
-        transition: all 0.2s;
-        white-space: nowrap;
-    }
-
-    .footer-badge:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    }
-
-    .footer-badge.type {
-        background: #dbeafe;
-        color: #1e40af;
-        border-color: #93c5fd;
-    }
-
-    .footer-badge.featured {
-        background: #fef3c7;
-        color: #92400e;
-        border-color: #f59e0b;
-    }
-
-    .footer-badge.category {
-        background: #e0e7ff;
-        color: #4338ca;
-        border-color: #818cf8;
-    }
-
-    .footer-badge.tag {
-        background: #fce7f3;
-        color: #9d174d;
-        border-color: #f9a8d4;
-    }
-
-    .footer-badge i {
-        font-size: 9px;
-    }
-
-    /* ===== IMAGE GRID ===== */
-    .question-images {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 12px;
-        margin-top: 12px;
-    }
-
-    .question-images .image-item {
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid #e2e8f0;
-        background: #f8fafc;
-        transition: all 0.3s ease;
-    }
-
-    .question-images .image-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    }
-
-    .question-images .image-item img {
-        width: 100%;
-        height: auto;
-        max-height: 250px;
-        object-fit: contain;
-        display: block;
-        margin: 0;
-        border-radius: 0;
-        box-shadow: none;
-        border: none;
-    }
-
-    .question-images .image-item .caption {
-        padding: 8px 12px;
-        font-size: 0.75rem;
-        color: #64748b;
-        text-align: center;
-        background: #f8fafc;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        border-top: 1px solid #e2e8f0;
-    }
-
-    /* ===== TABLE CONTAINER ===== */
-    .table-container {
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        margin: 12px 0;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-        background: white;
-    }
-
-    .table-container table {
-        width: 100%;
-        min-width: 500px;
-        border-collapse: collapse;
-        font-size: 0.85rem;
-        margin: 0;
-    }
-
-    .table-container th {
-        background: #f1f5f9;
-        font-weight: 600;
-        padding: 0.6rem 0.8rem;
-        border: 1px solid #e2e8f0;
-        text-align: left;
-        color: #1e293b;
-        font-size: 0.75rem;
-        white-space: nowrap;
-    }
-
-    .table-container td {
-        padding: 0.6rem 0.8rem;
-        border: 1px solid #e2e8f0;
-        color: #475569;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-    }
-
-    .table-container tr:nth-child(even) {
-        background: #fafbfc;
-    }
-
-    .table-container .caption {
-        padding: 8px 12px;
-        font-size: 0.75rem;
-        color: #64748b;
-        text-align: center;
-        background: #f8fafc;
-        border-top: 1px solid #e2e8f0;
-    }
-
-    /* ===== RENDERED CONTENT ===== */
-    .rendered-content {
-        font-size: 0.95rem;
-        line-height: 1.8;
-        color: #334155;
-    }
-
-    .rendered-content p {
-        margin-bottom: 0.75rem;
-    }
-
-    .rendered-content .highlight {
-        background: #fef9c3;
-        padding: 0.1rem 0.3rem;
-        border-radius: 4px;
-        font-weight: 500;
-    }
-
-    .rendered-content .code-block {
-        background: #f1f5f9;
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
-        font-family: 'Courier New', monospace;
-        font-size: 0.85rem;
-        overflow-x: auto;
-        margin: 0.5rem 0;
-        border: 1px solid #e2e8f0;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-    }
-
-    .rendered-content blockquote {
-        border-left: 4px solid #6366f1;
-        padding: 0.5rem 1rem;
-        margin: 0.75rem 0;
-        background: #f8fafc;
-        border-radius: 0 8px 8px 0;
-        color: #475569;
-        font-style: italic;
-    }
-
-    .rendered-content ul,
-    .rendered-content ol {
-        padding-left: 1.5rem;
-        margin: 0.5rem 0;
-    }
-
-    .rendered-content ul li,
-    .rendered-content ol li {
-        margin-bottom: 0.25rem;
-    }
-
-    .rendered-content ul {
-        list-style: disc;
-    }
-
-    .rendered-content ol {
-        list-style: decimal;
-    }
-
-    .rendered-content img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 8px;
-        margin: 0.5rem 0;
-        border: 1px solid #e2e8f0;
-    }
-
-    .rendered-content table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 0.5rem 0;
-        font-size: 0.85rem;
-    }
-
-    .rendered-content table th {
-        background: #f1f5f9;
-        font-weight: 600;
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #e2e8f0;
-        text-align: left;
-        color: #1e293b;
-    }
-
-    .rendered-content table td {
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #e2e8f0;
-        color: #475569;
-    }
-
-    .rendered-content table tr:nth-child(even) {
-        background: #fafbfc;
-    }
-
-    /* ===== ANIMATIONS ===== */
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .animate-fade-in-up {
-        animation: fadeInUp 0.5s ease-out forwards;
-        opacity: 0;
-    }
-
-    /* ===== MOBILE RESPONSIVE ===== */
-    /* ===== MOBILE RESPONSIVE ===== */
-@media (max-width: 640px) {
-    /* === REDUCE SIDE PADDING ON MOBILE === */
-    .max-w-4xl {
-        padding-left: 8px !important;
-        padding-right: 8px !important;
-    }
-    
-    /* === REDUCE PADDING IN ALL CARDS === */
-    .bg-white.rounded-2xl.shadow-lg {
-        padding-left: 12px !important;
-        padding-right: 12px !important;
-    }
-    
-    .q-card { 
-        padding: 12px !important; 
-        border-radius: 12px !important;
-    }
-    
-    .q-card .answer-box { 
-        padding: 10px 12px; 
-        font-size: 0.9rem; 
-    }
-    
-    .q-card .answer-box .text-sm { 
-        font-size: 0.85rem !important; 
-    }
-    
-    /* === REDUCE PADDING IN CONTENT SECTIONS === */
-    .bg-white.rounded-2xl.shadow-lg.overflow-hidden {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-    }
-    
-    .bg-white.rounded-2xl.shadow-lg.overflow-hidden .p-4.md\:p-6 {
-        padding: 12px !important;
-    }
-    
-    .content-section-wrapper {
-        padding: 10px !important;
-    }
-    
-    /* === FIX IMAGE GRID === */
-    .question-images { 
-        grid-template-columns: 1fr !important; 
-        gap: 8px !important;
-    }
-    
-    .question-images .image-item img { 
-        max-height: 200px; 
-    }
-    
-    /* === FIX TABLE === */
-    .table-container { 
-        border-radius: 8px;
-        margin: 8px 0;
-    }
-    
-    .table-container table { 
-        min-width: 350px; 
-        font-size: 0.7rem; 
-    }
-    
-    .table-container th, 
-    .table-container td { 
-        padding: 0.3rem 0.5rem; 
-        font-size: 0.7rem; 
-    }
-    
-    /* === PAGINATION === */
-    .page-btn { 
-        padding: 6px 12px; 
-        font-size: 12px; 
-    }
-    
-    /* === SEARCH === */
-    .search-wrapper { 
-        max-width: 100%; 
-    }
-    
-    .search-input { 
-        padding: 8px 14px 8px 40px; 
-        font-size: 13px; 
-    }
-    
-    /* === BADGES === */
-    .footer-badge { 
-        font-size: 8px; 
-        padding: 2px 6px; 
-    }
-    
-    .breadcrumb-link { 
-        font-size: 0.75rem; 
-    }
-    
-    .footer-badges { 
-        gap: 3px; 
-    }
-    
-    /* === HEADER === */
-    .bg-white.rounded-2xl.shadow-lg.p-5.mb-6 {
-        padding: 12px !important;
-    }
-    
-    h1.text-xl.sm\:text-2xl {
-        font-size: 1.1rem !important;
-    }
-    
-    /* === BREADCRUMB === */
-    nav.text-sm.mb-6 {
-        padding-left: 4px !important;
-        padding-right: 4px !important;
-    }
-    
-    /* === CONTENT RENDERED === */
-    .rendered-content {
-        font-size: 0.9rem !important;
-        line-height: 1.7 !important;
-    }
-    
-    .rendered-content p {
-        margin-bottom: 0.5rem !important;
-    }
-    
-    .rendered-content .code-block {
-        padding: 0.5rem 0.75rem !important;
-        font-size: 0.8rem !important;
-    }
-    
-    .rendered-content blockquote {
-        padding: 0.4rem 0.8rem !important;
-        margin: 0.5rem 0 !important;
-    }
-    
-    .rendered-content ul,
-    .rendered-content ol {
-        padding-left: 1.2rem !important;
-    }
-    
-    /* === BACK BUTTON === */
-    .mt-6 {
-        margin-top: 1rem !important;
-    }
-}
-</style>
-{% endblock %}
+{% block title %}{{ part.localized_name }} | QA Platform{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
@@ -603,99 +11,113 @@
         <nav class="text-sm mb-6" aria-label="Breadcrumb">
             <ol class="flex items-center gap-2 flex-wrap">
                 <li>
-                    <a href="{% url 'qa:subject_list' %}" class="breadcrumb-link group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-indigo-600 transition-all duration-300 hover:bg-indigo-50/80">
+                    <a href="{% url 'qa:subject_list' %}?lang={{ language }}"
+                       class="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-indigo-600 transition-all duration-300 hover:bg-indigo-50/80">
                         <svg class="w-4 h-4 transition-transform duration-300 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/>
                         </svg>
-                        <span class="font-medium hidden sm:inline">Subjects</span>
-                        <span class="font-medium sm:hidden">Home</span>
+                        <span class="font-medium hidden sm:inline">{% if language == 'hi' %}विषय{% else %}Subjects{% endif %}</span>
+                        <span class="font-medium sm:hidden">{% if language == 'hi' %}होम{% else %}Home{% endif %}</span>
                     </a>
                 </li>
-
-                <li>
+                <li class="flex items-center">
                     <svg class="w-4 h-4 text-gray-300 mx-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
-                    <a href="{% url 'qa:topic_list' subject.slug %}" class="breadcrumb-link group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-indigo-600 transition-all duration-300 hover:bg-indigo-50/80">
+                    <a href="{% url 'qa:topic_list' subject.slug %}?lang={{ language }}"
+                       class="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-indigo-600 transition-all duration-300 hover:bg-indigo-50/80">
                         <svg class="w-4 h-4 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                         </svg>
-                        <span class="font-medium hidden sm:inline">{{ subject.name|truncatechars:15 }}</span>
-                        <span class="font-medium sm:hidden">{{ subject.name|truncatechars:8 }}</span>
+                        <span class="font-medium hidden sm:inline">{{ subject.localized_name|truncatechars:15 }}</span>
+                        <span class="font-medium sm:hidden">{{ subject.localized_name|truncatechars:8 }}</span>
                     </a>
                 </li>
-
-                <li>
+                <li class="flex items-center">
                     <svg class="w-4 h-4 text-gray-300 mx-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
-                    <a href="{% url 'qa:part_list' subject.slug topic.slug %}" class="breadcrumb-link group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-indigo-600 transition-all duration-300 hover:bg-indigo-50/80">
+                    <a href="{% url 'qa:part_list' subject.slug topic.slug %}?lang={{ language }}"
+                       class="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-indigo-600 transition-all duration-300 hover:bg-indigo-50/80">
                         <svg class="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        <span class="font-medium hidden sm:inline">{{ topic.name|truncatechars:15 }}</span>
-                        <span class="font-medium sm:hidden">{{ topic.name|truncatechars:8 }}</span>
+                        <span class="font-medium hidden sm:inline">{{ topic.localized_name|truncatechars:15 }}</span>
+                        <span class="font-medium sm:hidden">{{ topic.localized_name|truncatechars:8 }}</span>
                     </a>
                 </li>
-
-                <li>
+                <li class="flex items-center">
                     <svg class="w-4 h-4 text-gray-300 mx-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                     <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 font-semibold cursor-default border border-indigo-100/50">
                         <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <span class="hidden sm:inline">{{ part.name }}</span>
-                        <span class="sm:hidden">{{ part.name|truncatechars:10 }}</span>
+                        <span class="hidden sm:inline">{{ part.localized_name }}</span>
+                        <span class="sm:hidden">{{ part.localized_name|truncatechars:10 }}</span>
                     </span>
                 </li>
             </ol>
         </nav>
 
         <!-- ===== PART HEADER ===== -->
-        <div class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-gray-100">
-            <div class="flex flex-col sm:flex-row items-start gap-3">
-                <div class="text-2xl text-indigo-600 bg-indigo-50 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
+        <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-5 mb-6 border border-gray-100">
+            <div class="flex items-start gap-3">
+                <div class="text-2xl text-indigo-600 bg-indigo-50 w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
                     <i class="fa-solid fa-question-circle"></i>
                 </div>
-                <div class="flex-1 w-full">
-                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-3">
-                        <div>
-                            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 break-word">
-                                {% if request.LANGUAGE_CODE == 'hi' and part.name_hi %}
-                                {{ part.name_hi }}
-                                {% else %}
-                                {{ part.name }}
-                                {% endif %}
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0 flex-1">
+                            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 break-words">
+                                {{ part.localized_name }}
                             </h1>
-                            {% if part.description %}
-                            <p class="text-gray-600 text-sm mt-1 leading-relaxed break-word">
-                                {% if request.LANGUAGE_CODE == 'hi' and part.description_hi %}
-                                {{ part.description_hi }}
-                                {% else %}
-                                {{ part.description }}
-                                {% endif %}
+                            {% if part.localized_description %}
+                            <p class="text-gray-600 text-sm mt-1 leading-relaxed break-words">
+                                {{ part.localized_description }}
                             </p>
                             {% endif %}
-                            <div class="mt-2 flex items-center gap-3 text-xs text-gray-500 flex-wrap">
-                                <span class="flex items-center gap-1">
-                                    <i class="fa-regular fa-file-lines text-indigo-400"></i>
-                                    {{ total_questions }} Questions
-                                </span>
-                                {% if is_free %}
-                                <span class="text-green-600 font-semibold">✅ Free</span>
-                                {% else %}
-                                <span class="text-yellow-600 font-semibold">🔒 Locked - ₹{{ price }}</span>
-                                {% endif %}
-                            </div>
                         </div>
 
-                        <!-- Search Bar -->
-                        <div class="search-wrapper w-full md:w-auto" style="max-width:320px;">
-                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                            <input type="text" id="searchInput" class="search-input" placeholder="Search questions..."
-                                style="width:100%;padding:11px 18px 11px 48px;border:2px solid #e2e8f0;border-radius:12px;font-size:14px;background:#f8fafc;transition:all 0.3s ease;outline:none;font-family:inherit;color:#1e293b;">
+                        <!-- ===== LANGUAGE SELECTOR ===== -->
+                        <div class="shrink-0 self-start">
+                            <div class="inline-flex items-center bg-white border border-slate-200 rounded-full p-1 shadow-sm">
+                                <a href="?lang=en{% for k, v in request.GET.items %}{% if k != 'lang' and k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+                                   class="inline-flex items-center gap-1 px-2 sm:px-4 py-1.5 rounded-full text-xs font-bold no-underline transition-all duration-200 {% if language == 'en' %}bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/30{% else %}text-slate-500 hover:text-indigo-600 hover:bg-indigo-50{% endif %}">
+                                    <span class="text-sm leading-none">🌐</span>
+                                    <span class="hidden sm:inline">English</span>
+                                    <span class="sm:hidden">EN</span>
+                                </a>
+                                <a href="?lang=hi{% for k, v in request.GET.items %}{% if k != 'lang' and k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+                                   class="inline-flex items-center gap-1 px-2 sm:px-4 py-1.5 rounded-full text-xs font-bold no-underline transition-all duration-200 {% if language == 'hi' %}bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/30{% else %}text-slate-500 hover:text-indigo-600 hover:bg-indigo-50{% endif %}">
+                                    <span class="text-sm leading-none">🇮🇳</span>
+                                    <span class="hidden sm:inline">हिंदी</span>
+                                    <span class="sm:hidden">हिं</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div class="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                            <span class="flex items-center gap-1">
+                                <i class="fa-regular fa-file-lines text-indigo-400"></i>
+                                {{ total_questions }}
+                                {% if language == 'hi' %}प्रश्न{% else %}Questions{% endif %}
+                            </span>
+                            {% if is_free %}
+                            <span class="text-green-600 font-semibold">✅ {% if language == 'hi' %}मुफ्त{% else %}Free{% endif %}</span>
+                            {% else %}
+                            <span class="text-yellow-600 font-semibold">🔒 {% if language == 'hi' %}लॉक्ड - ₹{{ price }}{% else %}Locked - ₹{{ price }}{% endif %}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="relative w-full sm:w-auto sm:max-w-xs">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+                            <input type="text" id="searchInput"
+                                   placeholder="{% if language == 'hi' %}प्रश्न खोजें...{% else %}Search questions...{% endif %}"
+                                   class="w-full pl-12 pr-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-800">
                         </div>
                     </div>
                 </div>
@@ -708,16 +130,12 @@
             <div class="bg-gradient-to-r from-indigo-50 to-purple-50 px-5 py-3 border-b border-gray-100">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-file-lines text-indigo-600"></i>
-                    <h2 class="text-base font-bold text-gray-800">Content</h2>
+                    <h2 class="text-base font-bold text-gray-800">{% if language == 'hi' %}सामग्री{% else %}Content{% endif %}</h2>
                 </div>
             </div>
             <div class="p-4 md:p-6">
-                <div class="rendered-content">
-                    {% if request.LANGUAGE_CODE == 'hi' and part.content_hi %}
-                    {{ rendered_content_hi|safe }}
-                    {% else %}
+                <div class="rendered-content text-slate-700 leading-relaxed text-sm sm:text-base break-words">
                     {{ rendered_content|safe }}
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -729,7 +147,7 @@
             <div class="bg-gradient-to-r from-indigo-50 to-purple-50 px-5 py-3 border-b border-gray-100">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-book-open text-indigo-600"></i>
-                    <h2 class="text-base font-bold text-gray-800">Comprehensive Content</h2>
+                    <h2 class="text-base font-bold text-gray-800">{% if language == 'hi' %}व्यापक सामग्री{% else %}Comprehensive Content{% endif %}</h2>
                     <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full ml-auto">
                         {{ comprehensive_content|length }}
                     </span>
@@ -737,25 +155,17 @@
             </div>
             <div class="p-4 space-y-4">
                 {% for content in comprehensive_content %}
-                <div class="content-section-wrapper bg-gray-50/50 rounded-xl p-4 border border-gray-100/50 hover:border-indigo-200 transition-all duration-300">
+                <div class="bg-slate-50/60 rounded-xl p-4 border border-slate-100 hover:border-indigo-200 transition-all duration-300">
                     <div class="flex items-center gap-2 mb-2">
-                        <div class="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg text-white font-bold text-xs flex-shrink-0">
+                        <div class="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg text-white font-bold text-xs shrink-0">
                             {{ forloop.counter }}
                         </div>
-                        <h3 class="text-sm font-semibold text-gray-800 break-word">
-                            {% if request.LANGUAGE_CODE == 'hi' and content.heading_hi %}
-                            {{ content.heading_hi }}
-                            {% else %}
-                            {{ content.heading }}
-                            {% endif %}
+                        <h3 class="text-sm font-semibold text-gray-800 break-words">
+                            {{ content.localized_heading }}
                         </h3>
                     </div>
-                    <div class="text-gray-600 text-sm leading-relaxed break-word overflow-x-auto">
-                        {% if request.LANGUAGE_CODE == 'hi' and content.content_hi %}
-                        {{ content.content_hi|safe }}
-                        {% else %}
-                        {{ content.content|safe }}
-                        {% endif %}
+                    <div class="text-gray-600 text-sm leading-relaxed break-words overflow-x-auto">
+                        {{ content.localized_content|safe }}
                     </div>
                 </div>
                 {% endfor %}
@@ -766,60 +176,40 @@
         <!-- ===== QUESTIONS SECTION ===== -->
         <div class="space-y-4" id="questionContainer">
             {% for question in questions %}
-            <div class="q-card bg-white rounded-xl p-4 md:p-5 animate-fade-in-up"
-                 style="animation-delay: {{ forloop.counter0|add:0|stringformat:"d" }}0ms"
-                 data-search="{{ question.question }} {{ question.answer }} {% for cat in question.categories.all %}{{ cat.name }} {% endfor %} {% for tag in question.get_tags_list %}{{ tag }} {% endfor %} {{ question.get_question_type_display }}">
+            <div class="q-card group bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-0.5 transition-all duration-300"
+                 data-search="{{ question.localized_question }} {{ question.localized_answer }} {% for cat in question.categories.all %}{{ cat.localized_name }} {% endfor %} {% for tag in question.get_tags_list %}{{ tag }} {% endfor %} {{ question.get_question_type_display }}">
 
-                <!-- Question Header -->
                 <div class="flex items-center gap-2 mb-3 flex-wrap">
                     <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">
                         Q{{ forloop.counter0|add:questions.start_index }}
                     </span>
-                    <span class="px-3 py-1 text-xs font-semibold rounded-full
-                                {% if question.difficulty == 'easy' %}diff-easy
-                                {% elif question.difficulty == 'medium' %}diff-medium
-                                {% elif question.difficulty == 'hard' %}diff-hard
-                                {% else %}diff-expert{% endif %}">
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full {% if question.difficulty == 'easy' %}bg-emerald-100 text-emerald-800{% elif question.difficulty == 'medium' %}bg-amber-100 text-amber-800{% elif question.difficulty == 'hard' %}bg-red-100 text-red-800{% else %}bg-pink-100 text-pink-900{% endif %}">
                         {{ question.get_difficulty_display }}
                     </span>
                 </div>
 
-                <!-- Question Text -->
-                <h3 class="text-base font-semibold text-gray-800 mb-3 leading-relaxed break-word">
-                    {% if request.LANGUAGE_CODE == 'hi' and question.question_hi %}
-                    {{ question.question_hi }}
-                    {% else %}
-                    {{ question.question }}
-                    {% endif %}
+                <h3 class="text-base font-semibold text-gray-800 mb-3 leading-relaxed break-words">
+                    {{ question.localized_question }}
                 </h3>
 
-                <!-- Answer -->
-                <div class="answer-box">
+                <div class="bg-slate-50 border-l-4 border-indigo-500 rounded-r-lg px-4 py-3">
                     <div class="text-xs font-semibold text-indigo-600 mb-1 flex items-center gap-1">
-                        <i class="fa-regular fa-lightbulb"></i> Answer
+                        <i class="fa-regular fa-lightbulb"></i>
+                        {% if language == 'hi' %}उत्तर{% else %}Answer{% endif %}
                     </div>
-                    <div class="text-gray-700 leading-relaxed text-sm break-word">
-                        {% if request.LANGUAGE_CODE == 'hi' and question.answer_hi %}
-                        {{ question.answer_hi|safe }}
-                        {% else %}
-                        {{ question.answer|safe }}
-                        {% endif %}
+                    <div class="text-gray-700 leading-relaxed text-sm break-words">
+                        {{ question.localized_answer|safe }}
                     </div>
                 </div>
 
-                <!-- Images -->
                 {% if question.images.all %}
-                <div class="question-images">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-3">
                     {% for image in question.images.all %}
-                    <div class="image-item">
-                        <img src="{{ image.image.url }}" alt="{{ image.caption }}" loading="lazy">
+                    <div class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 hover:-translate-y-0.5 hover:shadow-md transition-all">
+                        <img src="{{ image.image.url }}" alt="{{ image.caption }}" loading="lazy" class="w-full h-auto max-h-[250px] object-contain block">
                         {% if image.caption %}
-                        <div class="caption break-word">
-                            {% if request.LANGUAGE_CODE == 'hi' and image.caption_hi %}
-                            {{ image.caption_hi }}
-                            {% else %}
-                            {{ image.caption }}
-                            {% endif %}
+                        <div class="px-3 py-2 text-xs text-slate-500 text-center bg-slate-50 border-t border-slate-200 break-words">
+                            {% if language == 'hi' and image.caption_hi %}{{ image.caption_hi }}{% else %}{{ image.caption }}{% endif %}
                         </div>
                         {% endif %}
                     </div>
@@ -827,19 +217,14 @@
                 </div>
                 {% endif %}
 
-                <!-- Tables -->
                 {% if question.tables.all %}
                 <div class="mt-4 space-y-3">
                     {% for table in question.tables.all %}
-                    <div class="table-container">
-                        {{ table.table_data|safe }}
+                    <div class="w-full overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                        <div class="min-w-[400px]">{{ table.table_data|safe }}</div>
                         {% if table.caption %}
-                        <div class="caption break-word">
-                            {% if request.LANGUAGE_CODE == 'hi' and table.caption_hi %}
-                            {{ table.caption_hi }}
-                            {% else %}
-                            {{ table.caption }}
-                            {% endif %}
+                        <div class="px-3 py-2 text-xs text-slate-500 text-center bg-slate-50 border-t border-slate-200 break-words">
+                            {% if language == 'hi' and table.caption_hi %}{{ table.caption_hi }}{% else %}{{ table.caption }}{% endif %}
                         </div>
                         {% endif %}
                     </div>
@@ -847,50 +232,54 @@
                 </div>
                 {% endif %}
 
-                <!-- Footer -->
                 <div class="mt-4 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
-                    <span class="text-xs text-gray-400">
-                        {{ question.created_at|date:"d M Y" }}
-                    </span>
+                    <span class="text-xs text-gray-400">{{ question.created_at|date:"d M Y" }}</span>
 
-                    <div class="footer-badges">
-                        <span class="text-xs footer-badge type">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-800 border border-blue-200">
                             <i class="{% if question.question_type == 'mcq' %}fa-regular fa-circle-check{% elif question.question_type == 'numerical' %}fa-solid fa-calculator{% elif question.question_type == 'descriptive' %}fa-regular fa-file-lines{% elif question.question_type == 'true_false' %}fa-regular fa-circle{% elif question.question_type == 'fill_blank' %}fa-regular fa-square{% elif question.question_type == 'match' %}fa-regular fa-table{% endif %}"></i>
                             {{ question.get_question_type_display }}
                         </span>
 
                         {% if question.is_featured %}
-                        <span class="footer-badge featured text-xs">⭐ Featured</span>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                            ⭐ {% if language == 'hi' %}फीचर्ड{% else %}Featured{% endif %}
+                        </span>
                         {% endif %}
 
                         {% for category in question.categories.all %}
-                        <span class="footer-badge category text-xs"
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium border"
                               style="background: {{ category.color }}15; color: {{ category.color }}; border-color: {{ category.color }}30;">
                             <i class="{{ category.icon|default:'fa-solid fa-tag' }}"></i>
-                            {{ category.name }}
+                            {{ category.localized_name }}
                         </span>
                         {% endfor %}
 
                         {% for tag in question.get_tags_list %}
-                        <span class="footer-badge tag text-xs">#{{ tag }}</span>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-pink-100 text-pink-800 border border-pink-200">
+                            #{{ tag }}
+                        </span>
                         {% endfor %}
                     </div>
                 </div>
 
-                <!-- Divider -->
                 {% if not forloop.last %}
-                <hr class="q-divider">
+                <div class="relative mt-5 pt-5 border-t-2 border-dashed border-gray-200">
+                    <span class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-50 px-2 text-gray-400 text-xs">◆</span>
+                </div>
                 {% endif %}
             </div>
             {% empty %}
             <div class="text-center py-12 bg-white rounded-2xl shadow-lg border border-gray-100">
                 <div class="text-5xl mb-4">📭</div>
-                <p class="text-gray-500 text-base">No questions available for this part.</p>
+                <p class="text-gray-500 text-base">
+                    {% if language == 'hi' %}इस पार्ट के लिए कोई प्रश्न उपलब्ध नहीं।{% else %}No questions available for this part.{% endif %}
+                </p>
                 {% if user.is_staff %}
-                <a href="/admin/QA/question/add/?part={{ part.id }}" 
+                <a href="/admin/QA/question/add/?part={{ part.id }}"
                    class="inline-flex items-center gap-2 mt-3 px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-300 text-sm">
                     <i class="fa-solid fa-plus"></i>
-                    Add Question
+                    {% if language == 'hi' %}प्रश्न जोड़ें{% else %}Add Question{% endif %}
                 </a>
                 {% endif %}
             </div>
@@ -902,23 +291,36 @@
         <div class="flex justify-center mt-6">
             <nav class="flex items-center gap-2 flex-wrap">
                 {% if questions.has_previous %}
-                <a href="?page={{ questions.previous_page_number }}" class="page-btn">← Prev</a>
+                <a href="?page={{ questions.previous_page_number }}&lang={{ language }}"
+                   class="inline-block px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-100 no-underline transition">
+                    ← {% if language == 'hi' %}पिछला{% else %}Prev{% endif %}
+                </a>
                 {% else %}
-                <span class="page-btn disabled">← Prev</span>
+                <span class="inline-block px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium opacity-40 cursor-not-allowed">
+                    ← {% if language == 'hi' %}पिछला{% else %}Prev{% endif %}
+                </span>
                 {% endif %}
 
                 {% for num in questions.paginator.page_range %}
                 {% if num == questions.number %}
-                <span class="page-btn active">{{ num }}</span>
+                <span class="inline-block px-4 py-2 rounded-lg border border-indigo-600 bg-indigo-600 text-white text-sm font-medium">{{ num }}</span>
                 {% elif num > questions.number|add:'-3' and num < questions.number|add:'3' %}
-                <a href="?page={{ num }}" class="page-btn">{{ num }}</a>
+                <a href="?page={{ num }}&lang={{ language }}"
+                   class="inline-block px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-100 no-underline transition">
+                    {{ num }}
+                </a>
                 {% endif %}
                 {% endfor %}
 
                 {% if questions.has_next %}
-                <a href="?page={{ questions.next_page_number }}" class="page-btn">Next →</a>
+                <a href="?page={{ questions.next_page_number }}&lang={{ language }}"
+                   class="inline-block px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-100 no-underline transition">
+                    {% if language == 'hi' %}अगला{% else %}Next{% endif %} →
+                </a>
                 {% else %}
-                <span class="page-btn disabled">Next →</span>
+                <span class="inline-block px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium opacity-40 cursor-not-allowed">
+                    {% if language == 'hi' %}अगला{% else %}Next{% endif %} →
+                </span>
                 {% endif %}
             </nav>
         </div>
@@ -927,20 +329,25 @@
         <!-- ===== PAGE INFO ===== -->
         {% if total_questions > 0 %}
         <div class="text-center text-xs text-gray-400 mt-3" id="questionCountInfo">
-            Showing {{ questions.start_index }} - {{ questions.end_index }} of {{ total_questions }} questions
+            {% if language == 'hi' %}
+                {{ questions.start_index }} - {{ questions.end_index }} दिखाए जा रहे हैं, कुल {{ total_questions }} प्रश्नों में से
+            {% else %}
+                Showing {{ questions.start_index }} - {{ questions.end_index }} of {{ total_questions }} questions
+            {% endif %}
         </div>
         {% endif %}
 
         <!-- ===== BACK BUTTON ===== -->
         <div class="mt-6">
-            <a href="{% url 'qa:part_list' subject_slug=subject.slug topic_slug=topic.slug %}" 
+            <a href="{% url 'qa:part_list' subject_slug=subject.slug topic_slug=topic.slug %}?lang={{ language }}"
                class="text-sm text-gray-500 hover:text-gray-700">
-                ← Back to Parts
+                ← {% if language == 'hi' %}पार्ट्स पर वापस{% else %}Back to Parts{% endif %}
             </a>
         </div>
 
     </div>
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
@@ -948,6 +355,7 @@
         const searchInput = document.getElementById('searchInput');
         const questionCards = document.querySelectorAll('.q-card');
         const countInfo = document.getElementById('questionCountInfo');
+        const isHindi = '{{ language }}' === 'hi';
 
         if (searchInput) {
             searchInput.addEventListener('input', function () {
@@ -963,12 +371,12 @@
 
                 if (countInfo) {
                     const total = questionCards.length;
-                    countInfo.textContent = `Showing ${visibleCount} of ${total} questions`;
+                    countInfo.textContent = isHindi
+                        ? `${visibleCount} / ${total} प्रश्न दिखाए जा रहे हैं`
+                        : `Showing ${visibleCount} of ${total} questions`;
                 }
             });
         }
     });
 </script>
-{% endblock %}
-
 {% endblock %}
