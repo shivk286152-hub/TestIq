@@ -2,7 +2,7 @@
 <div class="mb-6">
     <p class="font-semibold mb-4 text-base md:text-lg">
         Q{{ question_number }}. 
-        {% if request.session.test_language == 'hi' and question.question_hi %}
+        {% if language == 'hi' and question.question_hi %}
             {{ question.question_hi }}
         {% else %}
             {{ question.question_en }}
@@ -11,15 +11,18 @@
 
     <div class="space-y-3">
         {% for option in question.options.all %}
-        <label class="block border p-4 rounded cursor-pointer hover:bg-gray-100 text-sm md:text-base
-            {% if selected_option and option.id == selected_option|add:'0' %}
-                bg-green-100 border-green-400
+        <label class="option-label block border p-4 rounded cursor-pointer hover:bg-gray-100 text-sm md:text-base
+            {% if selected_option and option.id|stringformat:'s' == selected_option|stringformat:'s' %}
+                bg-green-100 border-green-400 option-selected
             {% endif %}">
             
-            <input type="radio" name="question_{{ question.id }}" value="{{ option.id }}" class="mr-3 scale-110"
-            {% if selected_option and option.id == selected_option|add:'0' %} checked {% endif %}>
+            <input type="radio" 
+                   name="question_{{ question.id }}" 
+                   value="{{ option.id }}" 
+                   class="mr-3 scale-110 js-answer-radio"
+                   {% if selected_option and option.id|stringformat:'s' == selected_option|stringformat:'s' %} checked {% endif %}>
             
-            {% if request.session.test_language == 'hi' and option.text_hi %}
+            {% if language == 'hi' and option.text_hi %}
                 {{ option.text_hi }}
             {% else %}
                 {{ option.text_en }}
@@ -29,9 +32,7 @@
     </div>
 </div>
 
-<!-- Rest of your button section remains exactly the same -->
 <div class="mt-auto flex flex-wrap gap-3">
-    <!-- Previous button, Save & Next, Clear, Skip, Submit - unchanged -->
     {% if question_number > 1 %}
     <button type="button" onclick="loadQuestion({{ question_number|add:-1 }})"
         class="px-4 py-2 bg-gray-300 rounded font-semibold">
@@ -40,14 +41,21 @@
     {% endif %}
 
     {% if question_number < total_questions %}
-    <button type="button" onclick="saveAnswer({{ question.id }}, true, {{ question_number|add:1 }})"
-        class="px-4 py-2 bg-green-600 text-white rounded font-semibold">
+    <button type="button" 
+            id="js-save-next-btn"
+            data-qid="{{ question.id }}"
+            data-qnum="{{ question_number }}"
+            data-next-num="{{ question_number|add:1 }}"
+            class="px-4 py-2 bg-green-600 text-white rounded font-semibold">
         Save & Next
     </button>
     {% endif %}
 
-    <button type="button" onclick="clearAnswer({{ question.id }})"
-        class="px-4 py-2 bg-yellow-500 text-white rounded font-semibold">
+    <button type="button" 
+            id="js-clear-btn"
+            data-qid="{{ question.id }}"
+            data-qnum="{{ question_number }}"
+            class="px-4 py-2 bg-yellow-500 text-white rounded font-semibold">
         Clear
     </button>
 
