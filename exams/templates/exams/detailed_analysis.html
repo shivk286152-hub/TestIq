@@ -115,6 +115,390 @@
         .question-card { border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; }
         .explanation-content { display: block !important; }
     }
+
+    /* =====================================================
+       ✅ MOBILE-ONLY IMPROVEMENTS
+       - reduce side gaps (no more cylinder look)
+       - tighter spacing so more info is visible
+       - inline header buttons on mobile
+       - compact stat cards, filters, question cards
+       - desktop styles untouched
+       ===================================================== */
+    @media (max-width: 768px) {
+        /* Outer container: minimal side padding */
+        .max-w-7xl.mx-auto.px-4.sm\:px-6.lg\:px-8.py-8 {
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            padding-top: 10px !important;
+            padding-bottom: 16px !important;
+        }
+
+        /* Breadcrumb: tighter padding, hide some text to save width */
+        nav.mb-8 {
+            margin-bottom: 10px !important;
+        }
+        nav.mb-8 > div {
+            padding: 8px !important;
+            border-radius: 12px !important;
+        }
+        nav.mb-8 ol {
+            gap: 4px !important;
+        }
+        nav.mb-8 ol .flex.flex-wrap.items-center.gap-2 {
+            gap: 2px !important;
+        }
+        nav.mb-8 ol li a,
+        nav.mb-8 ol li > div {
+            padding: 4px 6px !important;
+        }
+        nav.mb-8 ol li a span,
+        nav.mb-8 ol li > div span {
+            font-size: 0.72rem !important;
+        }
+        /* PDF button in breadcrumb: smaller on mobile */
+        nav.mb-8 .pdf-download-btn {
+            padding: 6px 10px !important;
+            font-size: 0.72rem !important;
+        }
+        nav.mb-8 .pdf-download-btn svg {
+            width: 14px !important;
+            height: 14px !important;
+        }
+
+        /* Mobile hamburger menu button: tighter */
+        .lg\:hidden.mb-4 > button {
+            padding: 8px 12px !important;
+        }
+        .lg\:hidden.mb-4 .font-medium {
+            font-size: 0.85rem !important;
+        }
+
+        /* ===== HEADER CARD ===== */
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl {
+            padding: 14px !important;
+            border-radius: 14px !important;
+            margin-bottom: 14px !important;
+        }
+        /* Header title smaller */
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600 h1 {
+            font-size: 1.15rem !important;
+            line-height: 1.3 !important;
+            margin-bottom: 4px !important;
+            word-break: break-word;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600 p {
+            font-size: 0.78rem !important;
+        }
+        /* Header chips: smaller */
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600 .flex.items-center.space-x-3 {
+            gap: 4px !important;
+            margin-bottom: 6px !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600 .inline-block.px-3.py-1 {
+            padding: 3px 8px !important;
+            font-size: 0.68rem !important;
+        }
+
+        /* ✅ INLINE header buttons on mobile (language + back) */
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600 .mt-4.md\:mt-0.flex.flex-col.sm\:flex-row.gap-3 {
+            flex-direction: row !important;
+            gap: 8px !important;
+            margin-top: 10px !important;
+            align-items: stretch;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600 .mt-4.md\:mt-0.flex.flex-col.sm\:flex-row.gap-3 > .relative {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600 .mt-4.md\:mt-0.flex.flex-col.sm\:flex-row.gap-3 > a {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+        #languageSelect {
+            width: 100% !important;
+            padding: 7px 10px !important;
+            font-size: 0.78rem !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600 .mt-4.md\:mt-0 a {
+            padding: 7px 10px !important;
+            font-size: 0.78rem !important;
+            white-space: nowrap;
+        }
+
+        /* ===== SUMMARY STAT CARDS ===== */
+        .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-5.gap-4 {
+            gap: 6px !important;
+            margin-bottom: 14px !important;
+        }
+        .stat-card {
+            padding: 8px !important;
+            border-radius: 10px !important;
+        }
+        .stat-card .text-gray-500.text-xs {
+            font-size: 0.65rem !important;
+        }
+        .stat-card .text-2xl {
+            font-size: 1.15rem !important;
+            line-height: 1.1 !important;
+        }
+        .stat-card .text-\[10px\] {
+            font-size: 0.6rem !important;
+        }
+        .stat-card .w-7.h-7 {
+            width: 22px !important;
+            height: 22px !important;
+        }
+        .stat-card .w-7.h-7 svg {
+            width: 12px !important;
+            height: 12px !important;
+        }
+
+        /* ===== QUESTIONS CONTAINER ===== */
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.md\:p-6 {
+            padding: 10px !important;
+            border-radius: 14px !important;
+            margin-bottom: 14px !important;
+        }
+        /* Section title */
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.md\:p-6 > .flex.flex-wrap.items-center.justify-between.gap-3.mb-4 {
+            gap: 6px !important;
+            margin-bottom: 10px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.md\:p-6 h2.text-lg {
+            font-size: 0.98rem !important;
+        }
+        /* Filter buttons: smaller and tighter */
+        .filter-btn {
+            padding: 5px 8px !important;
+            font-size: 0.68rem !important;
+            border-radius: 8px !important;
+        }
+        /* Search & sort row */
+        .flex.flex-col.md\:flex-row.gap-3.mb-4 {
+            gap: 6px !important;
+            margin-bottom: 10px !important;
+        }
+        #searchQuestions {
+            padding: 7px 8px 7px 30px !important;
+            font-size: 0.78rem !important;
+            border-radius: 8px !important;
+        }
+        #searchQuestions + svg,
+        .flex-1.relative svg {
+            width: 14px !important;
+            height: 14px !important;
+            left: 9px !important;
+            top: 9px !important;
+        }
+        #sortQuestions {
+            padding: 5px 8px !important;
+            font-size: 0.75rem !important;
+            border-radius: 8px !important;
+        }
+
+        /* ===== QUESTION CARDS ===== */
+        .question-card {
+            padding: 10px !important;
+            border-radius: 12px !important;
+        }
+        #questionsContainer.space-y-4 > * + * {
+            margin-top: 8px !important;
+        }
+        /* Question header row */
+        .question-card > .flex.flex-wrap.items-start.justify-between.gap-3.mb-3 {
+            gap: 6px !important;
+            margin-bottom: 8px !important;
+        }
+        .question-card > .flex.flex-wrap.items-start.justify-between.gap-3.mb-3 .w-8.h-8 {
+            width: 26px !important;
+            height: 26px !important;
+            font-size: 0.72rem !important;
+        }
+        /* All chips inside question card */
+        .question-card .inline-flex.items-center.px-2\.5.py-0\.5 {
+            padding: 2px 7px !important;
+            font-size: 0.65rem !important;
+        }
+        .question-card .flex.items-center.text-green-600,
+        .question-card .flex.items-center.text-red-600,
+        .question-card .flex.items-center.text-gray-600 {
+            padding: 2px 7px !important;
+            font-size: 0.65rem !important;
+        }
+
+        /* Question text block */
+        .question-card .mb-3.p-3.bg-gray-50.rounded-lg.border-l-4 {
+            padding: 8px 10px !important;
+            font-size: 0.82rem !important;
+            line-height: 1.5 !important;
+            margin-bottom: 8px !important;
+        }
+
+        /* Options list: tighter */
+        .question-card .space-y-1\.5.mb-3 > * + * {
+            margin-top: 4px !important;
+        }
+        .question-card .option-item {
+            padding: 6px 8px !important;
+            font-size: 0.78rem !important;
+            border-radius: 8px !important;
+        }
+        .question-card .option-item .w-6.h-6 {
+            width: 20px !important;
+            height: 20px !important;
+            font-size: 0.65rem !important;
+        }
+        .question-card .option-item svg {
+            width: 14px !important;
+            height: 14px !important;
+        }
+
+        /* Answer summary box */
+        .question-card .bg-gray-50.rounded-lg.p-3.mb-3 {
+            padding: 8px !important;
+            margin-bottom: 8px !important;
+            gap: 8px !important;
+            font-size: 0.78rem !important;
+        }
+        .question-card .bg-gray-50.rounded-lg.p-3.mb-3 .text-xs {
+            font-size: 0.62rem !important;
+        }
+        .question-card .bg-gray-50.rounded-lg.p-3.mb-3 .font-medium {
+            font-size: 0.8rem !important;
+        }
+
+        /* Explanation toggle */
+        .question-card .border-t.border-gray-100.pt-3 button {
+            font-size: 0.8rem !important;
+            padding: 2px 0 !important;
+        }
+        .question-card .border-t.border-gray-100.pt-3 button svg {
+            width: 14px !important;
+            height: 14px !important;
+        }
+
+        /* Explanation content */
+        .question-card .p-3.bg-indigo-50.rounded-lg {
+            padding: 8px 10px !important;
+            font-size: 0.8rem !important;
+            margin-bottom: 8px !important;
+        }
+        .question-card .mt-2 .text-xs {
+            font-size: 0.68rem !important;
+        }
+
+        /* AI buttons: smaller pills */
+        .question-card .ai-btn {
+            padding: 4px 9px !important;
+            font-size: 0.68rem !important;
+            gap: 4px !important;
+        }
+        .question-card .ai-btn svg {
+            width: 12px !important;
+            height: 12px !important;
+        }
+        .question-card .view-toggle-btn {
+            padding: 2px 7px !important;
+            font-size: 0.65rem !important;
+        }
+        .question-card .flex.flex-wrap.gap-2 {
+            gap: 5px !important;
+        }
+
+        /* AI window: compact on mobile */
+        .ai-window .ai-window-header {
+            padding: 6px 8px !important;
+        }
+        .ai-window .ai-window-header .text-xs {
+            font-size: 0.68rem !important;
+        }
+        .ai-window .ai-window-body {
+            padding: 8px !important;
+            font-size: 0.78rem !important;
+            max-height: 50vh !important;
+        }
+        .ai-window .ai-content-item .label {
+            font-size: 0.65rem !important;
+        }
+        .ai-window .ai-content-item .value {
+            font-size: 0.78rem !important;
+        }
+
+        /* No results + count */
+        #noResultsMessage {
+            padding: 16px 0 !important;
+        }
+        #questionsCount {
+            font-size: 0.7rem !important;
+            margin-top: 8px !important;
+        }
+
+        /* Action buttons at bottom: tighter */
+        .flex.flex-wrap.gap-3.justify-center.md\:justify-start {
+            gap: 6px !important;
+        }
+        .flex.flex-wrap.gap-3.justify-center.md\:justify-start a,
+        .flex.flex-wrap.gap-3.justify-center.md\:justify-start button {
+            padding: 7px 12px !important;
+            font-size: 0.78rem !important;
+        }
+
+        /* Mobile dropdown menu items */
+        #mobileMenu .grid.grid-cols-3.gap-2.p-3 {
+            padding: 8px !important;
+            gap: 4px !important;
+        }
+        #mobileMenu .grid.grid-cols-3.gap-2.p-3 .text-xs {
+            font-size: 0.65rem !important;
+        }
+        #mobileMenu .grid.grid-cols-3.gap-2.p-3 .text-xl {
+            font-size: 1.05rem !important;
+        }
+        #mobileMenu a {
+            padding: 7px 10px !important;
+        }
+        #mobileMenu a span.text-sm {
+            font-size: 0.8rem !important;
+        }
+    }
+
+    /* Very small phones */
+    @media (max-width: 480px) {
+        .max-w-7xl.mx-auto.px-4.sm\:px-6.lg\:px-8.py-8 {
+            padding-left: 6px !important;
+            padding-right: 6px !important;
+        }
+
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600 h1 {
+            font-size: 1.05rem !important;
+        }
+
+        .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-5.gap-4 {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+
+        .stat-card .text-2xl {
+            font-size: 1.05rem !important;
+        }
+
+        .filter-btn {
+            font-size: 0.63rem !important;
+            padding: 4px 7px !important;
+        }
+
+        .question-card {
+            padding: 8px !important;
+        }
+
+        .question-card .option-item {
+            font-size: 0.75rem !important;
+            padding: 5px 7px !important;
+        }
+
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.md\:p-6 {
+            padding: 8px !important;
+        }
+    }
 </style>
 {% endblock %}
 
