@@ -333,6 +333,18 @@
             padding: 1.25rem;
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
             border-radius: 0 !important;
+
+            /* ✅ NEW: subtle transparency, not extreme */
+            background: rgba(255, 255, 255, 0.82) !important;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        /* ✅ NEW: dark mode transparency for palette */
+        [data-theme="dark"] #questionPalette {
+            background: rgba(15, 23, 42, 0.82) !important;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
         
         #questionPalette.open {
@@ -346,7 +358,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.336);
             z-index: 998;
             opacity: 0;
             visibility: hidden;
@@ -402,6 +414,94 @@
             min-height: 36px;
             font-size: 10px;
         }
+
+        /* =====================================================
+           ✅ NEW: Mobile layout gap fixes
+           - minimum side gaps so content uses full width
+           - tighter vertical gaps so more is visible
+           ===================================================== */
+        .bg-gray-100.min-h-screen > .max-w-7xl {
+            padding-left: 6px !important;
+            padding-right: 6px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            gap: 8px !important;
+        }
+
+        .md\:col-span-9 {
+            gap: 8px !important;
+        }
+
+        /* Header: tighter padding on mobile */
+        .bg-white.shadow.p-4 {
+            padding: 10px 12px !important;
+        }
+
+        /* Question container: less inner padding, full usable width */
+        #questionContainer {
+            padding: 12px !important;
+            border-radius: 10px !important;
+        }
+    }
+
+    /* =====================================================
+       ✅ NEW: Beautiful mobile question text styling
+       ===================================================== */
+    @media (max-width: 768px) {
+        #questionContainer .question-text,
+        #questionContainer h2,
+        #questionContainer h3,
+        #questionContainer p {
+            line-height: 1.55 !important;
+            letter-spacing: 0.1px;
+        }
+
+        /* Question title / main text */
+        #questionContainer .question-title,
+        #questionContainer h2 {
+            font-size: 1.05rem !important;
+            font-weight: 700 !important;
+            color: #1d4ed8 !important; /* nice blue */
+        }
+
+        [data-theme="dark"] #questionContainer .question-title,
+        [data-theme="dark"] #questionContainer h2 {
+            color: #93c5fd !important;
+        }
+
+        /* General question body text */
+        #questionContainer p,
+        #questionContainer .text-gray-700,
+        #questionContainer .text-gray-800,
+        #questionContainer .text-gray-900 {
+            font-size: 0.96rem !important;
+            color: #1f2937 !important;
+        }
+
+        [data-theme="dark"] #questionContainer p,
+        [data-theme="dark"] #questionContainer .text-gray-700,
+        [data-theme="dark"] #questionContainer .text-gray-800,
+        [data-theme="dark"] #questionContainer .text-gray-900 {
+            color: #e5e7eb !important;
+        }
+
+        /* Option labels: comfortable tap targets + nice color */
+        #questionContainer label {
+            font-size: 0.95rem !important;
+            line-height: 1.45 !important;
+            color: #111827 !important;
+        }
+
+        [data-theme="dark"] #questionContainer label {
+            color: #e5e7eb !important;
+        }
+
+        /* Radio rows a bit more breathing room */
+        #questionContainer .option-row,
+        #questionContainer .flex.items-center {
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
     }
     
     /* Small phones */
@@ -423,6 +523,17 @@
             width: 260px;
             max-width: 90%;
             padding: 1rem;
+        }
+
+        /* ✅ Even tighter side gaps on very small phones */
+        .bg-gray-100.min-h-screen > .max-w-7xl {
+            padding-left: 4px !important;
+            padding-right: 4px !important;
+            gap: 6px !important;
+        }
+
+        #questionContainer {
+            padding: 10px !important;
         }
     }
 </style>
@@ -528,25 +639,23 @@
 </div>
 
 <script>
-    /* ===== TOGGLE PALETTE WITH OVERLAY ===== */
+    const MOCKTEST_ID = {{ mocktest.id }};
+    const TOTAL_QUESTIONS = {{ questions|length }};
+    const CURRENT_LANGUAGE = "{{ language|default:'en' }}";
+
+    console.log('[INIT] MOCKTEST_ID =', MOCKTEST_ID, 'TOTAL =', TOTAL_QUESTIONS, 'LANG =', CURRENT_LANGUAGE);
+
+    /* ===== TOGGLE PALETTE ===== */
     function togglePalette() {
         const palette = document.getElementById("questionPalette");
         const overlay = document.getElementById("paletteOverlay");
-        
         palette.classList.toggle("open");
         overlay.classList.toggle("show");
-        
-        // Prevent body scroll when palette is open on mobile
-        if (palette.classList.contains("open")) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
-        }
+        document.body.style.overflow = palette.classList.contains("open") ? "hidden" : "";
     }
 
-    /* ===== SERVER TIMER ===== */
+    /* ===== TIMER ===== */
     let timeLeft = {{ remaining_seconds }};
-
     const timerInterval = setInterval(() => {
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
@@ -554,58 +663,104 @@
             document.getElementById("testForm").submit();
             return;
         }
-
         let m = Math.floor(timeLeft / 60);
         let s = timeLeft % 60;
-
         document.getElementById("timer").innerHTML =
             (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
-
         timeLeft--;
     }, 1000);
 
     /* ===== LOAD QUESTION ===== */
     function loadQuestion(num) {
+        console.log('[loadQuestion] loading num =', num);
         const container = document.getElementById("questionContainer");
-        
+
         fetch("{% url 'exams:ajax_question' mocktest.id %}?q=" + num)
             .then(r => r.text())
             .then(html => {
                 container.innerHTML = html;
 
-                // Re-render math for AJAX-loaded content
                 if (window.MathJax) {
                     MathJax.typesetPromise([container]);
                 }
 
-                // Update palette active state
+                // Palette active state
                 document.querySelectorAll(".hex-btn").forEach(b => b.classList.remove("active-q"));
                 const activeBtn = document.getElementById("palette-" + num);
                 if (activeBtn) activeBtn.classList.add("active-q");
-                
-                // Close palette on mobile after selection
+
+                // ✅ Attach event listeners to buttons in the newly loaded HTML
+                attachQuestionListeners();
+
+                // Auto-close on mobile
                 if (window.innerWidth <= 768) {
-                    const palette = document.getElementById("questionPalette");
-                    const overlay = document.getElementById("paletteOverlay");
-                    palette.classList.remove("open");
-                    overlay.classList.remove("show");
+                    document.getElementById("questionPalette").classList.remove("open");
+                    document.getElementById("paletteOverlay").classList.remove("show");
                     document.body.style.overflow = "";
                 }
-            });
+            })
+            .catch(err => console.error("loadQuestion error:", err));
+    }
+
+    /* ===== ATTACH LISTENERS TO NEWLY LOADED BUTTONS ===== */
+    function attachQuestionListeners() {
+        // ---- Save & Next ----
+        const saveBtn = document.getElementById("js-save-next-btn");
+        if (saveBtn) {
+            saveBtn.onclick = function() {
+                const qid = parseInt(this.dataset.qid, 10);
+                const qnum = parseInt(this.dataset.qnum, 10);
+                const nextNum = parseInt(this.dataset.nextNum, 10);
+                console.log('[Save&Next clicked] qid =', qid, 'qnum =', qnum, 'nextNum =', nextNum);
+                saveAnswer(qid, qnum, true, nextNum);
+            };
+        }
+
+        // ---- Clear ----
+        const clearBtn = document.getElementById("js-clear-btn");
+        if (clearBtn) {
+            clearBtn.onclick = function() {
+                const qid = parseInt(this.dataset.qid, 10);
+                const qnum = parseInt(this.dataset.qnum, 10);
+                console.log('[Clear clicked] qid =', qid, 'qnum =', qnum);
+                clearAnswer(qid, qnum);
+            };
+        }
     }
 
     /* ===== SAVE ANSWER ===== */
-    function saveAnswer(qid, goNext = false, nextNum = null) {
-        const selected = document.querySelector(`input[name="question_${qid}"]:checked`);
-        const btn = document.getElementById("palette-" + qid);
-        const fd = new FormData();
+    function saveAnswer(qid, qnum, goNext, nextNum) {
+        console.log('[saveAnswer] START qid =', qid, 'qnum =', qnum, 'goNext =', goNext, 'nextNum =', nextNum);
 
+        // ✅ Find checked radio — by name attribute matching question_{qid}
+        const radioName = "question_" + qid;
+        const selected = document.querySelector(`input[name="${radioName}"]:checked`);
+
+        console.log('[saveAnswer] radioName =', radioName);
+        console.log('[saveAnswer] selected radio =', selected);
         if (selected) {
-            fd.append(`question_${qid}`, selected.value);
-            btn.classList.remove("skipped", "cleared");
-            btn.classList.add("answered");
+            console.log('[saveAnswer] selected.value =', selected.value);
         } else {
-            if (!btn.classList.contains("answered")) {
+            console.log('[saveAnswer] No radio selected — will send empty option_id');
+        }
+
+        const btn = document.getElementById("palette-" + qnum);
+        const fd = new FormData();
+        fd.append('mocktest_id', MOCKTEST_ID);
+        fd.append('question_id', qid);
+        fd.append('option_id', selected ? selected.value : '');
+
+        console.log('[saveAnswer] FormData being sent:');
+        for (let pair of fd.entries()) console.log('   ', pair[0], '=', pair[1]);
+
+        // Update palette visual
+        if (selected) {
+            if (btn) {
+                btn.classList.remove("skipped", "cleared");
+                btn.classList.add("answered");
+            }
+        } else {
+            if (btn && !btn.classList.contains("answered")) {
                 btn.classList.add("skipped");
             }
         }
@@ -614,7 +769,19 @@
             method: "POST",
             headers: { "X-CSRFToken": "{{ csrf_token }}" },
             body: fd
-        }).then(() => {
+        })
+        .then(r => {
+            console.log('[saveAnswer] response status =', r.status);
+            return r.json();
+        })
+        .then(data => {
+            console.log('[saveAnswer] response data =', data);
+            if (goNext && nextNum) {
+                loadQuestion(nextNum);
+            }
+        })
+        .catch(err => {
+            console.error('[saveAnswer] error =', err);
             if (goNext && nextNum) {
                 loadQuestion(nextNum);
             }
@@ -622,47 +789,65 @@
     }
 
     /* ===== CLEAR ANSWER ===== */
-    function clearAnswer(qid) {
-        const btn = document.getElementById("palette-" + qid);
-        btn.classList.remove("answered", "skipped");
-        btn.classList.add("cleared");
+    function clearAnswer(qid, qnum) {
+        console.log('[clearAnswer] qid =', qid, 'qnum =', qnum);
 
+        const btn = document.getElementById("palette-" + qnum);
+        if (btn) {
+            btn.classList.remove("answered", "skipped");
+            btn.classList.add("cleared");
+        }
+
+        // Uncheck any selected radio
         document.querySelectorAll(`input[name="question_${qid}"]`)
             .forEach(i => i.checked = false);
 
         const fd = new FormData();
-        fd.append(`question_${qid}`, "");
+        fd.append('mocktest_id', MOCKTEST_ID);
+        fd.append('question_id', qid);
+        fd.append('option_id', '');
 
         fetch("{% url 'exams:save_answer' %}", {
             method: "POST",
             headers: { "X-CSRFToken": "{{ csrf_token }}" },
             body: fd
-        });
+        })
+        .then(r => r.json())
+        .then(data => console.log('[clearAnswer] response =', data))
+        .catch(err => console.error("clearAnswer error:", err));
     }
 
     /* ===== SUBMIT TEST ===== */
-    function submitTest() {
+    async function submitTest() {
         if (!confirm("Are you sure you want to submit the test?")) {
             return;
         }
 
-        // Save all checked answers
-        document.querySelectorAll("input[type=radio]:checked")
-            .forEach(input => {
-                const fd = new FormData();
-                fd.append(input.name, input.value);
+        // Save all currently-checked answers one final time (safety net)
+        const saves = [];
+        document.querySelectorAll('input[type="radio"]:checked').forEach(input => {
+            const qid = input.name.replace("question_", "");
+            const fd = new FormData();
+            fd.append('mocktest_id', MOCKTEST_ID);
+            fd.append('question_id', qid);
+            fd.append('option_id', input.value);
 
+            saves.push(
                 fetch("{% url 'exams:save_answer' %}", {
                     method: "POST",
                     headers: { "X-CSRFToken": "{{ csrf_token }}" },
                     body: fd
-                });
-            });
+                })
+            );
+        });
 
-        // Final submit
-        setTimeout(() => {
-            document.getElementById("testForm").submit();
-        }, 500);
+        try {
+            await Promise.all(saves);
+        } catch (e) {
+            console.error("Pre-submit save failed:", e);
+        }
+
+        document.getElementById("testForm").submit();
     }
 
     /* ===== FIRST LOAD ===== */
@@ -670,33 +855,7 @@
         loadQuestion(1);
     });
 
-    // Get language from server
-    const CURRENT_LANGUAGE = "{{ language|default:'en' }}";
-
-    // Update loadQuestion to pass language if needed
-    function loadQuestion(num) {
-        console.log("Loading question:", num, "Language:", CURRENT_LANGUAGE);
-
-        fetch("{% url 'exams:ajax_question' mocktest.id %}?q=" + num)
-            .then(r => r.text())
-            .then(html => {
-                const container = document.getElementById("questionContainer");
-                container.innerHTML = html;
-
-                // Re-render math for AJAX-loaded content
-                if (window.MathJax) {
-                    MathJax.typesetPromise([container]);
-                }
-
-                // Update palette active state
-                document.querySelectorAll(".hex-btn").forEach(b => b.classList.remove("active-q"));
-                const activeBtn = document.getElementById("palette-" + num);
-                if (activeBtn) activeBtn.classList.add("active-q");
-            });
-    }
-
-    // Close palette when clicking outside on mobile (handled by overlay)
-    // Also close on escape key
+    /* ===== ESC CLOSES PALETTE ===== */
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             const palette = document.getElementById("questionPalette");
@@ -709,5 +868,4 @@
         }
     });
 </script>
-
 {% endblock %}
