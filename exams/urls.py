@@ -59,6 +59,7 @@ urlpatterns = [
     path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('leaderboard/<str:filter_type>/', views.leaderboard, name='leaderboard_filtered'),
     path('dashboard/all-attempts/', views.all_attempts_unified, name='all_attempts'),
+    path('mocktest/<int:mocktest_id>/start-verified/', views.start_test_verified, name='start_test_verified'),
 ]
 
 # Serve media files in development
