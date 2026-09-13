@@ -190,6 +190,386 @@
         font-size: 0.75rem;
         font-weight: 600;
     }
+
+    /* =====================================================
+       ✅ MOBILE-ONLY IMPROVEMENTS
+       - reduce side gaps (no more cylinder look)
+       - tighter spacing so more info is visible
+       - compact stat cards, hamburger grid, recent tests
+       - charts sized for phone screens
+       - desktop styles untouched
+       ===================================================== */
+    @media (max-width: 768px) {
+        /* Outer container: minimal side padding */
+        .max-w-7xl.mx-auto.px-4.sm\:px-6.lg\:px-8.py-6 {
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            padding-top: 12px !important;
+            padding-bottom: 16px !important;
+        }
+
+        /* ===== HAMBURGER SECTION ===== */
+        .hamburger-section {
+            padding: 14px !important;
+            margin-bottom: 14px !important;
+            border-radius: 14px !important;
+        }
+        .hamburger-section h2 {
+            font-size: 1rem !important;
+        }
+        .hamburger-section h2 svg {
+            width: 18px !important;
+            height: 18px !important;
+        }
+        .hamburger-section p {
+            font-size: 0.72rem !important;
+        }
+        .hamburger-section .flex.items-center.justify-between.mb-6 {
+            margin-bottom: 10px !important;
+        }
+        .hamburger-section .text-xs.text-indigo-400 {
+            padding: 2px 8px !important;
+            font-size: 0.62rem !important;
+        }
+        /* Hamburger grid: 2-col on mobile with tighter gap */
+        .hamburger-section .grid.grid-cols-2 {
+            gap: 6px !important;
+        }
+        .hamburger-item {
+            padding: 8px !important;
+            border-radius: 10px !important;
+        }
+        .hamburger-item .w-10.h-10 {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 8px !important;
+        }
+        .hamburger-item .w-10.h-10 svg {
+            width: 16px !important;
+            height: 16px !important;
+        }
+        .hamburger-item .text-sm {
+            font-size: 0.75rem !important;
+        }
+        .hamburger-item .text-xs {
+            font-size: 0.62rem !important;
+        }
+
+        /* ===== WELCOME HEADER ===== */
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl.p-6 {
+            padding: 14px !important;
+            border-radius: 14px !important;
+            margin-bottom: 14px !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl.p-6 .w-12.h-12 {
+            width: 40px !important;
+            height: 40px !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl.p-6 .w-12.h-12 span {
+            font-size: 1.25rem !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl.p-6 h1 {
+            font-size: 1.1rem !important;
+            line-height: 1.3 !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl.p-6 p {
+            font-size: 0.75rem !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl.p-6 .mt-4.md\:mt-0.flex.flex-wrap.items-center.gap-3 {
+            gap: 6px !important;
+            margin-top: 10px !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl.p-6 .inline-flex.items-center.px-4.py-2 {
+            padding: 5px 10px !important;
+            font-size: 0.68rem !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl.p-6 .inline-flex.items-center.px-4.py-2 svg {
+            width: 12px !important;
+            height: 12px !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl.p-6 .inline-flex.items-center.px-3.py-1\.5 {
+            padding: 3px 8px !important;
+            font-size: 0.62rem !important;
+        }
+
+        /* ===== QUICK STATS CARDS ===== */
+        .grid.grid-cols-2.md\:grid-cols-4.gap-4 {
+            gap: 6px !important;
+            margin-bottom: 14px !important;
+        }
+        .stat-card {
+            padding: 10px !important;
+            border-radius: 12px !important;
+        }
+        .stat-card .text-gray-500.text-sm {
+            font-size: 0.68rem !important;
+        }
+        .stat-card .w-11.h-11 {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 8px !important;
+        }
+        .stat-card .w-11.h-11 svg {
+            width: 16px !important;
+            height: 16px !important;
+        }
+        .stat-card .text-3xl {
+            font-size: 1.25rem !important;
+            line-height: 1.1 !important;
+        }
+        .stat-card .text-xs {
+            font-size: 0.62rem !important;
+        }
+        .stat-card .w-2.h-2 {
+            width: 6px !important;
+            height: 6px !important;
+        }
+
+        /* ===== ACHIEVEMENTS BANNER ===== */
+        .bg-gradient-to-r.from-amber-50.to-yellow-50.rounded-2xl.p-4 {
+            padding: 10px !important;
+            margin-bottom: 14px !important;
+            border-radius: 12px !important;
+        }
+        .bg-gradient-to-r.from-amber-50.to-yellow-50.rounded-2xl.p-4 .w-12.h-12 {
+            width: 40px !important;
+            height: 40px !important;
+        }
+        .bg-gradient-to-r.from-amber-50.to-yellow-50.rounded-2xl.p-4 .w-12.h-12 svg {
+            width: 20px !important;
+            height: 20px !important;
+        }
+        .bg-gradient-to-r.from-amber-50.to-yellow-50.rounded-2xl.p-4 p.font-semibold {
+            font-size: 0.85rem !important;
+        }
+        .bg-gradient-to-r.from-amber-50.to-yellow-50.rounded-2xl.p-4 p.text-sm {
+            font-size: 0.72rem !important;
+        }
+        .achievement-badge {
+            padding: 4px 10px !important;
+            font-size: 0.65rem !important;
+        }
+
+        /* ===== TESTIMONIAL SECTION ===== */
+        .bg-gradient-to-r.from-indigo-50.to-purple-50.rounded-2xl.p-6 {
+            padding: 12px !important;
+            margin-bottom: 14px !important;
+            border-radius: 14px !important;
+        }
+        .bg-gradient-to-r.from-indigo-50.to-purple-50.rounded-2xl.p-6 h3 {
+            font-size: 0.95rem !important;
+        }
+        .bg-gradient-to-r.from-indigo-50.to-purple-50.rounded-2xl.p-6 p {
+            font-size: 0.78rem !important;
+        }
+        .bg-gradient-to-r.from-indigo-50.to-purple-50.rounded-2xl.p-6 .px-4.py-2 {
+            padding: 6px 10px !important;
+            font-size: 0.72rem !important;
+        }
+        .bg-gradient-to-r.from-indigo-50.to-purple-50.rounded-2xl.p-6 .px-6.py-3 {
+            padding: 8px 14px !important;
+            font-size: 0.78rem !important;
+        }
+
+        /* ===== ANALYTICS SECTION ===== */
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-6.mb-8 {
+            padding: 12px !important;
+            margin-bottom: 14px !important;
+            border-radius: 14px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-6.mb-8 h2 {
+            font-size: 0.95rem !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-6.mb-8 h2 svg {
+            width: 18px !important;
+            height: 18px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-6.mb-8 .flex.items-center.justify-between.mb-6 {
+            margin-bottom: 12px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-6.mb-8 h3 {
+            font-size: 0.78rem !important;
+        }
+        /* Reduce chart height on mobile */
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-6.mb-8 div[style*="height: 260px"] {
+            height: 200px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-6.mb-8 .grid.grid-cols-1.lg\:grid-cols-2.gap-8 {
+            gap: 14px !important;
+        }
+
+        /* ===== RECENT TESTS ===== */
+        #tests.grid.grid-cols-1.lg\:grid-cols-3.gap-8 {
+            gap: 14px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.overflow-hidden {
+            border-radius: 14px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.overflow-hidden > .px-6.py-4 {
+            padding: 10px 12px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.overflow-hidden > .px-6.py-4 h2 {
+            font-size: 0.88rem !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.overflow-hidden > .px-6.py-4 h2 svg {
+            width: 16px !important;
+            height: 16px !important;
+        }
+        .test-count-badge {
+            padding: 2px 8px !important;
+            font-size: 0.65rem !important;
+        }
+        .view-all-btn {
+            font-size: 0.72rem !important;
+        }
+        .view-all-btn svg {
+            width: 12px !important;
+            height: 12px !important;
+        }
+
+        /* Recent test rows */
+        .test-card-dashboard {
+            padding: 10px 12px !important;
+        }
+        .test-card-dashboard h3 {
+            font-size: 0.78rem !important;
+        }
+        .test-card-dashboard .px-2.py-0\.5 {
+            padding: 1px 6px !important;
+            font-size: 0.62rem !important;
+        }
+        .test-card-dashboard .text-xs {
+            font-size: 0.65rem !important;
+        }
+        .test-card-dashboard .flex.flex-wrap.items-center.gap-3 {
+            gap: 6px !important;
+        }
+        .test-card-dashboard .w-3\.5.h-3\.5 {
+            width: 11px !important;
+            height: 11px !important;
+        }
+        .test-card-dashboard .mt-2.w-full.bg-gray-100 {
+            margin-top: 6px !important;
+        }
+        /* Make hover-reveal always visible on mobile */
+        .test-card-dashboard .hover-reveal {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+        .test-card-dashboard .hover-reveal a {
+            padding: 5px 9px !important;
+            font-size: 0.68rem !important;
+        }
+
+        /* Empty state */
+        .p-12.text-center {
+            padding: 24px 14px !important;
+        }
+        .p-12.text-center .w-20.h-20 {
+            width: 56px !important;
+            height: 56px !important;
+            margin-bottom: 10px !important;
+        }
+        .p-12.text-center .w-20.h-20 svg {
+            width: 26px !important;
+            height: 26px !important;
+        }
+        .p-12.text-center h3 {
+            font-size: 0.95rem !important;
+        }
+        .p-12.text-center p {
+            font-size: 0.78rem !important;
+        }
+        .p-12.text-center a {
+            padding: 8px 14px !important;
+            font-size: 0.78rem !important;
+        }
+
+        /* ===== QUICK ACTIONS PANEL ===== */
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-5 {
+            padding: 12px !important;
+            border-radius: 14px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-5 h2 {
+            font-size: 0.9rem !important;
+            margin-bottom: 10px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-5 h2 svg {
+            width: 16px !important;
+            height: 16px !important;
+        }
+        .quick-action-card {
+            padding: 8px 10px !important;
+            border-radius: 10px !important;
+        }
+        .quick-action-card .w-10.h-10 {
+            width: 32px !important;
+            height: 32px !important;
+            margin-right: 8px !important;
+        }
+        .quick-action-card .w-10.h-10 svg {
+            width: 16px !important;
+            height: 16px !important;
+        }
+        .quick-action-card .font-medium {
+            font-size: 0.75rem !important;
+        }
+        .quick-action-card .text-xs {
+            font-size: 0.62rem !important;
+        }
+        .quick-action-card .w-4.h-4 {
+            width: 12px !important;
+            height: 12px !important;
+        }
+
+        /* Subject mastery panel */
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-5 .space-y-4 > div {
+            margin-bottom: 2px !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-5 .text-sm {
+            font-size: 0.72rem !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-5 .text-xs {
+            font-size: 0.62rem !important;
+        }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-5 .h-2 {
+            height: 6px !important;
+        }
+
+        /* ===== SCROLL TO TOP BUTTON ===== */
+        #scrollTopBtn {
+            width: 40px !important;
+            height: 40px !important;
+            bottom: 16px !important;
+            right: 12px !important;
+        }
+        #scrollTopBtn svg {
+            width: 16px !important;
+            height: 16px !important;
+        }
+    }
+
+    /* Very small phones */
+    @media (max-width: 480px) {
+        .max-w-7xl.mx-auto.px-4.sm\:px-6.lg\:px-8.py-6 {
+            padding-left: 6px !important;
+            padding-right: 6px !important;
+        }
+
+        /* Force 2-col grid for stats on tiny phones */
+        .grid.grid-cols-2.md\:grid-cols-4.gap-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+        /* Hamburger grid stays 2-col until 480px */
+        .hamburger-section .grid.grid-cols-2 {
+            grid-template-columns: 1fr 1fr !important;
+        }
+
+        .bg-gradient-to-r.from-indigo-600.via-purple-600.to-pink-600.rounded-2xl.shadow-xl.p-6 h1 {
+            font-size: 1rem !important;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -511,7 +891,6 @@
                         <span class="test-count-badge">{{ attempts|length }} total</span>
                     </div>
                     
-                    <!-- ===== VIEW ALL BUTTON ===== -->
                     {% if attempts|length > 5 %}
                     <a href="{% url 'exams:all_attempts' %}" class="view-all-btn inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800">
                         View All
@@ -573,7 +952,6 @@
                     {% endfor %}
                 </div>
                 
-                <!-- ===== VIEW ALL FOOTER ===== -->
                 {% if attempts|length > 5 %}
                 <div class="px-6 py-3 bg-gray-50/50 border-t border-gray-100 text-center">
                     <a href="{% url 'exams:all_attempts' %}" class="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">
@@ -719,12 +1097,10 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // ===== GET DATA FROM DJANGO CONTEXT =====
     const subjectLabels = {{ subject_labels_json|safe }};
     const subjectScores = {{ subject_scores_json|safe }};
     const attempts = {{ attempts_json|safe }};
     
-    // ===== BAR CHART (Subject Mastery) =====
     function getBarColor(value) {
         if (value < 33) return '#ef4444';
         if (value < 50) return '#f59e0b';
@@ -774,7 +1150,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ===== LINE CHART (Score Trend) =====
     const trendCtx = document.getElementById('trendChart')?.getContext('2d');
     if (trendCtx && attempts && attempts.length > 0) {
         const labels = attempts.map(a => a.date);
@@ -833,7 +1208,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ===== HAMBURGER NAVIGATION =====
     const hamburgerItems = document.querySelectorAll('.hamburger-item');
     hamburgerItems.forEach(item => {
         item.addEventListener('click', function(e) {
@@ -852,7 +1226,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ===== SCROLL TO TOP BUTTON =====
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     window.addEventListener('scroll', function () {
         const show = window.scrollY > 400;
