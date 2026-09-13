@@ -263,7 +263,7 @@
                     Terms & Language Selection
                 </h2>
 
-                <form method="POST" action="{% url 'exams:start_test' mocktest.id %}" id="startTestForm">
+                <form method="POST" action="{% url 'exams:start_test_verified' mocktest.id %}" id="startTestForm">
                     {% csrf_token %}
 
                     <!-- Terms and Conditions Card -->
@@ -500,6 +500,226 @@
     }
     .language-option .w-5.h-5 {
         transition: all 0.3s ease;
+    }
+
+    /* =====================================================
+       ✅ MOBILE-ONLY IMPROVEMENTS
+       - reduce side gaps (no more cylinder look)
+       - tighter vertical spacing to show more info
+       - compact header, chips, cards on small screens
+       - desktop styles untouched
+       ===================================================== */
+    @media (max-width: 768px) {
+        /* Outer container: minimal side padding */
+        .max-w-4xl.mx-auto.px-4.sm\:px-6.lg\:px-8.py-8 {
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            padding-top: 12px !important;
+            padding-bottom: 16px !important;
+        }
+
+        /* Top hero: smaller icon + tighter spacing */
+        .text-center.mb-8 {
+            margin-bottom: 14px !important;
+        }
+        .text-center.mb-8 .w-20.h-20 {
+            width: 56px !important;
+            height: 56px !important;
+            margin-bottom: 10px !important;
+            border-radius: 14px !important;
+        }
+        .text-center.mb-8 .w-20.h-20 svg {
+            width: 28px !important;
+            height: 28px !important;
+        }
+        .text-center.mb-8 h1 {
+            font-size: 1.5rem !important;
+            margin-bottom: 4px !important;
+        }
+        .text-center.mb-8 p {
+            font-size: 0.9rem !important;
+        }
+
+        /* Main card radius slightly smaller on mobile */
+        .bg-white.rounded-2xl.shadow-xl {
+            border-radius: 14px !important;
+        }
+
+        /* Header gradient block: tighter padding + smaller title */
+        .bg-gradient-to-r.from-indigo-600.to-purple-600.px-6.py-8 {
+            padding: 16px 14px !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.to-purple-600.px-6.py-8 h1 {
+            font-size: 1.25rem !important;
+            margin-bottom: 4px !important;
+            line-height: 1.3 !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.to-purple-600.px-6.py-8 p {
+            font-size: 0.85rem !important;
+            margin-bottom: 8px !important;
+        }
+        /* Chips: smaller + tighter */
+        .bg-gradient-to-r.from-indigo-600.to-purple-600.px-6.py-8 .flex.flex-wrap {
+            gap: 6px !important;
+            margin-top: 8px !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.to-purple-600.px-6.py-8 .flex.flex-wrap > span {
+            font-size: 0.72rem !important;
+            padding: 4px 8px !important;
+        }
+        .bg-gradient-to-r.from-indigo-600.to-purple-600.px-6.py-8 .flex.flex-wrap > span svg {
+            width: 12px !important;
+            height: 12px !important;
+            margin-right: 3px !important;
+        }
+
+        /* Body content area: much tighter padding */
+        .p-6.md\:p-8 {
+            padding: 12px !important;
+        }
+
+        /* Section headings smaller */
+        .p-6.md\:p-8 h2 {
+            font-size: 1.05rem !important;
+            margin-bottom: 10px !important;
+        }
+        .p-6.md\:p-8 h2 .w-8.h-8 {
+            width: 26px !important;
+            height: 26px !important;
+            margin-right: 8px !important;
+        }
+        .p-6.md\:p-8 h2 .w-8.h-8 svg {
+            width: 15px !important;
+            height: 15px !important;
+        }
+
+        /* Upper instruction block: reduce bottom margin */
+        .mb-8 {
+            margin-bottom: 14px !important;
+        }
+
+        /* Two-column grid → single column with tight gap */
+        .grid.md\:grid-cols-2.gap-6 {
+            gap: 10px !important;
+        }
+
+        /* Gray info cards: tighter padding */
+        .bg-gray-50.rounded-xl.p-5 {
+            padding: 12px !important;
+            border-radius: 10px !important;
+        }
+        .bg-gray-50.rounded-xl.p-5 h3 {
+            font-size: 0.9rem !important;
+            margin-bottom: 8px !important;
+        }
+        .bg-gray-50.rounded-xl.p-5 ul {
+            font-size: 0.82rem !important;
+        }
+        .bg-gray-50.rounded-xl.p-5 ul li {
+            margin-bottom: 6px !important;
+        }
+
+        /* Marking scheme table: compact */
+        .bg-gray-50.rounded-xl.p-5 table th,
+        .bg-gray-50.rounded-xl.p-5 table td {
+            padding: 6px 8px !important;
+            font-size: 0.78rem !important;
+        }
+
+        /* Pro Tips box: tighter */
+        .bg-gradient-to-br.from-blue-50.to-indigo-50.rounded-xl.p-6 {
+            padding: 12px !important;
+            border-radius: 12px !important;
+        }
+        .bg-gradient-to-br.from-blue-50.to-indigo-50.rounded-xl.p-6 h3 {
+            font-size: 0.95rem !important;
+            margin-bottom: 8px !important;
+            flex-wrap: wrap;
+            gap: 6px !important;
+        }
+        .bg-gradient-to-br.from-blue-50.to-indigo-50.rounded-xl.p-6 .grid.sm\:grid-cols-2 {
+            gap: 8px !important;
+        }
+        .bg-gradient-to-br.from-blue-50.to-indigo-50.rounded-xl.p-6 .bg-white\/70 {
+            padding: 8px !important;
+        }
+        .bg-gradient-to-br.from-blue-50.to-indigo-50.rounded-xl.p-6 .bg-white\/70 p {
+            font-size: 0.72rem !important;
+        }
+
+        /* Divider margin */
+        .border-t.border-gray-200.my-6 {
+            margin-top: 14px !important;
+            margin-bottom: 14px !important;
+        }
+
+        /* Terms & language cards */
+        .bg-amber-50.border.border-amber-200.rounded-xl.p-5 {
+            padding: 12px !important;
+            margin-bottom: 14px !important;
+        }
+        .bg-amber-50 .text-sm {
+            font-size: 0.8rem !important;
+        }
+        .bg-gray-50.rounded-xl.p-6.border.border-gray-200 {
+            padding: 12px !important;
+            margin-bottom: 14px !important;
+        }
+        .bg-gray-50.rounded-xl.p-6.border.border-gray-200 h5 {
+            font-size: 0.95rem !important;
+            margin-bottom: 10px !important;
+        }
+        /* Language options: tighter */
+        .language-option {
+            padding: 10px !important;
+            border-radius: 10px !important;
+        }
+        .language-option .text-sm {
+            font-size: 0.8rem !important;
+        }
+
+        /* Action buttons: full width on mobile, tighter gap */
+        .flex.flex-col.sm\:flex-row.gap-4.justify-end {
+            gap: 8px !important;
+        }
+        .flex.flex-col.sm\:flex-row.gap-4.justify-end a,
+        .flex.flex-col.sm\:flex-row.gap-4.justify-end button {
+            padding: 10px 16px !important;
+            font-size: 0.9rem !important;
+        }
+    }
+
+    /* Very small phones */
+    @media (max-width: 480px) {
+        .max-w-4xl.mx-auto.px-4.sm\:px-6.lg\:px-8.py-8 {
+            padding-left: 6px !important;
+            padding-right: 6px !important;
+        }
+
+        .text-center.mb-8 h1 {
+            font-size: 1.3rem !important;
+        }
+
+        .bg-gradient-to-r.from-indigo-600.to-purple-600.px-6.py-8 h1 {
+            font-size: 1.1rem !important;
+        }
+
+        .p-6.md\:p-8 {
+            padding: 10px !important;
+        }
+
+        .bg-gray-50.rounded-xl.p-5 {
+            padding: 10px !important;
+        }
+
+        .bg-gradient-to-br.from-blue-50.to-indigo-50.rounded-xl.p-6 {
+            padding: 10px !important;
+        }
+
+        .bg-amber-50.border.border-amber-200.rounded-xl.p-5,
+        .bg-gray-50.rounded-xl.p-6.border.border-gray-200 {
+            padding: 10px !important;
+        }
     }
 </style>
 {% endblock %}
