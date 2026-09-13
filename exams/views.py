@@ -31,6 +31,7 @@ from .models import (
     SubCategory,
     MockTest,
     Question,
+    Option,
     Subject,
     MockTestAttempt,
     UserAnswer,
@@ -647,85 +648,252 @@ def attempt_test(request, mocktest_id):
 # SAVE ANSWER (SESSION)
 # ==============================
 
+# @login_required
+# def save_answer(request):
+#     if request.method == "POST":
+#         mocktest_id = request.POST.get('mocktest_id')
+#         question_id = request.POST.get('question_id')
+#         option_id = request.POST.get('option_id')
+        
+#         if not mocktest_id or not question_id:
+#             return JsonResponse({"status": "error", "message": "Missing parameters"})
+        
+#         try:
+#             question = get_object_or_404(Question, id=question_id)
+#             mocktest = get_object_or_404(MockTest, id=mocktest_id)
+            
+#             # Save to session
+#             answers = request.session.get(f"answers_{mocktest.id}", {})
+            
+#             if option_id == "" or option_id is None:
+#                 answers.pop(str(question_id), None)
+#             else:
+#                 answers[str(question_id)] = int(option_id)
+            
+#             request.session[f"answers_{mocktest.id}"] = answers
+            
+#             return JsonResponse({
+#                 "status": "ok",
+#                 "saved": True,
+#                 "question_id": question_id,
+#                 "option_id": option_id
+#             })
+#         except Exception as e:
+#             return JsonResponse({"status": "error", "message": str(e)})
+    
+#     return JsonResponse({"status": "error", "message": "Invalid request"})
+
 @login_required
 def save_answer(request):
-    if request.method == "POST":
-        mocktest_id = request.POST.get('mocktest_id')
-        question_id = request.POST.get('question_id')
-        option_id = request.POST.get('option_id')
-        
-        if not mocktest_id or not question_id:
-            return JsonResponse({"status": "error", "message": "Missing parameters"})
-        
-        try:
-            question = get_object_or_404(Question, id=question_id)
-            mocktest = get_object_or_404(MockTest, id=mocktest_id)
-            
-            # Save to session
-            answers = request.session.get(f"answers_{mocktest.id}", {})
-            
-            if option_id == "" or option_id is None:
-                answers.pop(str(question_id), None)
-            else:
-                answers[str(question_id)] = int(option_id)
-            
-            request.session[f"answers_{mocktest.id}"] = answers
-            
-            return JsonResponse({
-                "status": "ok",
-                "saved": True,
-                "question_id": question_id,
-                "option_id": option_id
-            })
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)})
-    
-    return JsonResponse({"status": "error", "message": "Invalid request"})
+    import sys
+    print(f"\n{'='*60}", file=sys.stderr)
+    print(f"[SAVE_ANSWER] CALLED", file=sys.stderr)
+    print(f"[SAVE_ANSWER] method = {request.method}", file=sys.stderr)
+    print(f"[SAVE_ANSWER] POST   = {dict(request.POST)}", file=sys.stderr)
+    print(f"[SAVE_ANSWER] user   = {request.user.username}", file=sys.stderr)
 
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid method"})
+
+    mocktest_id = request.POST.get('mocktest_id')
+    question_id = request.POST.get('question_id')
+    option_id = request.POST.get('option_id')
+
+    print(f"[SAVE_ANSWER] mocktest_id={mocktest_id!r} question_id={question_id!r} option_id={option_id!r}", file=sys.stderr)
+
+    if not mocktest_id or not question_id:
+        print(f"[SAVE_ANSWER] ❌ Missing params → returning error", file=sys.stderr)
+        return JsonResponse({"status": "error", "message": "Missing parameters"})
+
+    try:
+        mocktest = MockTest.objects.get(id=mocktest_id)
+        question = Question.objects.get(id=question_id)
+
+        attempt = MockTestAttempt.objects.filter(
+            user=request.user,
+            mock_test=mocktest,
+            is_completed=False
+        ).order_by('-started_at').first()
+
+        print(f"[SAVE_ANSWER] attempt = {attempt.id if attempt else 'NONE'}", file=sys.stderr)
+
+        if not attempt:
+            print(f"[SAVE_ANSWER] ❌ No active attempt", file=sys.stderr)
+            return JsonResponse({"status": "error", "message": "No active attempt"})
+
+        # CLEAR
+        if not option_id or option_id == "":
+            UserAnswer.objects.filter(attempt=attempt, question=question).delete()
+            print(f"[SAVE_ANSWER] ✅ CLEARED qid={question_id}", file=sys.stderr)
+            return JsonResponse({"status": "ok", "cleared": True})
+
+        # SAVE
+        option = Option.objects.get(id=option_id)
+        ua, created = UserAnswer.objects.update_or_create(
+            attempt=attempt,
+            question=question,
+            defaults={'selected_option': option}
+        )
+        print(f"[SAVE_ANSWER] ✅ SAVED attempt={attempt.id} qid={question_id} oid={option_id} created={created}", file=sys.stderr)
+        print(f"{'='*60}\n", file=sys.stderr)
+
+        return JsonResponse({
+            "status": "ok",
+            "saved": True,
+            "question_id": question_id,
+            "option_id": option_id,
+            "is_correct": ua.is_correct,
+        })
+
+    except Exception as e:
+        import traceback
+        print(f"[SAVE_ANSWER] ❌ EXCEPTION: {e}", file=sys.stderr)
+        print(traceback.format_exc(), file=sys.stderr)
+        return JsonResponse({"status": "error", "message": str(e)})
 
 # ==============================
 # AJAX QUESTION LOAD
 # ==============================
 
+# @login_required
+# def ajax_question(request, mocktest_id):
+#     import sys
+#     mocktest = get_object_or_404(MockTest, id=mocktest_id)
+#     questions = Question.objects.filter(
+#         mock_test=mocktest
+#     ).prefetch_related("options").order_by("id")
+#     session_lang = request.session.get(f'test_{mocktest.id}_language')
+#     attempt = MockTestAttempt.objects.filter(
+#         user=request.user, mock_test=mocktest, is_completed=False
+#     ).order_by('-started_at').first()
+#     attempt_lang = attempt.language if attempt else None
+
+#     print(f"\n[ajax_question] ==== DEBUG ====", file=sys.stderr)
+#     print(f"  session_key    = 'test_{mocktest.id}_language'", file=sys.stderr)
+#     print(f"  session_value  = {session_lang!r}", file=sys.stderr)
+#     print(f"  attempt_lang   = {attempt_lang!r}", file=sys.stderr)
+#     print(f"  all session    = {dict(request.session)}", file=sys.stderr)
+#     print(f"========================\n", file=sys.stderr)
+#     q_number = request.GET.get("q")
+#     try:
+#         q_number = int(q_number)
+#     except:
+#         q_number = 1
+
+#     q_number = max(1, min(q_number, questions.count()))
+#     question = questions[q_number - 1]
+
+#     saved_answers = request.session.get(f"answers_{mocktest.id}", {})
+#     selected_option = saved_answers.get(str(question.id))
+
+#     # Get all questions for navigation
+#     all_question_ids = list(questions.values_list('id', flat=True))
+#     current_index = all_question_ids.index(question.id)
+    
+#     # Get answered status for all questions
+#     answered_status = {}
+#     for q in questions:
+#         answered_status[str(q.id)] = str(q.id) in saved_answers
+
+#     print(f"[ajax_question RENDER] language={language!r}", file=sys.stderr)
+#     print(f"[ajax_question RENDER] question.id={question.id}", file=sys.stderr)
+#     print(f"[ajax_question RENDER] question.question_en={question.question_en[:60]!r}", file=sys.stderr)
+#     print(f"[ajax_question RENDER] question.question_hi={question.question_hi!r}", file=sys.stderr)
+#     print(f"[ajax_question RENDER] has_hi={'YES' if question.question_hi and question.question_hi.strip() else 'NO'}", file=sys.stderr)
+#     print(f"[ajax_question RENDER] selected_option={selected_option!r}", file=sys.stderr)
+#     return render(request, "exams/ajax_question.html", {
+#         "question": question,
+#         "question_number": q_number,
+#         "total_questions": questions.count(),
+#         "selected_option": selected_option,
+#         "question_ids": all_question_ids,
+#         "current_index": current_index,
+#         "answered_status": json.dumps(answered_status),
+#     })
+
 @login_required
 def ajax_question(request, mocktest_id):
+    import sys
     mocktest = get_object_or_404(MockTest, id=mocktest_id)
-    questions = Question.objects.filter(
-        mock_test=mocktest
-    ).prefetch_related("options").order_by("id")
 
-    q_number = request.GET.get("q")
+    # ---- Find attempt ----
+    attempt = MockTestAttempt.objects.filter(
+        user=request.user,
+        mock_test=mocktest,
+        is_completed=False
+    ).order_by('-started_at').first()
+
+    if not attempt:
+        attempt = MockTestAttempt.objects.filter(
+            user=request.user,
+            mock_test=mocktest,
+        ).order_by('-started_at').first()
+
+    print(f"\n=== AJAX_QUESTION DEBUG ===", file=sys.stderr)
+    print(f"mocktest_id     = {mocktest.id}", file=sys.stderr)
+    print(f"attempt_id      = {attempt.id if attempt else 'NONE'}", file=sys.stderr)
+
+    # ---- Get questions ----
+    questions = list(
+        Question.objects.filter(mock_test=mocktest)
+        .prefetch_related("options")
+        .order_by("order", "id")
+    )
+
+    total = len(questions)
+    print(f"total_questions = {total}", file=sys.stderr)
+
+    # ---- Language ----
+    language = (
+        request.session.get(f'test_{mocktest.id}_language')
+        or request.session.get('test_language')
+        or (attempt.language if attempt else None)
+        or 'en'
+    )
+    print(f"language        = {language!r}", file=sys.stderr)
+
+    # ---- GUARD: no questions ----
+    if total == 0:
+        print(f"→ No questions found for mocktest {mocktest.id}\n", file=sys.stderr)
+        return render(request, "exams/ajax_question.html", {
+            "question": None,
+            "language": language,
+            "total_questions": 0,
+        })
+
+    # ---- Resolve q_number ----
+    q_number = request.GET.get("q", "1")
     try:
         q_number = int(q_number)
-    except:
+    except (ValueError, TypeError):
         q_number = 1
+    q_number = max(1, min(q_number, total))
 
-    q_number = max(1, min(q_number, questions.count()))
     question = questions[q_number - 1]
+    print(f"q_number        = {q_number}", file=sys.stderr)
+    print(f"question_id     = {question.id}", file=sys.stderr)
 
-    saved_answers = request.session.get(f"answers_{mocktest.id}", {})
-    selected_option = saved_answers.get(str(question.id))
+    # ---- Read selected option ----
+    selected_option = None
+    if attempt:
+        ua = UserAnswer.objects.filter(
+            attempt=attempt, question=question
+        ).first()
+        if ua and ua.selected_option_id:
+            selected_option = ua.selected_option_id
 
-    # Get all questions for navigation
-    all_question_ids = list(questions.values_list('id', flat=True))
-    current_index = all_question_ids.index(question.id)
-    
-    # Get answered status for all questions
-    answered_status = {}
-    for q in questions:
-        answered_status[str(q.id)] = str(q.id) in saved_answers
+    print(f"selected_option = {selected_option!r} (type: {type(selected_option).__name__})", file=sys.stderr)
+    for opt in question.options.all():
+        print(f"  option id={opt.id}  matches={str(opt.id) == str(selected_option)}", file=sys.stderr)
+    print(f"===\n", file=sys.stderr)
 
     return render(request, "exams/ajax_question.html", {
         "question": question,
         "question_number": q_number,
-        "total_questions": questions.count(),
+        "total_questions": total,
         "selected_option": selected_option,
-        "question_ids": all_question_ids,
-        "current_index": current_index,
-        "answered_status": json.dumps(answered_status),
+        "language": language,
     })
-
-
 # ==============================
 # VIEW RANKINGS
 # ==============================
@@ -1709,7 +1877,6 @@ def start_test_verified(request, mocktest_id):
 # ==============================
 # SUBMIT TEST
 # ==============================
-
 @login_required
 def submit_test(request, mocktest_id):
     mocktest = get_object_or_404(MockTest, id=mocktest_id, is_active=True)
@@ -1718,7 +1885,7 @@ def submit_test(request, mocktest_id):
         user=request.user,
         mock_test=mocktest,
         is_completed=False
-    ).first()
+    ).order_by('-started_at').first()
 
     if not attempt:
         messages.error(request, 'No active attempt found for this test.')
@@ -1727,11 +1894,7 @@ def submit_test(request, mocktest_id):
     if attempt.is_completed:
         return redirect("exams:result_dashboard", attempt_id=attempt.id)
 
-    attempt.submitted_at = timezone.now()
-    attempt.is_completed = True
-
     questions = Question.objects.filter(mock_test=mocktest)
-    session_answers = request.session.get(f"answers_{mocktest.id}", {})
 
     correct = 0
     wrong = 0
@@ -1740,27 +1903,34 @@ def submit_test(request, mocktest_id):
     score_with_negative = 0
     negative_applied = 0
 
-    for question in questions:
-        selected_id = session_answers.get(str(question.id))
+    # ✅ Get all existing UserAnswers for this attempt (keyed by question_id)
+    existing = {
+        ua.question_id: ua
+        for ua in UserAnswer.objects.filter(attempt=attempt)
+    }
 
-        if not selected_id or selected_id == "":
+    for question in questions:
+        ua = existing.get(question.id)
+
+        # Case 1: No answer → skipped
+        if not ua or not ua.selected_option_id:
             skipped += 1
-            UserAnswer.objects.create(
-                attempt=attempt,
-                question=question
-            )
+            # Create empty row only if missing (using update_or_create to be safe)
+            if not ua:
+                UserAnswer.objects.update_or_create(
+                    attempt=attempt,
+                    question=question,
+                    defaults={'selected_option': None}
+                )
             continue
 
-        ua = UserAnswer.objects.create(
-            attempt=attempt,
-            question=question,
-            selected_option_id=selected_id
-        )
-
-        if ua.selected_option and ua.selected_option.is_correct:
+        # Case 2: Correct
+        if ua.selected_option.is_correct:
             correct += 1
             raw_score += question.marks
             score_with_negative += question.marks
+
+        # Case 3: Wrong
         else:
             wrong += 1
             negative = question.get_effective_negative_marks()
@@ -1774,13 +1944,13 @@ def submit_test(request, mocktest_id):
     attempt.score_with_negative = max(0, score_with_negative)
     attempt.negative_marks_applied = negative_applied
     attempt.total_marks = sum(q.marks for q in questions)
-
+    attempt.submitted_at = timezone.now()
+    attempt.is_completed = True
     attempt.save()
 
-    # Clear session answers
+    # Clear legacy session
     request.session.pop(f"answers_{mocktest.id}", None)
-    
-    # Log submission
+
     log_transaction(
         request.user,
         'test_submitted',
@@ -1794,7 +1964,7 @@ def submit_test(request, mocktest_id):
             'skipped': skipped
         }
     )
-    
+
     messages.success(request, 'Test submitted successfully!')
     return redirect("exams:result_dashboard", attempt_id=attempt.id)
 
